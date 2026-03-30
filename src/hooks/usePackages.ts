@@ -23,6 +23,31 @@ export function usePackages(clientId?: string) {
   });
 }
 
+export function useCreatePackage() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (pkg: Omit<Package, "id" | "trainer_id" | "created_at" | "sessions_used" | "amount_paid" | "payment_status" | "status" | "last_low_session_alert_sent">) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      const { data, error } = await supabase.from("packages").insert({
+        ...pkg,
+        trainer_id: user.id,
+        sessions_used: 0,
+        amount_paid: 0,
+        payment_status: "unpaid",
+        status: "active",
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["packages", variables.client_id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
 export function useLogSession() {
   const supabase = createClient();
   const queryClient = useQueryClient();

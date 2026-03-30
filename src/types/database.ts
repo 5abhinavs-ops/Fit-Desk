@@ -16,6 +16,25 @@ export type BookingStatus =
 export type BookingSessionType = "1-on-1" | "group" | "assessment";
 export type BookingSource = "trainer" | "client_link";
 
+/**
+ * How payment is collected when a client books a session.
+ *
+ * - "pay_now"     — Client pays via Stripe at the time of booking.
+ *                   A pending Payment record is created immediately.
+ *                   Booking stays "pending" until Stripe confirms.
+ *
+ * - "pay_later"   — PT records the booking; payment is settled
+ *                   offline (cash / PayNow / bank transfer).
+ *                   A Payment record is created with status "pending"
+ *                   and a due_date set by the PT.
+ *                   Reminder cron picks this up and sends WhatsApp chasers.
+ *
+ * - "from_package" — Session is deducted from a pre-paid package.
+ *                   No new Payment record is created.
+ *                   Package.sessions_used increments on completion.
+ */
+export type BookingPaymentMode = "pay_now" | "pay_later" | "from_package";
+
 export type PaymentMethod =
   | "PayNow"
   | "cash"
@@ -23,6 +42,12 @@ export type PaymentMethod =
   | "card"
   | "other";
 export type PaymentStatus = "received" | "pending" | "overdue";
+
+/**
+ * Overdue reminder stages tracked per Payment row.
+ * Lets the cron skip already-sent messages without re-querying send logs.
+ */
+export type OverdueReminderStage = "none" | "day_1" | "day_3" | "day_7";
 
 export interface Profile {
   id: string;
@@ -35,6 +60,18 @@ export interface Profile {
   default_session_mins: number;
   subscription_plan: SubscriptionPlan;
   stripe_customer_id: string | null;
+  /**
+   * Default payment mode shown on the booking form.
+   * PT can override this per individual booking.
+   * Defaults to "pay_later" — safest for cash-heavy SEA market.
+   */
+  default_booking_payment_mode: BookingPaymentMode;
+  /**
+   * PT's PayNow number or UEN — shown in payment reminder messages
+   * and on the public booking confirmation page.
+   */
+  paynow_details: string | null;
+  instagram_url: string | null;
   created_at: string;
 }
 
@@ -68,6 +105,7 @@ export interface Package {
   status: PackageStatus;
   start_date: string;
   expiry_date: string | null;
+  last_low_session_alert_sent: string | null;
   created_at: string;
 }
 
@@ -94,6 +132,16 @@ export interface Booking {
   location: string | null;
   session_type: BookingSessionType;
   status: BookingStatus;
+  /**
+   * How payment is handled for this specific booking.
+   * Overrides profile.default_booking_payment_mode for this booking only.
+   */
+  payment_mode: BookingPaymentMode;
+  /**
+   * Stripe PaymentIntent ID — only populated when payment_mode = "pay_now"
+   * and the client has completed checkout.
+   */
+  stripe_payment_intent_id: string | null;
   reminder_24h_sent: boolean;
   reminder_1h_sent: boolean;
   booking_source: BookingSource;
@@ -106,6 +154,12 @@ export interface Payment {
   trainer_id: string;
   client_id: string;
   package_id: string | null;
+  /**
+   * booking_id links this payment to a specific session.
+   * Null for package-level payments (e.g. a deposit or instalment
+   * not tied to a single booking).
+   */
+  booking_id: string | null;
   amount: number;
   method: PaymentMethod;
   status: PaymentStatus;
@@ -113,5 +167,11 @@ export interface Payment {
   received_date: string | null;
   reference: string | null;
   notes: string | null;
+  /**
+   * Tracks how far the overdue reminder sequence has progressed.
+   * Cron uses this to send day_1 → day_3 → day_7 WhatsApp chasers
+   * without re-sending already-dispatched messages.
+   */
+  overdue_reminder_stage: OverdueReminderStage;
   created_at: string;
 }

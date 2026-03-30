@@ -16,7 +16,12 @@
       "Bash(npx shadcn@latest add card input label badge dialog sheet skeleton tabs avatar separator progress dropdown-menu toast calendar popover select textarea -y)",
       "Bash(npx shadcn@latest add card input label badge dialog sheet skeleton tabs avatar separator progress dropdown-menu sonner calendar popover select textarea -y)",
       "Bash(cd:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git config:*)",
+      "Bash(npx -y @modelcontextprotocol/server-filesystem --help)",
+      "Bash(where npx:*)",
+      "Bash(npx tsc:*)",
+      "Read(//c/Users/HP_Demo/AppData/Local/Temp/claude/C--Users-HP-Demo-AI-Projects-FitDesk/e2d97e72-0c16-4c46-8b37-2f63adbd26a0/tasks/**)"
     ]
   }
 }

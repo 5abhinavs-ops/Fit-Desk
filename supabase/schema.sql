@@ -21,6 +21,13 @@ create table public.profiles (
   subscription_plan text not null default 'free'
     check (subscription_plan in ('free', 'pro')),
   stripe_customer_id text,
+  -- Default payment mode for this trainer's booking flow.
+  -- PT can override per individual booking. Defaults to pay_later
+  -- (safest for cash/PayNow-heavy SEA market).
+  default_booking_payment_mode text not null default 'pay_later'
+    check (default_booking_payment_mode in ('pay_now', 'pay_later', 'from_package')),
+  -- PT's PayNow number or UEN shown in reminder messages.
+  paynow_details text,
   created_at    timestamptz not null default now()
 );
 
@@ -169,6 +176,18 @@ create table public.bookings (
     check (session_type in ('1-on-1', 'group', 'assessment')),
   status              text not null default 'confirmed'
     check (status in ('confirmed', 'pending', 'cancelled', 'completed', 'no-show')),
+  -- Payment mode for this specific booking.
+  -- Overrides profile.default_booking_payment_mode for this booking only.
+  -- pay_now:      client pays via Stripe at booking time; booking stays
+  --               "pending" until Stripe webhook confirms payment.
+  -- pay_later:    PT bills offline; a Payment row is created with
+  --               status=pending and a due_date for reminder cron.
+  -- from_package: session deducted from a linked package; no Payment
+  --               row created, package.sessions_used increments on complete.
+  payment_mode        text not null default 'pay_later'
+    check (payment_mode in ('pay_now', 'pay_later', 'from_package')),
+  -- Stripe PaymentIntent ID — only set when payment_mode = 'pay_now'.
+  stripe_payment_intent_id text,
   reminder_24h_sent   boolean not null default false,
   reminder_1h_sent    boolean not null default false,
   booking_source      text not null default 'trainer'
@@ -201,6 +220,9 @@ create table public.payments (
   trainer_id    uuid not null references public.profiles(id) on delete cascade,
   client_id     uuid not null references public.clients(id) on delete cascade,
   package_id    uuid references public.packages(id) on delete set null,
+  -- booking_id links this payment to a specific session (pay_now / pay_later).
+  -- Null for package-level instalments not tied to a single booking.
+  booking_id    uuid references public.bookings(id) on delete set null,
   amount        numeric(10,2) not null check (amount > 0),
   method        text not null default 'cash'
     check (method in ('PayNow', 'cash', 'bank_transfer', 'card', 'other')),
@@ -210,6 +232,10 @@ create table public.payments (
   received_date date,
   reference     text,
   notes         text,
+  -- Tracks overdue reminder stage so the cron does not re-send messages.
+  -- Progresses: none -> day_1 -> day_3 -> day_7.
+  overdue_reminder_stage text not null default 'none'
+    check (overdue_reminder_stage in ('none', 'day_1', 'day_3', 'day_7')),
   created_at    timestamptz not null default now()
 );
 
@@ -223,3 +249,14 @@ alter table public.payments enable row level security;
 create policy "Trainers manage own payments"
   on public.payments for all
   using (trainer_id = auth.uid());
+
+-- ============================================================
+-- MIGRATIONS — run these manually in Supabase SQL Editor
+-- after the initial schema has been applied
+-- ============================================================
+
+-- Migration: add instagram_url to profiles
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS instagram_url text;
+
+-- Migration: add last_low_session_alert_sent to packages (if not already run)
+-- ALTER TABLE public.packages ADD COLUMN IF NOT EXISTS last_low_session_alert_sent timestamptz;
