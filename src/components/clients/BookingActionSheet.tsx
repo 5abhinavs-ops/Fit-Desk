@@ -35,13 +35,19 @@ export function BookingActionSheet({ booking, clientName, open, onOpenChange }: 
         onSuccess: () => {
           if (booking.package_id) {
             logSession.mutate(booking.package_id, {
-              onSuccess: () => toast.success("Session marked complete"),
-              onError: () => toast.warning("Session marked complete but package count may not have updated"),
+              onSuccess: () => {
+                toast.success("Session marked complete")
+                onOpenChange(false)
+              },
+              onError: () => {
+                toast.warning("Session marked complete but package count may not have updated")
+                onOpenChange(false)
+              },
             })
           } else {
             toast.success("Session marked complete")
+            onOpenChange(false)
           }
-          onOpenChange(false)
         },
         onError: (error) => toast.error(error instanceof Error ? error.message : "Failed"),
       }
