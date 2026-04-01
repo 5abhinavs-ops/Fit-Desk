@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { sendTemplateMessage } from "@/lib/wati"
+import { sendTemplateMessage } from "@/lib/twilio"
 
 export async function POST(request: Request) {
   const supabase = await createClient()

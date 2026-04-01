@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
-import { sendTemplateMessage } from "@/lib/wati"
+import { sendTemplateMessage } from "@/lib/twilio"
 import { format } from "date-fns"
 
 interface TriggerError {
