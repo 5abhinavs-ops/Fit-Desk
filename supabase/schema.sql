@@ -251,12 +251,52 @@ create policy "Trainers manage own payments"
   using (trainer_id = auth.uid());
 
 -- ============================================================
+-- RPC: Atomic session increment (avoids TOCTOU race condition)
+-- ============================================================
+create or replace function public.increment_sessions_used(p_package_id uuid)
+returns json
+language plpgsql
+security invoker
+as $$
+declare
+  v_sessions_used integer;
+  v_total_sessions integer;
+  v_new_status text;
+begin
+  update public.packages
+    set sessions_used = sessions_used + 1,
+        status = case
+          when sessions_used + 1 >= total_sessions then 'completed'
+          else 'active'
+        end
+    where id = p_package_id
+      and sessions_used < total_sessions
+    returning sessions_used, total_sessions, status
+    into v_sessions_used, v_total_sessions, v_new_status;
+
+  if not found then
+    raise exception 'Package not found or all sessions already used';
+  end if;
+
+  return json_build_object(
+    'sessions_used', v_sessions_used,
+    'total_sessions', v_total_sessions,
+    'status', v_new_status
+  );
+end;
+$$;
+
+-- ============================================================
 -- MIGRATIONS — run these manually in Supabase SQL Editor
 -- after the initial schema has been applied
 -- ============================================================
 
 -- Migration: add instagram_url to profiles
--- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS instagram_url text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS instagram_url text;
 
--- Migration: add last_low_session_alert_sent to packages (if not already run)
--- ALTER TABLE public.packages ADD COLUMN IF NOT EXISTS last_low_session_alert_sent timestamptz;
+-- Migration: add last_low_session_alert_sent to packages
+ALTER TABLE public.packages ADD COLUMN IF NOT EXISTS last_low_session_alert_sent timestamptz;
+
+-- Migration: add missing indexes
+CREATE INDEX IF NOT EXISTS idx_bookings_client ON public.bookings(client_id);
+CREATE INDEX IF NOT EXISTS idx_payments_due_date ON public.payments(due_date);

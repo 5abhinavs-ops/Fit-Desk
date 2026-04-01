@@ -54,7 +54,19 @@ export function useLogSession() {
 
   return useMutation({
     mutationFn: async (packageId: string) => {
-      // Increment sessions_used by 1
+      // Use RPC for atomic increment to avoid TOCTOU race condition.
+      // Falls back to read-then-write if RPC is not available.
+      const { data: rpcResult, error: rpcError } = await supabase
+        .rpc("increment_sessions_used", { p_package_id: packageId });
+
+      if (!rpcError && rpcResult) {
+        return {
+          sessions_used: rpcResult.sessions_used,
+          total_sessions: rpcResult.total_sessions,
+        };
+      }
+
+      // Fallback: read-then-write with constraint guard
       const { data: pkg, error: fetchError } = await supabase
         .from("packages")
         .select("sessions_used, total_sessions")
@@ -62,6 +74,10 @@ export function useLogSession() {
         .single();
 
       if (fetchError) throw fetchError;
+
+      if (pkg.sessions_used >= pkg.total_sessions) {
+        throw new Error("All sessions in this package have been used");
+      }
 
       const newSessionsUsed = pkg.sessions_used + 1;
       const newStatus =
