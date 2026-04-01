@@ -46,8 +46,9 @@ export type PaymentStatus = "received" | "pending" | "overdue";
 /**
  * Overdue reminder stages tracked per Payment row.
  * Lets the cron skip already-sent messages without re-querying send logs.
+ * Progresses: none -> due_today_sent -> day_1 -> day_3 -> day_7.
  */
-export type OverdueReminderStage = "none" | "day_1" | "day_3" | "day_7";
+export type OverdueReminderStage = "none" | "due_today_sent" | "day_1" | "day_3" | "day_7";
 
 export interface Profile {
   id: string;

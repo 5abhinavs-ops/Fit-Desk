@@ -5,6 +5,7 @@ import { format } from "date-fns"
 
 interface TriggerError {
   trigger: string
+  itemId: string
   error: string
 }
 
@@ -40,25 +41,33 @@ export async function GET(request: Request) {
       .in("status", ["confirmed", "pending"])
 
     for (const b of bookings24h ?? []) {
-      const client = b.clients as unknown as { first_name: string; whatsapp_number: string }
-      const trainer = b.profiles as unknown as { name: string }
-      const dt = new Date(b.date_time)
-      await sendTemplateMessage({
-        whatsappNumber: client.whatsapp_number,
-        templateName: "session_reminder_24h",
-        parameters: [
-          { name: "client_name", value: client.first_name },
-          { name: "date", value: format(dt, "EEEE, d MMMM") },
-          { name: "time", value: format(dt, "h:mm a") },
-          { name: "location", value: b.location || "TBC" },
-          { name: "trainer_name", value: trainer.name },
-        ],
-      })
-      await supabase.from("bookings").update({ reminder_24h_sent: true }).eq("id", b.id)
-      trigger1Count++
+      try {
+        const client = b.clients as unknown as { first_name: string; whatsapp_number: string }
+        const trainer = b.profiles as unknown as { name: string }
+        const dt = new Date(b.date_time)
+        const result = await sendTemplateMessage({
+          whatsappNumber: client.whatsapp_number,
+          templateName: "session_reminder_24h",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "date", value: format(dt, "EEEE, d MMMM") },
+            { name: "time", value: format(dt, "h:mm a") },
+            { name: "location", value: b.location || "TBC" },
+            { name: "trainer_name", value: trainer.name },
+          ],
+        })
+        if (result.success) {
+          await supabase.from("bookings").update({ reminder_24h_sent: true }).eq("id", b.id)
+          trigger1Count++
+        } else {
+          errorLog.push({ trigger: "session_24h", itemId: b.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "session_24h", itemId: b.id, error: err instanceof Error ? err.message : String(err) })
+      }
     }
   } catch (err) {
-    errorLog.push({ trigger: "session_24h", error: err instanceof Error ? err.message : String(err) })
+    errorLog.push({ trigger: "session_24h", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
   // TRIGGER 2 — 1h session reminders
@@ -76,25 +85,33 @@ export async function GET(request: Request) {
       .in("status", ["confirmed", "pending"])
 
     for (const b of bookings1h ?? []) {
-      const client = b.clients as unknown as { first_name: string; whatsapp_number: string }
-      const trainer = b.profiles as unknown as { name: string }
-      const dt = new Date(b.date_time)
-      await sendTemplateMessage({
-        whatsappNumber: client.whatsapp_number,
-        templateName: "session_reminder_1h",
-        parameters: [
-          { name: "client_name", value: client.first_name },
-          { name: "date", value: format(dt, "EEEE, d MMMM") },
-          { name: "time", value: format(dt, "h:mm a") },
-          { name: "location", value: b.location || "TBC" },
-          { name: "trainer_name", value: trainer.name },
-        ],
-      })
-      await supabase.from("bookings").update({ reminder_1h_sent: true }).eq("id", b.id)
-      trigger2Count++
+      try {
+        const client = b.clients as unknown as { first_name: string; whatsapp_number: string }
+        const trainer = b.profiles as unknown as { name: string }
+        const dt = new Date(b.date_time)
+        const result = await sendTemplateMessage({
+          whatsappNumber: client.whatsapp_number,
+          templateName: "session_reminder_1h",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "date", value: format(dt, "EEEE, d MMMM") },
+            { name: "time", value: format(dt, "h:mm a") },
+            { name: "location", value: b.location || "TBC" },
+            { name: "trainer_name", value: trainer.name },
+          ],
+        })
+        if (result.success) {
+          await supabase.from("bookings").update({ reminder_1h_sent: true }).eq("id", b.id)
+          trigger2Count++
+        } else {
+          errorLog.push({ trigger: "session_1h", itemId: b.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "session_1h", itemId: b.id, error: err instanceof Error ? err.message : String(err) })
+      }
     }
   } catch (err) {
-    errorLog.push({ trigger: "session_1h", error: err instanceof Error ? err.message : String(err) })
+    errorLog.push({ trigger: "session_1h", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
   // TRIGGER 3 — New pending booking notification to trainer
@@ -110,23 +127,31 @@ export async function GET(request: Request) {
       .gte("created_at", thirtyFiveMinAgo)
 
     for (const b of newBookings ?? []) {
-      const client = b.clients as unknown as { first_name: string }
-      const trainer = b.profiles as unknown as { whatsapp_number: string; name: string }
-      const dt = new Date(b.date_time)
-      await sendTemplateMessage({
-        whatsappNumber: trainer.whatsapp_number,
-        templateName: "new_booking_request",
-        parameters: [
-          { name: "client_name", value: client.first_name },
-          { name: "date", value: format(dt, "EEEE, d MMMM") },
-          { name: "time", value: format(dt, "h:mm a") },
-          { name: "session_type", value: b.session_type },
-        ],
-      })
-      trigger3Count++
+      try {
+        const client = b.clients as unknown as { first_name: string }
+        const trainer = b.profiles as unknown as { whatsapp_number: string; name: string }
+        const dt = new Date(b.date_time)
+        const result = await sendTemplateMessage({
+          whatsappNumber: trainer.whatsapp_number,
+          templateName: "new_booking_request",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "date", value: format(dt, "EEEE, d MMMM") },
+            { name: "time", value: format(dt, "h:mm a") },
+            { name: "session_type", value: b.session_type },
+          ],
+        })
+        if (result.success) {
+          trigger3Count++
+        } else {
+          errorLog.push({ trigger: "new_booking_notify", itemId: b.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "new_booking_notify", itemId: b.id, error: err instanceof Error ? err.message : String(err) })
+      }
     }
   } catch (err) {
-    errorLog.push({ trigger: "new_booking_notify", error: err instanceof Error ? err.message : String(err) })
+    errorLog.push({ trigger: "new_booking_notify", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
   // TRIGGER 4 — Package low sessions alert
@@ -143,25 +168,34 @@ export async function GET(request: Request) {
       if (remaining > 2) continue
       if (pkg.last_low_session_alert_sent && pkg.last_low_session_alert_sent > sevenDaysAgo) continue
 
-      const client = pkg.clients as unknown as { first_name: string; whatsapp_number: string }
-      const trainer = pkg.profiles as unknown as { name: string }
-      await sendTemplateMessage({
-        whatsappNumber: client.whatsapp_number,
-        templateName: "package_low_sessions",
-        parameters: [
-          { name: "client_name", value: client.first_name },
-          { name: "sessions_remaining", value: String(remaining) },
-          { name: "trainer_name", value: trainer.name },
-        ],
-      })
-      await supabase.from("packages").update({ last_low_session_alert_sent: new Date().toISOString() }).eq("id", pkg.id)
-      trigger4Count++
+      try {
+        const client = pkg.clients as unknown as { first_name: string; whatsapp_number: string }
+        const trainer = pkg.profiles as unknown as { name: string }
+        const result = await sendTemplateMessage({
+          whatsappNumber: client.whatsapp_number,
+          templateName: "package_low_sessions",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "sessions_remaining", value: String(remaining) },
+            { name: "trainer_name", value: trainer.name },
+          ],
+        })
+        if (result.success) {
+          await supabase.from("packages").update({ last_low_session_alert_sent: new Date().toISOString() }).eq("id", pkg.id)
+          trigger4Count++
+        } else {
+          errorLog.push({ trigger: "low_sessions", itemId: pkg.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "low_sessions", itemId: pkg.id, error: err instanceof Error ? err.message : String(err) })
+      }
     }
   } catch (err) {
-    errorLog.push({ trigger: "low_sessions", error: err instanceof Error ? err.message : String(err) })
+    errorLog.push({ trigger: "low_sessions", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
   // TRIGGER 5 — Payment due today
+  // Sets overdue_reminder_stage to "due_today_sent" to prevent double-fire with Trigger 6
   try {
     const today = new Date().toISOString().split("T")[0]
 
@@ -173,22 +207,32 @@ export async function GET(request: Request) {
       .eq("overdue_reminder_stage", "none")
 
     for (const p of dueTodayPayments ?? []) {
-      const client = p.clients as unknown as { first_name: string; whatsapp_number: string }
-      const trainer = p.profiles as unknown as { name: string; paynow_details: string | null }
-      await sendTemplateMessage({
-        whatsappNumber: client.whatsapp_number,
-        templateName: "payment_due_today",
-        parameters: [
-          { name: "client_name", value: client.first_name },
-          { name: "amount", value: `$${p.amount}` },
-          { name: "paynow_details", value: trainer.paynow_details || "contact your trainer" },
-          { name: "trainer_name", value: trainer.name },
-        ],
-      })
-      trigger5Count++
+      try {
+        const client = p.clients as unknown as { first_name: string; whatsapp_number: string }
+        const trainer = p.profiles as unknown as { name: string; paynow_details: string | null }
+        const result = await sendTemplateMessage({
+          whatsappNumber: client.whatsapp_number,
+          templateName: "payment_due_today",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "amount", value: `$${p.amount}` },
+            { name: "paynow_details", value: trainer.paynow_details || "contact your trainer" },
+            { name: "trainer_name", value: trainer.name },
+          ],
+        })
+        if (result.success) {
+          // Mark as processed so Trigger 6 won't re-fire on this payment
+          await supabase.from("payments").update({ overdue_reminder_stage: "due_today_sent" }).eq("id", p.id)
+          trigger5Count++
+        } else {
+          errorLog.push({ trigger: "payment_due", itemId: p.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "payment_due", itemId: p.id, error: err instanceof Error ? err.message : String(err) })
+      }
     }
   } catch (err) {
-    errorLog.push({ trigger: "payment_due", error: err instanceof Error ? err.message : String(err) })
+    errorLog.push({ trigger: "payment_due", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
   // TRIGGER 6 — Overdue day 1
@@ -198,28 +242,36 @@ export async function GET(request: Request) {
     const { data: overdue1 } = await supabase
       .from("payments")
       .select("id, amount, clients(first_name, whatsapp_number), profiles:trainer_id(name, paynow_details)")
-      .eq("due_date", yesterday)
+      .lte("due_date", yesterday)
       .eq("status", "pending")
-      .eq("overdue_reminder_stage", "none")
+      .in("overdue_reminder_stage", ["none", "due_today_sent"])
 
     for (const p of overdue1 ?? []) {
-      const client = p.clients as unknown as { first_name: string; whatsapp_number: string }
-      const trainer = p.profiles as unknown as { name: string; paynow_details: string | null }
-      await sendTemplateMessage({
-        whatsappNumber: client.whatsapp_number,
-        templateName: "payment_overdue_1",
-        parameters: [
-          { name: "client_name", value: client.first_name },
-          { name: "amount", value: `$${p.amount}` },
-          { name: "paynow_details", value: trainer.paynow_details || "contact your trainer" },
-          { name: "trainer_name", value: trainer.name },
-        ],
-      })
-      await supabase.from("payments").update({ overdue_reminder_stage: "day_1" }).eq("id", p.id)
-      trigger6Count++
+      try {
+        const client = p.clients as unknown as { first_name: string; whatsapp_number: string }
+        const trainer = p.profiles as unknown as { name: string; paynow_details: string | null }
+        const result = await sendTemplateMessage({
+          whatsappNumber: client.whatsapp_number,
+          templateName: "payment_overdue_1",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "amount", value: `$${p.amount}` },
+            { name: "paynow_details", value: trainer.paynow_details || "contact your trainer" },
+            { name: "trainer_name", value: trainer.name },
+          ],
+        })
+        if (result.success) {
+          await supabase.from("payments").update({ overdue_reminder_stage: "day_1", status: "overdue" }).eq("id", p.id)
+          trigger6Count++
+        } else {
+          errorLog.push({ trigger: "overdue_day1", itemId: p.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "overdue_day1", itemId: p.id, error: err instanceof Error ? err.message : String(err) })
+      }
     }
   } catch (err) {
-    errorLog.push({ trigger: "overdue_day1", error: err instanceof Error ? err.message : String(err) })
+    errorLog.push({ trigger: "overdue_day1", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
   // TRIGGER 7 — Overdue day 3
@@ -230,27 +282,35 @@ export async function GET(request: Request) {
       .from("payments")
       .select("id, amount, clients(first_name, whatsapp_number), profiles:trainer_id(name, paynow_details)")
       .lte("due_date", threeDaysAgo)
-      .eq("status", "pending")
+      .eq("status", "overdue")
       .eq("overdue_reminder_stage", "day_1")
 
     for (const p of overdue3 ?? []) {
-      const client = p.clients as unknown as { first_name: string; whatsapp_number: string }
-      const trainer = p.profiles as unknown as { name: string; paynow_details: string | null }
-      await sendTemplateMessage({
-        whatsappNumber: client.whatsapp_number,
-        templateName: "payment_overdue_3",
-        parameters: [
-          { name: "client_name", value: client.first_name },
-          { name: "amount", value: `$${p.amount}` },
-          { name: "paynow_details", value: trainer.paynow_details || "contact your trainer" },
-          { name: "trainer_name", value: trainer.name },
-        ],
-      })
-      await supabase.from("payments").update({ overdue_reminder_stage: "day_3" }).eq("id", p.id)
-      trigger7Count++
+      try {
+        const client = p.clients as unknown as { first_name: string; whatsapp_number: string }
+        const trainer = p.profiles as unknown as { name: string; paynow_details: string | null }
+        const result = await sendTemplateMessage({
+          whatsappNumber: client.whatsapp_number,
+          templateName: "payment_overdue_3",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "amount", value: `$${p.amount}` },
+            { name: "paynow_details", value: trainer.paynow_details || "contact your trainer" },
+            { name: "trainer_name", value: trainer.name },
+          ],
+        })
+        if (result.success) {
+          await supabase.from("payments").update({ overdue_reminder_stage: "day_3" }).eq("id", p.id)
+          trigger7Count++
+        } else {
+          errorLog.push({ trigger: "overdue_day3", itemId: p.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "overdue_day3", itemId: p.id, error: err instanceof Error ? err.message : String(err) })
+      }
     }
   } catch (err) {
-    errorLog.push({ trigger: "overdue_day3", error: err instanceof Error ? err.message : String(err) })
+    errorLog.push({ trigger: "overdue_day3", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
   // TRIGGER 8 — Overdue day 7 + auto-pause client
@@ -261,28 +321,36 @@ export async function GET(request: Request) {
       .from("payments")
       .select("id, amount, client_id, clients(first_name, whatsapp_number), profiles:trainer_id(name, paynow_details)")
       .lte("due_date", sevenDaysAgo)
-      .eq("status", "pending")
+      .eq("status", "overdue")
       .eq("overdue_reminder_stage", "day_3")
 
     for (const p of overdue7 ?? []) {
-      const client = p.clients as unknown as { first_name: string; whatsapp_number: string }
-      const trainer = p.profiles as unknown as { name: string; paynow_details: string | null }
-      await sendTemplateMessage({
-        whatsappNumber: client.whatsapp_number,
-        templateName: "payment_overdue_7",
-        parameters: [
-          { name: "client_name", value: client.first_name },
-          { name: "amount", value: `$${p.amount}` },
-          { name: "paynow_details", value: trainer.paynow_details || "contact your trainer" },
-          { name: "trainer_name", value: trainer.name },
-        ],
-      })
-      await supabase.from("payments").update({ overdue_reminder_stage: "day_7" }).eq("id", p.id)
-      await supabase.from("clients").update({ status: "paused" }).eq("id", p.client_id)
-      trigger8Count++
+      try {
+        const client = p.clients as unknown as { first_name: string; whatsapp_number: string }
+        const trainer = p.profiles as unknown as { name: string; paynow_details: string | null }
+        const result = await sendTemplateMessage({
+          whatsappNumber: client.whatsapp_number,
+          templateName: "payment_overdue_7",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "amount", value: `$${p.amount}` },
+            { name: "paynow_details", value: trainer.paynow_details || "contact your trainer" },
+            { name: "trainer_name", value: trainer.name },
+          ],
+        })
+        if (result.success) {
+          await supabase.from("payments").update({ overdue_reminder_stage: "day_7" }).eq("id", p.id)
+          await supabase.from("clients").update({ status: "paused" }).eq("id", p.client_id)
+          trigger8Count++
+        } else {
+          errorLog.push({ trigger: "overdue_day7", itemId: p.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "overdue_day7", itemId: p.id, error: err instanceof Error ? err.message : String(err) })
+      }
     }
   } catch (err) {
-    errorLog.push({ trigger: "overdue_day7", error: err instanceof Error ? err.message : String(err) })
+    errorLog.push({ trigger: "overdue_day7", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
   return NextResponse.json({
@@ -297,7 +365,7 @@ export async function GET(request: Request) {
       overdue_day3: trigger7Count,
       overdue_day7: trigger8Count,
     },
-    errors: errorLog,
+    errors: errorLog.length > 0 ? errorLog : undefined,
     ran_at: new Date().toISOString(),
   })
 }

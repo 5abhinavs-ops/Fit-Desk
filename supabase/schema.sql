@@ -233,9 +233,9 @@ create table public.payments (
   reference     text,
   notes         text,
   -- Tracks overdue reminder stage so the cron does not re-send messages.
-  -- Progresses: none -> day_1 -> day_3 -> day_7.
+  -- Progresses: none -> due_today_sent -> day_1 -> day_3 -> day_7.
   overdue_reminder_stage text not null default 'none'
-    check (overdue_reminder_stage in ('none', 'day_1', 'day_3', 'day_7')),
+    check (overdue_reminder_stage in ('none', 'due_today_sent', 'day_1', 'day_3', 'day_7')),
   created_at    timestamptz not null default now()
 );
 
