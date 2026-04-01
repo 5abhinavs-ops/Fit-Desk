@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FitDesk
+
+Mobile-first SaaS for personal trainers in Southeast Asia. Replaces WhatsApp + Excel + generic invoicing with client management, packages, bookings, payments, and WhatsApp-automated reminders.
+
+**Target:** $10K MRR (~526 PTs at $19/month)
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router) + React 19 + TypeScript (strict)
+- **Database + Auth:** Supabase (PostgreSQL + RLS + Auth)
+- **Payments:** Stripe (subscriptions + one-time deposits)
+- **WhatsApp:** Twilio WhatsApp API (Content SIDs)
+- **Styling:** Tailwind CSS v4 + shadcn/ui
+- **Data fetching:** TanStack Query v5
+- **Testing:** Vitest
+- **Deployment:** Vercel (with cron jobs)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Copy environment variables
+cp .env.local.example .env.local
+# Fill in all values (see Environment Variables below)
+
+# Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+NEXT_PUBLIC_SUPABASE_URL=         # Supabase project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=    # Supabase anon key
+SUPABASE_SERVICE_ROLE_KEY=        # Supabase service role key (server-only)
+STRIPE_SECRET_KEY=                # Stripe secret key
+STRIPE_WEBHOOK_SECRET=            # Stripe webhook signing secret
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY= # Stripe publishable key
+STRIPE_PRO_PRICE_MONTHLY_ID=     # Stripe price ID for $19/mo
+STRIPE_PRO_PRICE_YEARLY_ID=      # Stripe price ID for $190/yr
+WATI_API_URL=                     # WATI/Twilio WhatsApp API URL
+WATI_API_TOKEN=                   # WATI/Twilio API token
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+CRON_SECRET=                      # Secret for Vercel cron auth
+```
 
-## Learn More
+## Database Setup
 
-To learn more about Next.js, take a look at the following resources:
+Run `supabase/schema.sql` in the Supabase SQL Editor. This creates all tables, RLS policies, indexes, triggers, and the `increment_sessions_used` RPC.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+After initial setup, run the migration statements at the bottom of the schema file.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
+```bash
+npm run dev          # Development server
+npm run build        # Production build
+npm run lint         # ESLint
+npm run test         # Run tests (Vitest)
+npm run test:watch   # Watch mode
+npm run test:coverage # Coverage report
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/
+    (auth)/          Login + Signup pages
+    (dashboard)/     All authenticated screens (5-tab bottom nav)
+    api/             API routes (bookings, reminders, checkout, webhooks)
+    book/[slug]/     Public client booking page
+    onboarding/      Post-signup onboarding
+    upgrade/         Stripe subscription checkout
+  components/
+    clients/         Client management sheets (add, book, package, payment)
+    shared/          Bottom navigation
+    ui/              shadcn/ui components
+  hooks/             TanStack Query hooks (clients, bookings, packages, payments, dashboard)
+  lib/               Utilities (Supabase clients, Stripe, WATI, formatting)
+  types/             TypeScript interfaces and type definitions
+supabase/
+  schema.sql         Full database schema with RLS policies
+```
+
+## Key Architecture Decisions
+
+- **Three Supabase clients:** Browser (anon + RLS), Server (cookies), Service (bypasses RLS for cron/public APIs)
+- **`sessions_used` not `sessions_remaining`:** Simpler increment logic, calculated at query time
+- **`pay_later` as default:** 90% of SEA PTs collect cash/PayNow. Forcing Stripe kills adoption.
+- **Soft paywall:** Free users can read all data but are blocked from creating > 3 clients
+- **WhatsApp over email:** SEA market reads WhatsApp. Email is ignored.

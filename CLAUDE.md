@@ -1,4 +1,8 @@
-# FitDesk — Claude Code Project Memory
+# FitDesk — CLAUDE.md
+
+## Inheritance
+This file extends the global ECC configuration at ~/.claude/CLAUDE.md.
+All global rules, agents, hooks, and keyword triggers defined there apply here.
 
 ---
 
@@ -45,11 +49,52 @@ FitDesk is a mobile-first SaaS app for solo personal trainers (PTs) and physical
 - **Framework:** Next.js 16.2.1 (App Router) + React 19 + TypeScript
 - **Database + Auth:** Supabase (PostgreSQL + RLS + Auth)
 - **Payments:** Stripe (subscriptions + one-time deposits)
-- **WhatsApp:** WATI API (template messages for reminders)
+- **WhatsApp:** Twilio WhatsApp API (Content SIDs for template messages)
 - **Styling:** Tailwind CSS v4 + shadcn/ui (Base UI components)
 - **Data fetching:** TanStack Query v5
 - **Deployment:** Vercel (with cron jobs)
 - **Package manager:** npm
+
+## Three Supabase Clients (intentional — do not consolidate)
+1. **Browser client** — anon key + RLS, used in React hooks
+2. **Server client** — cookie session, used in API routes
+3. **Service client** — service role, used in cron and public booking API
+   (public booking page has no authenticated user — service role is required)
+
+## Rules
+Apply ~/.claude/rules/common/ for all code.
+Apply ~/.claude/rules/typescript/ for all .ts/.tsx files.
+
+## Agent Triggers (Automatic)
+- Complex feature or unclear requirements → planner agent first
+- After writing or modifying any code → code-reviewer agent immediately
+- New feature or bug fix → tdd-guide agent
+- Build or type-check failure → build-error-resolver agent
+- Any code touching auth, payments, RLS, or user input → security-reviewer agent
+- Schema or query changes → database-reviewer agent
+- TypeScript errors → typescript-reviewer agent
+
+## Quality Standards
+- Zero TypeScript errors at all times (npx tsc --noEmit must pass)
+- Zero build errors (npm run build must pass)
+- No hardcoded secrets — all secrets in environment variables
+- Immutable state patterns only — never mutate objects directly
+- RLS must be enabled on every Supabase table that holds user data
+- All public API routes must validate ownership before returning data
+- Instagram/URL fields: enforce https:// prefix before saving (XSS prevention)
+- No console.log in production code
+
+## Security Notes
+- XSS vector via javascript: URLs on Instagram field was previously found and fixed
+- Cron routes must use service role client, not bypass RLS silently
+- All user-supplied URLs must be validated for https:// scheme
+
+## Keyword Triggers
+When the user sends exactly "solved" → run /learn-eval
+When the user sends exactly "eod" → run /save-session
+When the user sends exactly "resuming" → run /resume-session
+When the user sends exactly "snapshot" → run /checkpoint create
+When the user sends exactly "instincts" → run /instinct-status
 
 ---
 
