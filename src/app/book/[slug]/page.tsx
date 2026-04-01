@@ -2,6 +2,7 @@ import { cache } from "react"
 import type { Metadata } from "next"
 import { createServiceClient } from "@/lib/supabase/service"
 import { BookingForm } from "@/components/BookingForm"
+import { ErrorBoundary } from "@/components/error-boundary"
 import { Badge } from "@/components/ui/badge"
 
 interface BookingPageProps {
@@ -119,7 +120,9 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
         </div>
 
         {/* Booking form */}
-        <BookingForm trainerId={trainer.id} trainerName={trainer.name} />
+        <ErrorBoundary>
+          <BookingForm trainerId={trainer.id} trainerName={trainer.name} />
+        </ErrorBoundary>
 
         <p className="text-muted-foreground text-center text-xs">
           Powered by FitDesk
