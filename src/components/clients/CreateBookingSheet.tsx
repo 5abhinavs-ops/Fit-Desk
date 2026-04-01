@@ -79,10 +79,18 @@ export function CreateBookingSheet({ defaultDate, open, onOpenChange }: CreateBo
     })
   }, [])
 
+  const activePackageHasRemaining = activePackage
+    ? activePackage.total_sessions - activePackage.sessions_used > 0
+    : false
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!clientId) {
       toast.error("Please select a client")
+      return
+    }
+    if (paymentMode === "from_package" && (!activePackage || !activePackageHasRemaining)) {
+      toast.error("No active package with remaining sessions")
       return
     }
 
@@ -222,7 +230,7 @@ export function CreateBookingSheet({ defaultDate, open, onOpenChange }: CreateBo
               <SelectContent>
                 <SelectItem value="pay_later">Pay later</SelectItem>
                 <SelectItem value="pay_now">Pay now (Stripe)</SelectItem>
-                <SelectItem value="from_package">From package</SelectItem>
+                <SelectItem value="from_package" disabled={!activePackageHasRemaining}>From package</SelectItem>
               </SelectContent>
             </Select>
             {paymentMode === "from_package" && activePackage && (
