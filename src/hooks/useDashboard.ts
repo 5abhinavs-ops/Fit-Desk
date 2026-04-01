@@ -20,7 +20,11 @@ export function useDashboard() {
   return useQuery({
     queryKey: ["dashboard"],
     queryFn: async (): Promise<DashboardStats> => {
-      const today = new Date().toISOString().split("T")[0];
+      // Use SGT date (UTC+8) for Singapore PTs
+      const now = new Date();
+      const sgtOffset = 8 * 60;
+      const sgtTime = new Date(now.getTime() + (sgtOffset + now.getTimezoneOffset()) * 60000);
+      const today = sgtTime.toISOString().split("T")[0];
 
       // Fetch today's bookings, outstanding payments, and low-session packages in parallel
       const [bookingsResult, paymentsResult, packagesResult] =
@@ -28,8 +32,8 @@ export function useDashboard() {
           supabase
             .from("bookings")
             .select("id", { count: "exact", head: true })
-            .gte("date_time", `${today}T00:00:00`)
-            .lte("date_time", `${today}T23:59:59`)
+            .gte("date_time", `${today}T00:00:00+08:00`)
+            .lte("date_time", `${today}T23:59:59+08:00`)
             .in("status", ["confirmed", "pending"]),
 
           supabase

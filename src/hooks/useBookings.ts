@@ -16,9 +16,9 @@ export function useBookings(date?: string) {
         .order("date_time", { ascending: true });
 
       if (date) {
-        // Filter bookings for a specific day
-        const startOfDay = `${date}T00:00:00`;
-        const endOfDay = `${date}T23:59:59`;
+        // Filter bookings for a specific day in Asia/Singapore timezone (UTC+8)
+        const startOfDay = `${date}T00:00:00+08:00`;
+        const endOfDay = `${date}T23:59:59+08:00`;
         query = query.gte("date_time", startOfDay).lte("date_time", endOfDay);
       }
 
@@ -30,7 +30,11 @@ export function useBookings(date?: string) {
 }
 
 export function useTodayBookings() {
-  const today = new Date().toISOString().split("T")[0];
+  // Use SGT date (UTC+8) to get the correct "today" for Singapore PTs
+  const now = new Date();
+  const sgtOffset = 8 * 60; // minutes
+  const sgtTime = new Date(now.getTime() + (sgtOffset + now.getTimezoneOffset()) * 60000);
+  const today = sgtTime.toISOString().split("T")[0];
   return useBookings(today);
 }
 
