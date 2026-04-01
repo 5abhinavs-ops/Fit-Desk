@@ -39,12 +39,15 @@ export function useDashboard() {
           supabase
             .from("payments")
             .select("amount")
-            .in("status", ["pending", "overdue"]),
+            .in("status", ["pending", "overdue"])
+            .order("created_at", { ascending: false })
+            .limit(200),
 
           supabase
             .from("packages")
             .select("id, name, total_sessions, sessions_used, client_id, clients(first_name, last_name)")
-            .eq("status", "active"),
+            .eq("status", "active")
+            .limit(100),
         ]);
 
       if (bookingsResult.error) throw bookingsResult.error;
