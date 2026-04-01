@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { createServiceClient } from "@/lib/supabase/service"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 const querySchema = z.object({
   trainer_id: z.string().uuid(),
@@ -32,6 +33,16 @@ for (let h = 6; h <= 21; h++) {
 }
 
 export async function GET(request: NextRequest) {
+  // Rate limit: 10 requests per IP per minute
+  const ip = getClientIp(request)
+  const limit = checkRateLimit(`availability:${ip}`, 10, 60_000)
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    )
+  }
+
   const { searchParams } = request.nextUrl
   const parsed = querySchema.safeParse({
     trainer_id: searchParams.get("trainer_id"),
