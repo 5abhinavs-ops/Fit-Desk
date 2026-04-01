@@ -287,6 +287,41 @@ end;
 $$;
 
 -- ============================================================
+-- Trigger: enforce 3-client limit for free-plan trainers
+-- ============================================================
+create or replace function public.enforce_client_limit()
+returns trigger
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_plan text;
+  v_count integer;
+begin
+  select subscription_plan into v_plan
+    from public.profiles
+    where id = new.trainer_id;
+
+  if v_plan = 'free' then
+    select count(*) into v_count
+      from public.clients
+      where trainer_id = new.trainer_id;
+
+    if v_count >= 3 then
+      raise exception 'Free plan is limited to 3 clients. Upgrade to Pro for unlimited clients.'
+        using errcode = 'P0001';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger check_client_limit
+  before insert on public.clients
+  for each row execute function public.enforce_client_limit();
+
+-- ============================================================
 -- MIGRATIONS — run these manually in Supabase SQL Editor
 -- after the initial schema has been applied
 -- ============================================================
