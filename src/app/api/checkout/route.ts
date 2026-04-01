@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { createClient } from "@/lib/supabase/server"
+import { checkCsrf } from "@/lib/csrf"
 
 export async function POST(request: Request) {
+  const csrfError = checkCsrf(request)
+  if (csrfError) return csrfError
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
