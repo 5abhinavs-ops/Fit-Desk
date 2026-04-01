@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 
 const BookingRequestSchema = z.object({
@@ -14,7 +14,7 @@ const BookingRequestSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   let body: unknown
   try {
@@ -32,6 +32,17 @@ export async function POST(request: Request) {
   const normalisedWhatsapp = formatWhatsappNumber(client_whatsapp)
   const [firstName, ...rest] = client_name.split(" ")
   const lastName = rest.join(" ") || "-"
+
+  // Verify trainer_id corresponds to a real profile
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, default_booking_payment_mode, default_session_mins")
+    .eq("id", trainer_id)
+    .single()
+
+  if (profileError || !profile) {
+    return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
+  }
 
   // Upsert client by whatsapp number
   const { data: existingClient } = await supabase
@@ -56,25 +67,18 @@ export async function POST(request: Request) {
     clientId = newClient.id
   }
 
-  // Get trainer's default payment mode
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("default_booking_payment_mode, default_session_mins")
-    .eq("id", trainer_id)
-    .single()
-
-  // Build date_time from preferred_date + preferred_time
+  // Build date_time from preferred_date + preferred_time (stored as UTC)
   const dateTime = new Date(`${preferred_date}T${preferred_time}:00`).toISOString()
 
   const { data: booking, error } = await supabase.from("bookings").insert({
     trainer_id,
     client_id: clientId,
     date_time: dateTime,
-    duration_mins: profile?.default_session_mins ?? 60,
+    duration_mins: profile.default_session_mins ?? 60,
     session_type,
     status: "pending",
     booking_source: "client_link",
-    payment_mode: profile?.default_booking_payment_mode || "pay_later",
+    payment_mode: profile.default_booking_payment_mode || "pay_later",
     client_intake_notes: notes || null,
     reminder_24h_sent: false,
     reminder_1h_sent: false,
