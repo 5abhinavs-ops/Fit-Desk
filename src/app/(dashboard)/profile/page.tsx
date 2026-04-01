@@ -349,7 +349,7 @@ export default function ProfilePage() {
               onChange={(e) => setInstagramUrl(e.target.value)}
             />
           </div>
-          {instagramUrl && (
+          {instagramUrl && instagramUrl.startsWith("https://") && (
             <a
               href={instagramUrl}
               target="_blank"
