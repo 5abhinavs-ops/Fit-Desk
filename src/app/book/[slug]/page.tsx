@@ -1,6 +1,6 @@
 import { cache } from "react"
 import type { Metadata } from "next"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { BookingForm } from "@/components/BookingForm"
 import { Badge } from "@/components/ui/badge"
 
@@ -9,7 +9,7 @@ interface BookingPageProps {
 }
 
 const getTrainer = cache(async (slug: string) => {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase
     .from("profiles")
     .select("id, name, photo_url, bio, specialisations, instagram_url")
@@ -81,7 +81,7 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
           {/* Name + Instagram */}
           <div>
             <h1 className="text-xl font-bold">{trainer.name}</h1>
-            {trainer.instagram_url && (
+            {trainer.instagram_url && trainer.instagram_url.startsWith("https://") && (
               <a
                 href={trainer.instagram_url}
                 target="_blank"

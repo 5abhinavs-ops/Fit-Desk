@@ -65,10 +65,10 @@ create policy "Users can update own profile"
   on public.profiles for update
   using (id = auth.uid());
 
--- Public read for booking pages (by slug)
-create policy "Public can view profiles by slug"
-  on public.profiles for select
-  using (true);
+-- Public profile reads are handled via service client in API routes
+-- (booking page, availability). No blanket public SELECT policy —
+-- the previous `using (true)` exposed sensitive fields (whatsapp_number,
+-- paynow_details, stripe_customer_id) to unauthenticated callers.
 
 -- ============================================================
 -- 2. CLIENTS
