@@ -28,6 +28,22 @@ describe("formatWhatsappNumber", () => {
     it("normalises '+60 12 345 6789' to E.164", () => {
       expect(formatWhatsappNumber("+60 12 345 6789")).toBe("+60123456789")
     })
+
+    it("normalises local MY number '0123456789' (strip 0, add +60)", () => {
+      expect(formatWhatsappNumber("0123456789")).toBe("+60123456789")
+    })
+
+    it("normalises local MY number '01112345678' (11 digits)", () => {
+      expect(formatWhatsappNumber("01112345678")).toBe("+601112345678")
+    })
+
+    it("normalises local MY number '0161234567' (016 prefix)", () => {
+      expect(formatWhatsappNumber("0161234567")).toBe("+60161234567")
+    })
+
+    it("normalises local MY number '0191234567' (019 prefix)", () => {
+      expect(formatWhatsappNumber("0191234567")).toBe("+60191234567")
+    })
   })
 
   describe("Indonesia numbers", () => {
