@@ -14,6 +14,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { ArrowLeft, MessageCircle, Mail, Loader2 } from "lucide-react"
 import type { ClientStatus } from "@/types/database"
 
@@ -37,8 +39,37 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   const logSession = useLogSession()
   const queryClient = useQueryClient()
   const [pkgSheetOpen, setPkgSheetOpen] = useState(false)
+  const [reminderDays, setReminderDays] = useState("")
+  const [reminderSaving, setReminderSaving] = useState(false)
 
   const activePackage = packages?.find((p) => p.status === "active")
+
+  // Init reminder days from client data
+  if (client && !reminderDays && client.payment_reminder_days !== null) {
+    setReminderDays(String(client.payment_reminder_days))
+  }
+
+  async function saveReminderDays() {
+    if (!client) return
+    const parsed = parseInt(reminderDays, 10)
+    if (isNaN(parsed) || parsed < 1) {
+      toast.error("Enter a valid number of days")
+      return
+    }
+    setReminderSaving(true)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from("clients")
+      .update({ payment_reminder_days: parsed })
+      .eq("id", client.id)
+    if (error) {
+      toast.error(error.message)
+    } else {
+      toast.success("Reminder frequency saved")
+      queryClient.invalidateQueries({ queryKey: ["clients", client.id] })
+    }
+    setReminderSaving(false)
+  }
 
   async function toggleStatus() {
     if (!client) return
@@ -208,6 +239,35 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       <Button variant="outline" className="w-full" onClick={() => setPkgSheetOpen(true)}>
         Create package
       </Button>
+
+      {/* Payment reminder setting */}
+      <div className="rounded-lg border p-4 space-y-2">
+        <Label htmlFor="reminderDays" className="text-sm font-medium">Payment reminder frequency</Label>
+        <div className="flex gap-2">
+          <Input
+            id="reminderDays"
+            type="number"
+            min="1"
+            max="30"
+            placeholder="3"
+            value={reminderDays}
+            onChange={(e) => setReminderDays(e.target.value)}
+            className="w-20"
+          />
+          <span className="text-sm text-muted-foreground self-center">days</span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={saveReminderDays}
+            disabled={reminderSaving}
+          >
+            {reminderSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+          </Button>
+        </div>
+        <p className="text-muted-foreground text-xs">
+          Auto-send payment reminders every {reminderDays || "—"} days
+        </p>
+      </div>
 
       <CreatePackageSheet clientId={id} open={pkgSheetOpen} onOpenChange={setPkgSheetOpen} />
     </div>

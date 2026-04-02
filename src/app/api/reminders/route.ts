@@ -27,6 +27,7 @@ export async function GET(request: Request) {
   let trigger7Count = 0
   let trigger8Count = 0
   let trigger9Count = 0
+  let trigger10Count = 0
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fitdesk.app"
 
   // TRIGGER 1 — 24h session reminders (with session management link)
@@ -411,6 +412,79 @@ export async function GET(request: Request) {
     errorLog.push({ trigger: "chase_1h", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
+  // TRIGGER 10 — Per-client payment reminders for completed sessions
+  try {
+    const now = new Date()
+
+    // Fetch bookings with unpaid/client_confirmed status for past sessions
+    const { data: unpaidBookings } = await supabase
+      .from("bookings")
+      .select(`
+        id, date_time, payment_status, payment_amount, payment_reminder_sent_at,
+        client_id, clients(first_name, whatsapp_number, payment_reminder_days),
+        profiles:trainer_id(name, paynow_number, paynow_details, payment_link, payment_reminder_default_days)
+      `)
+      .in("payment_status", ["unpaid", "client_confirmed"])
+      .lt("date_time", now.toISOString())
+      .not("status", "in", '("cancelled","forfeited","no_show")')
+
+    for (const b of unpaidBookings ?? []) {
+      try {
+        const client = b.clients as unknown as {
+          first_name: string
+          whatsapp_number: string
+          payment_reminder_days: number | null
+        }
+        const trainer = b.profiles as unknown as {
+          name: string
+          paynow_number: string | null
+          paynow_details: string | null
+          payment_link: string | null
+          payment_reminder_default_days: number
+        }
+
+        const reminderDays = client.payment_reminder_days ?? trainer.payment_reminder_default_days ?? 3
+        const intervalMs = reminderDays * 24 * 60 * 60 * 1000
+
+        // Skip if reminder was sent recently
+        if (b.payment_reminder_sent_at) {
+          const lastSent = new Date(b.payment_reminder_sent_at)
+          if (now.getTime() - lastSent.getTime() < intervalMs) continue
+        }
+
+        const paymentDetails = trainer.paynow_number || trainer.paynow_details || "contact your trainer"
+        const linkText = trainer.payment_link ? ` | ${trainer.payment_link}` : ""
+        const amountText = b.payment_amount ? `$${b.payment_amount}` : "outstanding"
+
+        const result = await sendTemplateMessage({
+          whatsappNumber: client.whatsapp_number,
+          templateName: "payment_reminder",
+          parameters: [
+            { name: "client_name", value: client.first_name },
+            { name: "trainer_name", value: trainer.name },
+            { name: "date", value: format(new Date(b.date_time), "EEEE, d MMMM") },
+            { name: "amount", value: amountText },
+            { name: "payment_details", value: `PayNow: ${paymentDetails}${linkText}` },
+          ],
+        })
+
+        if (result.success) {
+          await supabase
+            .from("bookings")
+            .update({ payment_reminder_sent_at: now.toISOString() })
+            .eq("id", b.id)
+          trigger10Count++
+        } else {
+          errorLog.push({ trigger: "payment_reminder", itemId: b.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "payment_reminder", itemId: b.id, error: err instanceof Error ? err.message : String(err) })
+      }
+    }
+  } catch (err) {
+    errorLog.push({ trigger: "payment_reminder", itemId: "query", error: err instanceof Error ? err.message : String(err) })
+  }
+
   return NextResponse.json({
     success: true,
     summary: {
@@ -423,6 +497,7 @@ export async function GET(request: Request) {
       overdue_day3: trigger7Count,
       overdue_day7: trigger8Count,
       chase_1h: trigger9Count,
+      payment_reminder: trigger10Count,
     },
     errors: errorLog.length > 0 ? errorLog : undefined,
     ran_at: new Date().toISOString(),
