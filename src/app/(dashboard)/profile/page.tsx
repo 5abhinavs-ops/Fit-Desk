@@ -15,6 +15,7 @@ import { ProfilePhotoUpload } from "@/components/profile/profile-photo-upload"
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form"
 import { BookingSettingsForm } from "@/components/profile/booking-settings-form"
 import { CancellationPolicyForm } from "@/components/profile/cancellation-policy-form"
+import { PaymentDetailsForm } from "@/components/profile/payment-details-form"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -124,7 +125,21 @@ export default function ProfilePage() {
 
       <Separator />
 
-      {/* Section 4 — Subscription */}
+      {/* Section 4 — Payment details */}
+      <h2 className="text-lg font-semibold">Payment details</h2>
+      <PaymentDetailsForm
+        profileId={profile.id}
+        initialPaynowNumber={profile.paynow_number || ""}
+        initialBankName={profile.bank_name || ""}
+        initialBankAccountNumber={profile.bank_account_number || ""}
+        initialBankAccountName={profile.bank_account_name || ""}
+        initialPaymentLink={profile.payment_link || ""}
+        initialReminderDays={profile.payment_reminder_default_days}
+      />
+
+      <Separator />
+
+      {/* Section 5 — Subscription */}
       <h2 className="text-lg font-semibold">Subscription</h2>
       <Card>
         <CardContent className="p-4 space-y-3">
