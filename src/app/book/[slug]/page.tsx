@@ -124,9 +124,14 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
           <BookingForm trainerId={trainer.id} trainerName={trainer.name} />
         </ErrorBoundary>
 
-        <p className="text-muted-foreground text-center text-xs">
-          Powered by FitDesk
-        </p>
+        <a
+          href="https://fitdesk.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-center text-xs text-muted-foreground hover:text-primary transition-colors"
+        >
+          Powered by <span className="font-medium">FitDesk</span>
+        </a>
       </div>
     </div>
   )

@@ -77,11 +77,22 @@ export default function ClientsPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">
-          {clients?.length === 0
-            ? "No clients yet. Tap + to add your first."
-            : "No clients match your search."}
-        </p>
+        clients?.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 py-16 text-center">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">No clients yet</p>
+              <p className="text-muted-foreground text-xs">Add your first client to get started.</p>
+            </div>
+            <Button onClick={() => setSheetOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add your first client
+            </Button>
+          </div>
+        ) : (
+          <p className="text-muted-foreground py-12 text-center text-sm">
+            No clients match your search.
+          </p>
+        )
       ) : (
         <div>
           {filtered.map((client) => (
