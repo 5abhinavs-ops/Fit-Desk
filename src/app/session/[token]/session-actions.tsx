@@ -13,15 +13,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { CheckCircle, XCircle, Clock, CalendarClock, Loader2 } from "lucide-react"
+import { CheckCircle, XCircle, Clock, CalendarClock, Loader2, CreditCard } from "lucide-react"
 
-type SessionAction = "confirm" | "cancel" | "late" | "reschedule"
+type SessionAction = "confirm" | "cancel" | "late" | "reschedule" | "payment_confirm"
 
 interface SessionActionsProps {
   bookingId: string
   token: string
   cancellationPolicyHours: number
   sessionDateTime: string
+  showPaymentButton?: boolean
 }
 
 export function SessionActions({
@@ -29,6 +30,7 @@ export function SessionActions({
   token,
   cancellationPolicyHours,
   sessionDateTime,
+  showPaymentButton = false,
 }: SessionActionsProps) {
   const [pending, setPending] = useState(false)
   const [completed, setCompleted] = useState(false)
@@ -75,6 +77,7 @@ export function SessionActions({
             confirm: "You've confirmed your attendance. See you there!",
             late: `Your trainer has been notified that you're running ${lateMinutes} minutes late.`,
             reschedule: "Your reschedule request has been sent to your trainer.",
+            payment_confirm: data.message || "Payment marked — your PT will confirm shortly",
           }
           setResultMessage(messages[action] || "Done!")
         }
@@ -154,6 +157,21 @@ export function SessionActions({
             </p>
           </div>
         </Button>
+
+        {showPaymentButton && (
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-3 h-auto py-3"
+            onClick={() => setConfirmAction("payment_confirm")}
+            disabled={pending}
+          >
+            <CreditCard className="h-5 w-5 shrink-0" />
+            <div className="text-left">
+              <p className="text-sm font-medium">I&apos;ve made payment</p>
+              <p className="text-xs text-muted-foreground font-normal">Notify your trainer that you&apos;ve paid</p>
+            </div>
+          </Button>
+        )}
       </div>
 
       <p className="text-muted-foreground text-xs text-center">
@@ -169,6 +187,7 @@ export function SessionActions({
               {confirmAction === "cancel" && "Cancel session?"}
               {confirmAction === "late" && "Running late?"}
               {confirmAction === "reschedule" && "Request reschedule?"}
+              {confirmAction === "payment_confirm" && "Confirm payment?"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmAction === "confirm" && "Your trainer will be notified that you're confirmed."}
@@ -179,6 +198,7 @@ export function SessionActions({
               )}
               {confirmAction === "late" && "Select how many minutes late you'll be."}
               {confirmAction === "reschedule" && "Your trainer will receive your request and get back to you."}
+              {confirmAction === "payment_confirm" && "Your trainer will be notified that you've made payment."}
             </AlertDialogDescription>
           </AlertDialogHeader>
 

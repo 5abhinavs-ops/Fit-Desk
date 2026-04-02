@@ -106,6 +106,11 @@ export default function DashboardPage() {
                 <p className="mt-2 text-3xl font-bold">
                   {formatCurrency(data?.outstandingPayments ?? 0)}
                 </p>
+                {(data?.pendingPaymentConfirmations ?? 0) > 0 && (
+                  <p className="mt-1 text-xs text-amber-600">
+                    {data?.pendingPaymentConfirmations} awaiting confirmation
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

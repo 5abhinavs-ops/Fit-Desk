@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { PaymentSection } from "@/components/bookings/payment-section"
 import { Loader2, RotateCcw, Ban, UserX, CalendarClock } from "lucide-react"
 import { format } from "date-fns"
 
@@ -78,6 +79,8 @@ export function BookingActionSheet({
   const [confirmAction, setConfirmAction] = useState<ActionType | null>(null)
   const [rescheduleDate, setRescheduleDate] = useState("")
   const [rescheduleTime, setRescheduleTime] = useState("")
+  const [paymentAmount, setPaymentAmount] = useState(booking.payment_amount ? String(booking.payment_amount) : "")
+  const [paymentPending, setPaymentPending] = useState(false)
 
   const bookingTime = new Date(booking.date_time)
   const isActionable = ["confirmed", "pending", "upcoming", "pending_approval"].includes(booking.status)
@@ -164,6 +167,38 @@ export function BookingActionSheet({
                 </p>
               </div>
             )}
+
+            {/* Payment section */}
+            <PaymentSection
+              booking={booking}
+              paymentAmount={paymentAmount}
+              onAmountChange={setPaymentAmount}
+              paymentPending={paymentPending}
+              onPaymentAction={async (action: "mark_paid" | "waive") => {
+                setPaymentPending(true)
+                try {
+                  const body: Record<string, string | number> = { action }
+                  if (paymentAmount) body.amount = parseFloat(paymentAmount)
+                  const res = await fetch(`/api/bookings/${booking.id}/payment`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                  })
+                  const data = await res.json()
+                  if (!res.ok) {
+                    toast.error(data.error || "Failed")
+                    return
+                  }
+                  toast.success(action === "mark_paid" ? "Payment confirmed" : "Payment waived")
+                  queryClient.invalidateQueries({ queryKey: ["bookings"] })
+                  queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+                } catch {
+                  toast.error("Something went wrong")
+                } finally {
+                  setPaymentPending(false)
+                }
+              }}
+            />
 
             {/* Cancellation policy hint */}
             <p className="text-muted-foreground text-xs">

@@ -5,7 +5,7 @@ import { sendTemplateMessage } from "@/lib/twilio"
 import { format } from "date-fns"
 
 const ActionSchema = z.object({
-  action: z.enum(["confirm", "late", "reschedule"]),
+  action: z.enum(["confirm", "late", "reschedule", "payment_confirm"]),
   late_minutes: z.number().int().min(1).max(120).optional(),
   reason: z.string().optional(),
 })
@@ -143,6 +143,46 @@ export async function POST(request: Request, context: RouteContext) {
       })
 
       return NextResponse.json({ success: true, action: "reschedule" })
+    }
+
+    case "payment_confirm": {
+      // Check current payment status
+      if (booking.payment_status === "paid" || booking.payment_status === "waived") {
+        return NextResponse.json({
+          success: true,
+          action: "payment_confirm",
+          message: "Payment already confirmed by your PT",
+        })
+      }
+
+      // Only update if currently unpaid
+      if (booking.payment_status === "unpaid") {
+        await supabase
+          .from("bookings")
+          .update({
+            payment_status: "client_confirmed",
+            client_paid_at: now,
+          })
+          .eq("id", booking.id)
+      }
+
+      // Do NOT mark token as used — client may still need other actions
+      // Send notification to PT
+      await sendTemplateMessage({
+        whatsappNumber: trainer.whatsapp_number,
+        templateName: "pt_payment_confirmed",
+        parameters: [
+          { name: "trainer_name", value: trainer.name },
+          { name: "client_name", value: client.first_name },
+          { name: "date", value: dateStr },
+        ],
+      })
+
+      return NextResponse.json({
+        success: true,
+        action: "payment_confirm",
+        message: "Payment marked — your PT will confirm shortly",
+      })
     }
   }
 }

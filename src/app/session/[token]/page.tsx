@@ -53,9 +53,9 @@ export default async function SessionManagementPage({ params }: SessionPageProps
   const { data: booking, error: bookingError } = await supabase
     .from("bookings")
     .select(`
-      id, date_time, duration_mins, session_type, status, location, payment_mode,
+      id, date_time, duration_mins, session_type, status, location, payment_mode, payment_status, payment_amount,
       clients(first_name, last_name),
-      profiles:trainer_id(name, whatsapp_number, paynow_details, cancellation_policy_hours)
+      profiles:trainer_id(name, whatsapp_number, paynow_details, paynow_number, bank_name, bank_account_number, bank_account_name, payment_link, cancellation_policy_hours)
     `)
     .eq("id", tokenRow.booking_id)
     .single()
@@ -78,6 +78,11 @@ export default async function SessionManagementPage({ params }: SessionPageProps
     name: string
     whatsapp_number: string | null
     paynow_details: string | null
+    paynow_number: string | null
+    bank_name: string | null
+    bank_account_number: string | null
+    bank_account_name: string | null
+    payment_link: string | null
     cancellation_policy_hours: number
   }
   const dt = new Date(booking.date_time)
@@ -119,18 +124,39 @@ export default async function SessionManagementPage({ params }: SessionPageProps
           </p>
         </div>
 
-        {/* Outstanding payment */}
-        {pendingPayment && (
+        {/* Payment details */}
+        {(booking.payment_status === "unpaid" || pendingPayment) && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-            <p className="text-sm font-semibold text-amber-800">Payment outstanding</p>
-            <p className="text-sm text-amber-700">
-              ${pendingPayment.amount} — {pendingPayment.method}
+            <p className="text-sm font-semibold text-amber-800">
+              {booking.payment_amount
+                ? `Payment outstanding — $${booking.payment_amount}`
+                : "Payment outstanding"}
             </p>
-            {trainer.paynow_details && (
+            {(trainer.paynow_number || trainer.paynow_details) && (
               <div className="rounded-lg bg-white p-3 text-sm">
-                <p className="text-xs text-muted-foreground">PayNow details</p>
-                <p className="font-mono font-medium">{trainer.paynow_details}</p>
+                <p className="text-xs text-muted-foreground">PayNow</p>
+                <p className="font-mono font-medium">{trainer.paynow_number || trainer.paynow_details}</p>
               </div>
+            )}
+            {trainer.bank_name && trainer.bank_account_number && (
+              <div className="rounded-lg bg-white p-3 text-sm">
+                <p className="text-xs text-muted-foreground">Bank transfer</p>
+                <p className="font-medium">{trainer.bank_name}</p>
+                <p className="font-mono">{trainer.bank_account_number}</p>
+                {trainer.bank_account_name && (
+                  <p className="text-xs text-muted-foreground">{trainer.bank_account_name}</p>
+                )}
+              </div>
+            )}
+            {trainer.payment_link && trainer.payment_link.startsWith("https://") && (
+              <a
+                href={trainer.payment_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-lg bg-white p-3 text-sm text-primary hover:underline"
+              >
+                Pay online →
+              </a>
             )}
           </div>
         )}
@@ -151,6 +177,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
           token={token}
           cancellationPolicyHours={trainer.cancellation_policy_hours}
           sessionDateTime={booking.date_time}
+          showPaymentButton={booking.payment_status === "unpaid"}
         />
 
         {/* Footer */}
