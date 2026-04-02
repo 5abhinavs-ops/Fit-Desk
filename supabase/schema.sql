@@ -335,3 +335,58 @@ ALTER TABLE public.packages ADD COLUMN IF NOT EXISTS last_low_session_alert_sent
 -- Migration: add missing indexes
 CREATE INDEX IF NOT EXISTS idx_bookings_client ON public.bookings(client_id);
 CREATE INDEX IF NOT EXISTS idx_payments_due_date ON public.payments(due_date);
+
+-- Migration: Phase A-0 — session_tokens, booking_approvals, expanded booking status
+
+-- Session tokens for token-based session management links
+CREATE TABLE IF NOT EXISTS public.session_tokens (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid references public.bookings(id) on delete cascade not null,
+  token text unique not null default encode(gen_random_bytes(32), 'hex'),
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz default now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_tokens_token ON public.session_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_session_tokens_booking_id ON public.session_tokens(booking_id);
+
+ALTER TABLE public.session_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role only" ON public.session_tokens
+  USING (false) WITH CHECK (false);
+
+-- Booking approvals for public booking approval workflow
+CREATE TABLE IF NOT EXISTS public.booking_approvals (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid references public.bookings(id) on delete cascade not null unique,
+  status text not null default 'pending'
+    check (status in ('pending', 'approved', 'declined')),
+  decided_at timestamptz,
+  created_at timestamptz default now()
+);
+
+ALTER TABLE public.booking_approvals ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "PT can manage own booking approvals" ON public.booking_approvals FOR ALL
+  USING (
+    exists (
+      select 1 from public.bookings b
+      where b.id = booking_approvals.booking_id
+      and b.trainer_id = auth.uid()
+    )
+  );
+
+-- New columns on bookings
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS cancellation_reason text,
+  ADD COLUMN IF NOT EXISTS cancelled_at timestamptz,
+  ADD COLUMN IF NOT EXISTS cancelled_by text CHECK (cancelled_by IN ('pt', 'client')),
+  ADD COLUMN IF NOT EXISTS late_minutes integer,
+  ADD COLUMN IF NOT EXISTS attendance_confirmed_at timestamptz,
+  ADD COLUMN IF NOT EXISTS chase_sent_at timestamptz;
+
+-- New columns on profiles
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS cancellation_policy_hours integer NOT NULL DEFAULT 24,
+  ADD COLUMN IF NOT EXISTS booking_approval_required boolean NOT NULL DEFAULT true;

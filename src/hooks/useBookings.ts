@@ -42,7 +42,7 @@ export function useCreateBooking() {
   const supabase = createClient();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (booking: Omit<Booking, "id" | "trainer_id" | "created_at" | "reminder_24h_sent" | "reminder_1h_sent">) => {
+    mutationFn: async (booking: Omit<Booking, "id" | "trainer_id" | "created_at" | "reminder_24h_sent" | "reminder_1h_sent" | "cancellation_reason" | "cancelled_at" | "cancelled_by" | "late_minutes" | "attendance_confirmed_at" | "chase_sent_at">) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase.from("bookings").insert({

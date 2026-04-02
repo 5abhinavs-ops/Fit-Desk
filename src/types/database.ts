@@ -12,7 +12,16 @@ export type BookingStatus =
   | "pending"
   | "cancelled"
   | "completed"
-  | "no-show";
+  | "no-show"
+  | "upcoming"
+  | "forfeited"
+  | "no_show"
+  | "pending_approval"
+  | "reschedule_requested";
+
+export type CancelledBy = "pt" | "client";
+
+export type BookingApprovalStatus = "pending" | "approved" | "declined";
 export type BookingSessionType = "1-on-1" | "group" | "assessment";
 export type BookingSource = "trainer" | "client_link";
 
@@ -73,6 +82,8 @@ export interface Profile {
    */
   paynow_details: string | null;
   instagram_url: string | null;
+  cancellation_policy_hours: number;
+  booking_approval_required: boolean;
   created_at: string;
 }
 
@@ -147,6 +158,12 @@ export interface Booking {
   reminder_1h_sent: boolean;
   booking_source: BookingSource;
   client_intake_notes: string | null;
+  cancellation_reason: string | null;
+  cancelled_at: string | null;
+  cancelled_by: CancelledBy | null;
+  late_minutes: number | null;
+  attendance_confirmed_at: string | null;
+  chase_sent_at: string | null;
   created_at: string;
 }
 
@@ -174,5 +191,22 @@ export interface Payment {
    * without re-sending already-dispatched messages.
    */
   overdue_reminder_stage: OverdueReminderStage;
+  created_at: string;
+}
+
+export interface SessionToken {
+  id: string;
+  booking_id: string;
+  token: string;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}
+
+export interface BookingApproval {
+  id: string;
+  booking_id: string;
+  status: BookingApprovalStatus;
+  decided_at: string | null;
   created_at: string;
 }
