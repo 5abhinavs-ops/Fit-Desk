@@ -2,14 +2,16 @@
 
 import { useState } from "react"
 import { useBookings } from "@/hooks/useBookings"
+import { useWeekBookings, getWeekStart } from "@/hooks/useWeekBookings"
 import { useClients } from "@/hooks/useClients"
+import { WeekHeatmap } from "@/components/calendar/WeekHeatmap"
 import { BookingActionSheet } from "@/components/clients/BookingActionSheet"
 import { CreateBookingSheet } from "@/components/clients/CreateBookingSheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react"
-import { format, addDays, isSameDay } from "date-fns"
+import { format, addDays, parseISO } from "date-fns"
 import type { Booking } from "@/types/database"
 
 const statusDot: Record<string, string> = {
@@ -18,6 +20,11 @@ const statusDot: Record<string, string> = {
   cancelled: "bg-gray-400",
   completed: "bg-green-500",
   "no-show": "bg-red-500",
+  no_show: "bg-red-500",
+  upcoming: "bg-green-500",
+  forfeited: "bg-gray-400",
+  pending_approval: "bg-amber-500",
+  reschedule_requested: "bg-amber-500",
 }
 
 const sessionTypeBadge: Record<string, string> = {
@@ -26,79 +33,74 @@ const sessionTypeBadge: Record<string, string> = {
   assessment: "Assessment",
 }
 
+function getSGTToday(): string {
+  const now = new Date()
+  const sgtOffset = 8 * 60
+  const sgt = new Date(now.getTime() + (sgtOffset + now.getTimezoneOffset()) * 60000)
+  return format(sgt, "yyyy-MM-dd")
+}
+
 export default function BookingsPage() {
-  const today = new Date()
-  const todayStr = format(today, "yyyy-MM-dd")
+  const todayStr = getSGTToday()
+  const [viewMode, setViewMode] = useState<"week" | "day">("week")
+  const [weekOffset, setWeekOffset] = useState(0)
   const [selectedDate, setSelectedDate] = useState(todayStr)
-  const { data: bookings, isLoading } = useBookings(selectedDate)
-  const { data: clients } = useClients()
   const [actionBooking, setActionBooking] = useState<Booking | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
-  const [weekOffset, setWeekOffset] = useState(0)
 
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = addDays(today, weekOffset + i)
-    return {
-      date: format(d, "yyyy-MM-dd"),
-      dayName: format(d, "EEE"),
-      dayNum: format(d, "d"),
-      isToday: isSameDay(d, today),
-    }
-  })
+  const weekStart = getWeekStart(weekOffset)
+  const { data: weekBookings, isLoading: weekLoading } = useWeekBookings(weekStart)
+  const { data: dayBookings, isLoading: dayLoading } = useBookings(selectedDate)
+  const { data: clients } = useClients()
+
+  const weekLabel = `${format(parseISO(weekStart), "d MMM")} – ${format(addDays(parseISO(weekStart), 6), "d MMM")}`
 
   function getClientName(clientId: string): string {
     const c = clients?.find((cl) => cl.id === clientId)
     return c ? `${c.first_name} ${c.last_name}` : "Unknown"
   }
 
+  function handleDayTap(date: string) {
+    setSelectedDate(date)
+    setViewMode("day")
+  }
+
+  function handleBackToWeek() {
+    setViewMode("week")
+  }
+
+  function handleThisWeek() {
+    setWeekOffset(0)
+    setSelectedDate(todayStr)
+    setViewMode("week")
+  }
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Calendar</h1>
-
-      {/* Week navigation */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
-          onClick={() => setWeekOffset((o) => Math.max(o - 7, -21))}
-          disabled={weekOffset <= -21}
-          aria-label="Previous week"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-
-        <div className="flex flex-1 gap-1 overflow-x-auto">
-          {weekDays.map((d) => (
-            <button
-              key={d.date}
-              onClick={() => setSelectedDate(d.date)}
-              className={`flex min-w-[3rem] flex-1 flex-col items-center rounded-lg px-2 py-2 text-sm transition-colors ${
-                selectedDate === d.date
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent"
-              }`}
-            >
-              <span className="text-xs">{d.dayName}</span>
-              <span className="text-lg font-semibold">{d.dayNum}</span>
-              {d.isToday && (
-                <span className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
-                  selectedDate === d.date ? "bg-primary-foreground" : "bg-primary"
-                }`} />
-              )}
-            </button>
-          ))}
+      {/* Page header with week navigation */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Calendar</h1>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => { setWeekOffset((o) => o - 1); setViewMode("week") }}
+            aria-label="Previous week"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium">{weekLabel}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => { setWeekOffset((o) => o + 1); setViewMode("week") }}
+            aria-label="Next week"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
-          onClick={() => setWeekOffset((o) => o + 7)}
-          aria-label="Next week"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
       </div>
 
       {weekOffset !== 0 && (
@@ -106,49 +108,72 @@ export default function BookingsPage() {
           variant="outline"
           size="sm"
           className="w-full text-xs"
-          onClick={() => { setWeekOffset(0); setSelectedDate(todayStr) }}
+          onClick={handleThisWeek}
         >
-          Back to today
+          This week
         </Button>
       )}
 
-      {/* Booking list */}
-      {isLoading ? (
+      {/* Week heatmap — always visible */}
+      <WeekHeatmap
+        weekStart={weekStart}
+        bookings={weekBookings ?? []}
+        isLoading={weekLoading}
+        selectedDate={selectedDate}
+        onDayTap={handleDayTap}
+      />
+
+      {/* Day detail panel */}
+      {viewMode === "day" && (
         <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-lg" />
-          ))}
-        </div>
-      ) : !bookings || bookings.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">
-          No sessions on {format(new Date(selectedDate + "T12:00:00"), "EEEE")}. Tap + to book.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {bookings.map((b) => {
-            const bTime = new Date(b.date_time)
-            return (
-              <div
-                key={b.id}
-                className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
-                onClick={() => setActionBooking(b)}
-              >
-                <div className="text-right">
-                  <p className="text-sm font-medium">{format(bTime, "h:mm a")}</p>
-                </div>
-                <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status]}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{getClientName(b.client_id)}</p>
-                  <p className="text-muted-foreground text-xs truncate">
-                    {b.duration_mins} min{b.location ? ` · ${b.location}` : ""}
-                  </p>
-                </div>
-                <Badge variant="secondary" className="text-xs shrink-0">
-                  {sessionTypeBadge[b.session_type] ?? b.session_type}
-                </Badge>
-              </div>
-            )
-          })}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleBackToWeek}>
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Week
+            </Button>
+            <h2 className="text-lg font-semibold">
+              {format(parseISO(selectedDate), "EEEE, d MMMM")}
+            </h2>
+          </div>
+
+          {dayLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 rounded-lg" />
+              ))}
+            </div>
+          ) : !dayBookings || dayBookings.length === 0 ? (
+            <p className="text-muted-foreground py-12 text-center text-sm">
+              No sessions on {format(parseISO(selectedDate), "EEEE")}. Tap + to book.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {dayBookings.map((b) => {
+                const bTime = new Date(b.date_time)
+                return (
+                  <div
+                    key={b.id}
+                    className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
+                    onClick={() => setActionBooking(b)}
+                  >
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{format(bTime, "h:mm a")}</p>
+                    </div>
+                    <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status] ?? "bg-gray-400"}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{getClientName(b.client_id)}</p>
+                      <p className="text-muted-foreground truncate text-xs">
+                        {b.duration_mins} min{b.location ? ` · ${b.location}` : ""}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="shrink-0 text-xs">
+                      {sessionTypeBadge[b.session_type] ?? b.session_type}
+                    </Badge>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
