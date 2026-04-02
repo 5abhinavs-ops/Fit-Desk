@@ -25,6 +25,19 @@ const CONTENT_SID_MAP: Record<string, string | undefined> = {
   payment_overdue_3: process.env.TWILIO_CONTENT_SID_OVERDUE_3,
   payment_overdue_7: process.env.TWILIO_CONTENT_SID_OVERDUE_7,
   payment_reminder_manual: process.env.TWILIO_CONTENT_SID_PAYMENT_MANUAL,
+  booking_cancelled_restore: process.env.TWILIO_CONTENT_SID_CANCEL_RESTORE,
+  booking_cancelled_forfeit: process.env.TWILIO_CONTENT_SID_CANCEL_FORFEIT,
+  booking_no_show: process.env.TWILIO_CONTENT_SID_NO_SHOW,
+  booking_rescheduled: process.env.TWILIO_CONTENT_SID_RESCHEDULED,
+  booking_cancelled_by_client: process.env.TWILIO_CONTENT_SID_CLIENT_CANCEL,
+  booking_approved: process.env.TWILIO_CONTENT_SID_BOOKING_APPROVED,
+  booking_declined: process.env.TWILIO_CONTENT_SID_BOOKING_DECLINED,
+  booking_pending_approval: process.env.TWILIO_CONTENT_SID_PENDING_APPROVAL,
+  session_confirm_attendance: process.env.TWILIO_CONTENT_SID_CONFIRM_ATTENDANCE,
+  session_running_late: process.env.TWILIO_CONTENT_SID_RUNNING_LATE,
+  session_reschedule_request: process.env.TWILIO_CONTENT_SID_RESCHEDULE_REQUEST,
+  session_reminder_24h_with_link: process.env.TWILIO_CONTENT_SID_SESSION_24H_LINK,
+  session_chase_1h: process.env.TWILIO_CONTENT_SID_CHASE_1H,
 }
 
 let _client: twilio.Twilio | null = null
