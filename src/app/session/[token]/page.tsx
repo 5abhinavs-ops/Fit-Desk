@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service"
 import { format } from "date-fns"
 import { SessionActions } from "./session-actions"
+import { WhatsAppLink } from "./whatsapp-link"
 
 interface SessionPageProps {
   params: Promise<{ token: string }>
@@ -54,7 +55,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
     .select(`
       id, date_time, duration_mins, session_type, status, location, payment_mode,
       clients(first_name, last_name),
-      profiles:trainer_id(name, paynow_details, cancellation_policy_hours)
+      profiles:trainer_id(name, whatsapp_number, paynow_details, cancellation_policy_hours)
     `)
     .eq("id", tokenRow.booking_id)
     .single()
@@ -75,6 +76,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
   const client = booking.clients as unknown as { first_name: string; last_name: string }
   const trainer = booking.profiles as unknown as {
     name: string
+    whatsapp_number: string | null
     paynow_details: string | null
     cancellation_policy_hours: number
   }
@@ -131,6 +133,16 @@ export default async function SessionManagementPage({ params }: SessionPageProps
               </div>
             )}
           </div>
+        )}
+
+        {/* WhatsApp deep link */}
+        {trainer.whatsapp_number && (
+          <WhatsAppLink
+            trainerName={trainer.name}
+            trainerPhone={trainer.whatsapp_number}
+            sessionDate={format(dt, "EEEE, d MMMM")}
+            sessionTime={format(dt, "h:mm a")}
+          />
         )}
 
         {/* Action buttons */}
