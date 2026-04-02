@@ -59,6 +59,9 @@ export type PaymentStatus = "received" | "pending" | "overdue";
  */
 export type OverdueReminderStage = "none" | "due_today_sent" | "day_1" | "day_3" | "day_7";
 
+export type BookingPaymentStatus = "unpaid" | "client_confirmed" | "paid" | "waived";
+export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+
 export interface Profile {
   id: string;
   name: string;
@@ -84,6 +87,12 @@ export interface Profile {
   instagram_url: string | null;
   cancellation_policy_hours: number;
   booking_approval_required: boolean;
+  paynow_number: string | null;
+  bank_name: string | null;
+  bank_account_number: string | null;
+  bank_account_name: string | null;
+  payment_link: string | null;
+  payment_reminder_default_days: number;
   created_at: string;
 }
 
@@ -101,6 +110,7 @@ export interface Client {
   emergency_contact_phone: string | null;
   status: ClientStatus;
   last_session_date: string | null;
+  payment_reminder_days: number | null;
   created_at: string;
 }
 
@@ -164,6 +174,11 @@ export interface Booking {
   late_minutes: number | null;
   attendance_confirmed_at: string | null;
   chase_sent_at: string | null;
+  payment_status: BookingPaymentStatus;
+  payment_amount: number | null;
+  client_paid_at: string | null;
+  pt_confirmed_at: string | null;
+  payment_reminder_sent_at: string | null;
   created_at: string;
 }
 
@@ -200,6 +215,22 @@ export interface SessionToken {
   token: string;
   expires_at: string;
   used_at: string | null;
+  created_at: string;
+}
+
+export interface NutritionLog {
+  id: string;
+  client_id: string;
+  trainer_id: string;
+  photo_url: string | null;
+  meal_name: string | null;
+  meal_type: MealType | null;
+  calories: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  ai_raw_response: string | null;
+  logged_at: string;
   created_at: string;
 }
 

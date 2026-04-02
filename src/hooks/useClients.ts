@@ -46,7 +46,7 @@ export function useCreateClient() {
 
   return useMutation({
     mutationFn: async (
-      client: Omit<Client, "id" | "trainer_id" | "created_at" | "last_session_date">
+      client: Omit<Client, "id" | "trainer_id" | "created_at" | "last_session_date" | "payment_reminder_days">
     ) => {
       const { data, error } = await supabase
         .from("clients")
