@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createServiceClient } from "@/lib/supabase/service"
+import { sendTemplateMessage } from "@/lib/twilio"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
   // Verify trainer_id corresponds to a real profile
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, default_booking_payment_mode, default_session_mins")
+    .select("id, name, whatsapp_number, default_booking_payment_mode, default_session_mins, booking_approval_required")
     .eq("id", trainer_id)
     .single()
 
@@ -81,13 +82,16 @@ export async function POST(request: Request) {
   // Build date_time from preferred_date + preferred_time (stored as UTC)
   const dateTime = new Date(`${preferred_date}T${preferred_time}:00`).toISOString()
 
+  const needsApproval = profile.booking_approval_required ?? true
+  const bookingStatus = needsApproval ? "pending_approval" : "upcoming"
+
   const { data: booking, error } = await supabase.from("bookings").insert({
     trainer_id,
     client_id: clientId,
     date_time: dateTime,
     duration_mins: profile.default_session_mins ?? 60,
     session_type,
-    status: "pending",
+    status: bookingStatus,
     booking_source: "client_link",
     payment_mode: profile.default_booking_payment_mode || "pay_later",
     client_intake_notes: notes || null,
@@ -96,6 +100,33 @@ export async function POST(request: Request) {
   }).select("id").single()
 
   if (error || !booking) return NextResponse.json({ error: "Failed to create booking" }, { status: 500 })
+
+  if (needsApproval) {
+    // Create booking approval row
+    await supabase.from("booking_approvals").insert({
+      booking_id: booking.id,
+      status: "pending",
+    })
+
+    // Notify PT via WhatsApp
+    await sendTemplateMessage({
+      whatsappNumber: profile.whatsapp_number,
+      templateName: "booking_pending_approval",
+      parameters: [
+        { name: "trainer_name", value: profile.name },
+        { name: "client_name", value: client_name },
+        { name: "date", value: preferred_date },
+        { name: "time", value: preferred_time },
+      ],
+    })
+
+    return NextResponse.json({
+      success: true,
+      bookingId: booking.id,
+      pendingApproval: true,
+      message: `Your booking request has been sent to ${profile.name}. You will receive a confirmation once approved.`,
+    })
+  }
 
   return NextResponse.json({ success: true, bookingId: booking.id })
 }

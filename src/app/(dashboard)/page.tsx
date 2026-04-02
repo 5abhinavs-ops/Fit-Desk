@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CalendarDays, DollarSign, AlertTriangle } from "lucide-react"
+import { PendingApprovalsCard } from "@/components/dashboard/pending-approvals-card"
 import { format } from "date-fns"
 
 function getGreeting(): string {
@@ -62,6 +63,9 @@ export default function DashboardPage() {
         </h1>
         <p className="text-muted-foreground text-sm">{today}</p>
       </div>
+
+      {/* Pending approvals */}
+      <PendingApprovalsCard />
 
       {/* Stat cards */}
       {isLoading ? (
