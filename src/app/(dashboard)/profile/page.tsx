@@ -14,6 +14,7 @@ import type { Profile } from "@/types/database"
 import { ProfilePhotoUpload } from "@/components/profile/profile-photo-upload"
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form"
 import { BookingSettingsForm } from "@/components/profile/booking-settings-form"
+import { CancellationPolicyForm } from "@/components/profile/cancellation-policy-form"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -113,7 +114,17 @@ export default function ProfilePage() {
 
       <Separator />
 
-      {/* Section 3 — Subscription */}
+      {/* Section 3 — Cancellation & Approval Policy */}
+      <h2 className="text-lg font-semibold">Cancellation policy</h2>
+      <CancellationPolicyForm
+        profileId={profile.id}
+        initialPolicyHours={profile.cancellation_policy_hours}
+        initialApprovalRequired={profile.booking_approval_required}
+      />
+
+      <Separator />
+
+      {/* Section 4 — Subscription */}
       <h2 className="text-lg font-semibold">Subscription</h2>
       <Card>
         <CardContent className="p-4 space-y-3">
