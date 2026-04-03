@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, CalendarDays, DollarSign, UserCircle } from "lucide-react";
+import { Home, Users, CalendarDays, DollarSign, Salad, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -10,6 +10,7 @@ const tabs = [
   { href: "/clients", label: "Clients", icon: Users },
   { href: "/bookings", label: "Calendar", icon: CalendarDays },
   { href: "/payments", label: "Payments", icon: DollarSign },
+  { href: "/nutrition", label: "Nutrition", icon: Salad },
   { href: "/profile", label: "Profile", icon: UserCircle },
 ] as const;
 
