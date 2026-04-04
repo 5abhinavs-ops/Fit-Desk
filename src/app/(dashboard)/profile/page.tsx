@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
-import { LogOut } from "lucide-react"
+import { LogOut, ChevronDown, ChevronUp } from "lucide-react"
 import type { Profile } from "@/types/database"
 import { ProfilePhotoUpload } from "@/components/profile/profile-photo-upload"
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form"
@@ -21,6 +21,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showAdvancedPayment, setShowAdvancedPayment] = useState(false)
 
   useEffect(() => {
     async function loadProfile() {
@@ -102,6 +103,9 @@ export default function ProfilePage() {
         initialBookingHeadline={profile.booking_headline || ""}
         initialWhyTrainWithMe={profile.why_train_with_me || ""}
         initialPricingFrom={profile.pricing_from ? String(profile.pricing_from) : ""}
+        initialTestimonial1={profile.testimonial_1 || ""}
+        initialTestimonial2={profile.testimonial_2 || ""}
+        initialTestimonial3={profile.testimonial_3 || ""}
       />
 
       <Separator />
@@ -114,6 +118,7 @@ export default function ProfilePage() {
         initialSessionMins={profile.default_session_mins}
         initialPaymentMode={profile.default_booking_payment_mode}
         initialPaynowDetails={profile.paynow_details || ""}
+        initialTrainingLocations={profile.training_locations || []}
       />
 
       <Separator />
@@ -138,7 +143,17 @@ export default function ProfilePage() {
         initialBankAccountName={profile.bank_account_name || ""}
         initialPaymentLink={profile.payment_link || ""}
         initialReminderDays={profile.payment_reminder_default_days}
+        showAdvanced={showAdvancedPayment}
       />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-xs"
+        onClick={() => setShowAdvancedPayment(!showAdvancedPayment)}
+      >
+        {showAdvancedPayment ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
+        {showAdvancedPayment ? "Hide advanced settings" : "Show advanced payment settings"}
+      </Button>
 
       <Separator />
 

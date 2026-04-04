@@ -18,7 +18,9 @@ import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NutritionTab } from "@/components/clients/nutrition-tab"
-import { ArrowLeft, MessageCircle, Mail, Loader2, FileText } from "lucide-react"
+import { ClientPaymentsTab } from "@/components/clients/ClientPaymentsTab"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ArrowLeft, MessageCircle, Mail, Loader2, FileText, Salad, ChevronDown, ChevronUp } from "lucide-react"
 import { format } from "date-fns"
 import type { ClientStatus } from "@/types/database"
 
@@ -44,6 +46,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   const [pkgSheetOpen, setPkgSheetOpen] = useState(false)
   const [reminderDays, setReminderDays] = useState("")
   const [reminderSaving, setReminderSaving] = useState(false)
+  const [nutritionExpanded, setNutritionExpanded] = useState(false)
 
   const supabase = createClient()
   const { data: recentNotes } = useQuery({
@@ -218,102 +221,133 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
         )}
       </div>
 
-      {/* Active package */}
-      {pkgLoading ? (
-        <Skeleton className="h-36 rounded-xl" />
-      ) : activePackage ? (
-        <Card>
-          <CardContent className="space-y-3 p-4">
-            <div className="flex items-center justify-between">
-              <p className="font-semibold">{activePackage.name}</p>
-              <Badge variant="secondary" className={paymentStyles[activePackage.payment_status]}>
-                {activePackage.payment_status === "paid"
-                  ? "Paid"
-                  : activePackage.payment_status === "partial"
-                    ? "Partial"
-                    : "Unpaid"}
-              </Badge>
-            </div>
-            <Progress value={progressPct} className="h-2" />
-            <p className="text-muted-foreground text-xs">
-              {sessionsUsed} of {totalSessions} sessions used — {sessionsRemaining} remaining
-            </p>
-            <Button
-              className="w-full"
-              onClick={handleMarkSession}
-              disabled={sessionsUsed >= totalSessions || logSession.isPending}
-            >
-              {logSession.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Mark session done
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-muted-foreground text-sm">No active package</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="w-full">
+          <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
+          <TabsTrigger value="payments" className="flex-1">Payments</TabsTrigger>
+        </TabsList>
 
-      {/* Recent notes */}
-      {recentNotes && recentNotes.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold flex items-center gap-1.5">
-            <FileText className="h-4 w-4" />
-            Recent notes
-          </h2>
-          {recentNotes.map((note) => (
-            <Card key={note.id}>
-              <CardContent className="p-3">
+        <TabsContent value="overview" className="space-y-6 mt-4">
+          {/* Active package */}
+          {pkgLoading ? (
+            <Skeleton className="h-36 rounded-xl" />
+          ) : activePackage ? (
+            <Card>
+              <CardContent className="space-y-3 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold">{activePackage.name}</p>
+                  <Badge variant="secondary" className={paymentStyles[activePackage.payment_status]}>
+                    {activePackage.payment_status === "paid"
+                      ? "Paid"
+                      : activePackage.payment_status === "partial"
+                        ? "Partial"
+                        : "Unpaid"}
+                  </Badge>
+                </div>
+                <Progress value={progressPct} className="h-2" />
                 <p className="text-muted-foreground text-xs">
-                  {format(new Date(note.date_time), "d MMM yyyy")}
+                  {sessionsUsed} of {totalSessions} sessions used — {sessionsRemaining} remaining
                 </p>
-                <p className="text-sm mt-1">{note.session_notes}</p>
+                <Button
+                  className="w-full"
+                  onClick={handleMarkSession}
+                  disabled={sessionsUsed >= totalSessions || logSession.isPending}
+                >
+                  {logSession.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Mark session done
+                </Button>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ) : (
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-muted-foreground text-sm">No active package</p>
+              </CardContent>
+            </Card>
+          )}
 
-      <Button variant="outline" className="w-full" onClick={() => setPkgSheetOpen(true)}>
-        Create package
-      </Button>
+          {/* Recent notes */}
+          {recentNotes && recentNotes.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="text-sm font-semibold flex items-center gap-1.5">
+                <FileText className="h-4 w-4" />
+                Recent notes
+              </h2>
+              {recentNotes.map((note) => (
+                <Card key={note.id}>
+                  <CardContent className="p-3">
+                    <p className="text-muted-foreground text-xs">
+                      {format(new Date(note.date_time), "d MMM yyyy")}
+                    </p>
+                    <p className="text-sm mt-1">{note.session_notes}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
-      {/* Nutrition */}
-      <div className="space-y-2">
-        <h2 className="text-sm font-semibold">Nutrition</h2>
-        <NutritionTab clientId={id} />
-      </div>
-
-      {/* Payment reminder setting */}
-      <div className="rounded-lg border p-4 space-y-2">
-        <Label htmlFor="reminderDays" className="text-sm font-medium">Payment reminder frequency</Label>
-        <div className="flex gap-2">
-          <Input
-            id="reminderDays"
-            type="number"
-            min="1"
-            max="30"
-            placeholder="3"
-            value={reminderDays}
-            onChange={(e) => setReminderDays(e.target.value)}
-            className="w-20"
-          />
-          <span className="text-sm text-muted-foreground self-center">days</span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={saveReminderDays}
-            disabled={reminderSaving}
-          >
-            {reminderSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+          <Button variant="outline" className="w-full" onClick={() => setPkgSheetOpen(true)}>
+            Create package
           </Button>
-        </div>
-        <p className="text-muted-foreground text-xs">
-          Auto-send payment reminders every {reminderDays || "—"} days
-        </p>
-      </div>
+
+          {/* Nutrition — collapsible */}
+          <div className="rounded-lg border p-3">
+            <button
+              className="flex items-center justify-between w-full"
+              onClick={() => setNutritionExpanded(!nutritionExpanded)}
+            >
+              <div className="flex items-center gap-1.5">
+                <Salad className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold">Nutrition</span>
+              </div>
+              {nutritionExpanded ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+              )}
+            </button>
+            {nutritionExpanded && (
+              <div className="mt-3">
+                <NutritionTab clientId={id} />
+              </div>
+            )}
+          </div>
+
+          {/* Payment reminder setting */}
+          <div className="rounded-lg border p-4 space-y-2">
+            <Label htmlFor="reminderDays" className="text-sm font-medium">Payment reminder frequency</Label>
+            <div className="flex gap-2">
+              <Input
+                id="reminderDays"
+                type="number"
+                min="1"
+                max="30"
+                placeholder="3"
+                value={reminderDays}
+                onChange={(e) => setReminderDays(e.target.value)}
+                className="w-20"
+              />
+              <span className="text-sm text-muted-foreground self-center">days</span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={saveReminderDays}
+                disabled={reminderSaving}
+              >
+                {reminderSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+              </Button>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Auto-send payment reminders every {reminderDays || "—"} days
+            </p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="payments" className="mt-4">
+          <ClientPaymentsTab clientId={id} />
+        </TabsContent>
+      </Tabs>
 
       <CreatePackageSheet clientId={id} open={pkgSheetOpen} onOpenChange={setPkgSheetOpen} />
     </div>

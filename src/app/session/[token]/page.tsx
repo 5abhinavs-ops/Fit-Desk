@@ -2,6 +2,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { format } from "date-fns"
 import { SessionActions } from "./session-actions"
 import { WhatsAppLink } from "./whatsapp-link"
+import { Progress } from "@/components/ui/progress"
 
 interface SessionPageProps {
   params: Promise<{ token: string }>
@@ -53,7 +54,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
   const { data: booking, error: bookingError } = await supabase
     .from("bookings")
     .select(`
-      id, date_time, duration_mins, session_type, status, location, payment_mode, payment_status, payment_amount,
+      id, trainer_id, date_time, duration_mins, session_type, status, location, payment_mode, payment_status, payment_amount, package_id,
       clients(first_name, last_name),
       profiles:trainer_id(name, whatsapp_number, paynow_details, paynow_number, bank_name, bank_account_number, bank_account_name, payment_link, cancellation_policy_hours)
     `)
@@ -72,6 +73,24 @@ export default async function SessionManagementPage({ params }: SessionPageProps
       </div>
     )
   }
+
+  // Fetch package details if linked — scoped to same trainer for defence-in-depth
+  const packageData: {
+    name: string; total_sessions: number; sessions_used: number;
+    expiry_date: string | null; status: string
+  } | null = booking.package_id
+    ? await supabase
+        .from("packages")
+        .select("name, total_sessions, sessions_used, expiry_date, status, trainer_id")
+        .eq("id", booking.package_id)
+        .single()
+        .then((r) => {
+          if (!r.data) return null
+          // Verify package belongs to the same trainer as the booking
+          if (r.data.trainer_id !== booking.trainer_id) return null
+          return r.data
+        })
+    : null
 
   const client = booking.clients as unknown as { first_name: string; last_name: string }
   const trainer = booking.profiles as unknown as {
@@ -123,6 +142,44 @@ export default async function SessionManagementPage({ params }: SessionPageProps
             Hi {client.first_name}, manage your upcoming session below.
           </p>
         </div>
+
+        {/* Package status */}
+        {packageData && packageData.status === "active" && (() => {
+          const remaining = packageData.total_sessions - packageData.sessions_used
+          const progressPct = (packageData.sessions_used / packageData.total_sessions) * 100
+          const expiryDate = packageData.expiry_date ? new Date(packageData.expiry_date) : null
+          const expiryDays = expiryDate ? Math.ceil((expiryDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null
+
+          return (
+            <div className="rounded-xl border p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
+                  <path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                  <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+                <span className="text-sm font-semibold">{packageData.name}</span>
+              </div>
+              <p className="text-sm">
+                {packageData.sessions_used} of {packageData.total_sessions} sessions used —{" "}
+                <span className={remaining <= 1 ? "text-red-500 font-semibold" : remaining === 2 ? "text-amber-500 font-semibold" : "text-green-600 font-semibold"}>
+                  {remaining} remaining
+                </span>
+              </p>
+              <Progress value={progressPct} className="h-1.5" />
+              {expiryDate && (
+                <p className={`text-xs ${expiryDays !== null && expiryDays <= 7 ? "text-red-500" : "text-muted-foreground"}`}>
+                  Package expires {format(expiryDate, "d MMM yyyy")}
+                </p>
+              )}
+              {remaining === 0 && (
+                <p className="text-xs text-amber-600">
+                  Your package is complete — speak to your trainer to renew
+                </p>
+              )}
+            </div>
+          )
+        })()}
 
         {/* Payment details */}
         {(booking.payment_status === "unpaid" || pendingPayment) && (

@@ -16,6 +16,7 @@ interface BookingSettingsFormProps {
   initialSessionMins: number
   initialPaymentMode: BookingPaymentMode
   initialPaynowDetails: string
+  initialTrainingLocations: string[]
 }
 
 export function BookingSettingsForm({
@@ -24,6 +25,7 @@ export function BookingSettingsForm({
   initialSessionMins,
   initialPaymentMode,
   initialPaynowDetails,
+  initialTrainingLocations,
 }: BookingSettingsFormProps) {
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -31,6 +33,7 @@ export function BookingSettingsForm({
   const [defaultSessionMins, setDefaultSessionMins] = useState(String(initialSessionMins))
   const [defaultPaymentMode, setDefaultPaymentMode] = useState<BookingPaymentMode>(initialPaymentMode)
   const [paynowDetails, setPaynowDetails] = useState(initialPaynowDetails)
+  const [locationsInput, setLocationsInput] = useState(initialTrainingLocations.join(", "))
 
   async function handleSave() {
     const parsedMins = parseInt(defaultSessionMins, 10)
@@ -52,6 +55,7 @@ export function BookingSettingsForm({
         default_session_mins: parsedMins,
         default_booking_payment_mode: defaultPaymentMode,
         paynow_details: paynowDetails || null,
+        training_locations: locationsInput.split(",").map((s) => s.trim()).filter(Boolean),
       })
       .eq("id", profileId)
 
@@ -144,6 +148,16 @@ export function BookingSettingsForm({
           onChange={(e) => setPaynowDetails(e.target.value)}
         />
         <p className="text-muted-foreground text-xs">Shown in all payment reminder messages</p>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="locations">Training locations</Label>
+        <Input
+          id="locations"
+          placeholder="Bishan ActiveSG, Client's home, Online"
+          value={locationsInput}
+          onChange={(e) => setLocationsInput(e.target.value)}
+        />
+        <p className="text-muted-foreground text-xs">Separate multiple locations with commas</p>
       </div>
       <Button onClick={handleSave} disabled={saving}>
         {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

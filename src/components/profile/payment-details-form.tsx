@@ -16,6 +16,7 @@ interface PaymentDetailsFormProps {
   initialBankAccountName: string
   initialPaymentLink: string
   initialReminderDays: number
+  showAdvanced?: boolean
 }
 
 export function PaymentDetailsForm({
@@ -26,6 +27,7 @@ export function PaymentDetailsForm({
   initialBankAccountName,
   initialPaymentLink,
   initialReminderDays,
+  showAdvanced = false,
 }: PaymentDetailsFormProps) {
   const [saving, setSaving] = useState(false)
   const [paynowNumber, setPaynowNumber] = useState(initialPaynowNumber)
@@ -83,35 +85,39 @@ export function PaymentDetailsForm({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="bankName">Bank name</Label>
-        <Input
-          id="bankName"
-          placeholder="DBS / POSB / OCBC / UOB"
-          value={bankName}
-          onChange={(e) => setBankName(e.target.value)}
-        />
-      </div>
+      {showAdvanced && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="bankName">Bank name</Label>
+            <Input
+              id="bankName"
+              placeholder="DBS / POSB / OCBC / UOB"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+            />
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="bankAccNum">Bank account number</Label>
-        <Input
-          id="bankAccNum"
-          placeholder="123-456789-0"
-          value={bankAccountNumber}
-          onChange={(e) => setBankAccountNumber(e.target.value)}
-        />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="bankAccNum">Bank account number</Label>
+            <Input
+              id="bankAccNum"
+              placeholder="123-456789-0"
+              value={bankAccountNumber}
+              onChange={(e) => setBankAccountNumber(e.target.value)}
+            />
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="bankAccName">Bank account name</Label>
-        <Input
-          id="bankAccName"
-          placeholder="Your name as on bank account"
-          value={bankAccountName}
-          onChange={(e) => setBankAccountName(e.target.value)}
-        />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="bankAccName">Bank account name</Label>
+            <Input
+              id="bankAccName"
+              placeholder="Your name as on bank account"
+              value={bankAccountName}
+              onChange={(e) => setBankAccountName(e.target.value)}
+            />
+          </div>
+        </>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="paymentLink">Payment link</Label>

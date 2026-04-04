@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { PaymentSection } from "@/components/bookings/payment-section"
-import { Loader2, RotateCcw, Ban, UserX, CalendarClock } from "lucide-react"
+import { Loader2, RotateCcw, Ban, UserX, CalendarClock, ChevronDown, ChevronUp } from "lucide-react"
 import { format } from "date-fns"
 
 type ActionType = "restore" | "forfeit" | "no_show" | "reschedule"
@@ -85,6 +85,7 @@ export function BookingActionSheet({
   const [paymentPending, setPaymentPending] = useState(false)
   const [sessionNotes, setSessionNotes] = useState(booking.session_notes || "")
   const [notesSaving, setNotesSaving] = useState(false)
+  const [showMoreActions, setShowMoreActions] = useState(false)
 
   const bookingTime = new Date(booking.date_time)
   const isActionable = ["confirmed", "pending", "upcoming", "pending_approval"].includes(booking.status)
@@ -252,7 +253,39 @@ export function BookingActionSheet({
             {/* Action buttons */}
             {isActionable ? (
               <div className="space-y-2">
-                {(Object.keys(ACTION_CONFIG) as ActionType[]).map((action) => {
+                {/* Primary action: reschedule */}
+                {(() => {
+                  const config = ACTION_CONFIG.reschedule
+                  const Icon = config.icon
+                  return (
+                    <Button
+                      variant={config.variant}
+                      className="w-full justify-start gap-3 h-auto py-3"
+                      onClick={() => setConfirmAction("reschedule")}
+                      disabled={pending}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium">{config.label}</p>
+                        <p className="text-xs text-muted-foreground font-normal">{config.description}</p>
+                      </div>
+                    </Button>
+                  )
+                })()}
+
+                {/* More options toggle */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={() => setShowMoreActions(!showMoreActions)}
+                >
+                  {showMoreActions ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
+                  {showMoreActions ? "Hide options" : "More options"}
+                </Button>
+
+                {/* Secondary actions */}
+                {showMoreActions && (["restore", "forfeit", "no_show"] as ActionType[]).map((action) => {
                   const config = ACTION_CONFIG[action]
                   const Icon = config.icon
                   return (
@@ -266,9 +299,7 @@ export function BookingActionSheet({
                       <Icon className="h-4 w-4 shrink-0" />
                       <div className="text-left">
                         <p className="text-sm font-medium">{config.label}</p>
-                        <p className="text-xs text-muted-foreground font-normal">
-                          {config.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground font-normal">{config.description}</p>
                       </div>
                     </Button>
                   )

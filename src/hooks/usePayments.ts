@@ -27,6 +27,23 @@ export function usePayments(status?: "pending" | "overdue" | "received") {
   })
 }
 
+export function useClientPayments(clientId: string) {
+  const supabase = createClient()
+  return useQuery({
+    queryKey: ["client-payments", clientId],
+    queryFn: async (): Promise<PaymentWithClient[]> => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("*, clients(first_name, last_name, whatsapp_number)")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false })
+      if (error) throw error
+      return data as PaymentWithClient[]
+    },
+    enabled: !!clientId,
+  })
+}
+
 export function useCreatePayment() {
   const supabase = createClient()
   const queryClient = useQueryClient()
@@ -44,6 +61,7 @@ export function useCreatePayment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] })
+      queryClient.invalidateQueries({ queryKey: ["client-payments"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
     },
   })
@@ -64,6 +82,7 @@ export function useMarkPaymentReceived() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] })
+      queryClient.invalidateQueries({ queryKey: ["client-payments"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
     },
   })

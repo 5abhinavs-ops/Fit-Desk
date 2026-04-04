@@ -13,7 +13,7 @@ const getTrainer = cache(async (slug: string) => {
   const supabase = createServiceClient()
   const { data } = await supabase
     .from("profiles")
-    .select("id, name, photo_url, bio, specialisations, instagram_url, booking_headline, why_train_with_me, pricing_from, cancellation_policy_hours")
+    .select("id, name, photo_url, bio, specialisations, instagram_url, booking_headline, why_train_with_me, pricing_from, cancellation_policy_hours, testimonial_1, testimonial_2, testimonial_3, training_locations")
     .eq("booking_slug", slug)
     .single()
   return data
@@ -66,7 +66,7 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
         {/* Trainer header */}
         <div className="text-center space-y-3">
           {/* Photo or initials */}
-          {trainer.photo_url ? (
+          {trainer.photo_url && trainer.photo_url.startsWith("https://") ? (
             <img
               src={trainer.photo_url}
               alt={trainer.name}
@@ -122,6 +122,24 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
           )}
         </div>
 
+        {/* Training locations */}
+        {trainer.training_locations && trainer.training_locations.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 justify-center">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span className="text-xs text-muted-foreground">Training locations</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-1">
+              {trainer.training_locations.map((loc: string) => (
+                <Badge key={loc} variant="outline" className="text-xs">{loc}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Why train with me */}
         {trainer.why_train_with_me && (
           <div className="space-y-2">
@@ -145,6 +163,24 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
             </p>
           )}
         </div>
+
+        {/* Testimonials */}
+        {(() => {
+          const testimonials = [trainer.testimonial_1, trainer.testimonial_2, trainer.testimonial_3]
+            .filter((t): t is string => !!t && t.trim().length > 0)
+          if (testimonials.length === 0) return null
+          return (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-center">What clients say</p>
+              {testimonials.map((t, i) => (
+                <div key={i} className="rounded-xl border bg-muted p-4">
+                  <span className="text-3xl text-muted-foreground font-serif leading-none">&ldquo;</span>
+                  <p className="text-sm italic mt-1">{t}</p>
+                </div>
+              ))}
+            </div>
+          )
+        })()}
 
         {/* Booking form */}
         <ErrorBoundary>

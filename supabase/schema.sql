@@ -461,6 +461,16 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS pricing_from numeric(10,2);
 -- Migration: add last_reactivation_alert_sent to clients
 ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS last_reactivation_alert_sent timestamptz;
 
+-- Migration: add testimonials to profiles
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS testimonial_1 text,
+  ADD COLUMN IF NOT EXISTS testimonial_2 text,
+  ADD COLUMN IF NOT EXISTS testimonial_3 text;
+
+-- Migration: add training_locations to profiles
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS training_locations text[] DEFAULT '{}';
+
 -- Migration: add onboarding fields to profiles
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS onboarding_completed boolean NOT NULL DEFAULT false,

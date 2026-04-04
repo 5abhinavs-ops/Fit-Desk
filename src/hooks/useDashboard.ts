@@ -17,6 +17,11 @@ interface DashboardStats {
   sessionsThisWeek: number;
   overdueTotal: number;
   attendanceRate: number | null;
+  lapsedClients: Array<{
+    client_id: string;
+    client_name: string;
+    days_since_last_session: number;
+  }>;
 }
 
 export function useDashboard() {
@@ -44,8 +49,10 @@ export function useDashboard() {
       const monthStr = today.slice(0, 7); // YYYY-MM
 
       // Fetch all dashboard data in parallel
+      const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
       const [bookingsResult, paymentsResult, packagesResult, pendingConfirmResult,
-             revenueResult, weekSessionsResult, overdueResult, attendanceResult] =
+             revenueResult, weekSessionsResult, overdueResult, attendanceResult, lapsedResult] =
         await Promise.all([
           supabase
             .from("bookings")
@@ -101,6 +108,15 @@ export function useDashboard() {
             .gte("date_time", `${monthStr}-01T00:00:00+08:00`)
             .lte("date_time", `${monthStr}-31T23:59:59+08:00`)
             .in("status", ["completed", "no-show", "no_show"]),
+
+          // Lapsed clients (no session in 14+ days)
+          supabase
+            .from("clients")
+            .select("id, first_name, last_name, last_session_date")
+            .eq("status", "active")
+            .not("last_session_date", "is", null)
+            .lt("last_session_date", fourteenDaysAgo)
+            .limit(10),
         ]);
 
       if (bookingsResult.error) throw bookingsResult.error;
@@ -145,6 +161,14 @@ export function useDashboard() {
         attendanceRate = Math.round((completed / attendanceData.length) * 100);
       }
 
+      const lapsedClients = (lapsedResult.data ?? []).map((c) => ({
+        client_id: c.id,
+        client_name: `${c.first_name} ${c.last_name}`,
+        days_since_last_session: Math.floor(
+          (now.getTime() - new Date(c.last_session_date!).getTime()) / (24 * 60 * 60 * 1000)
+        ),
+      }));
+
       return {
         todayBookingsCount: bookingsResult.count ?? 0,
         outstandingPayments,
@@ -154,6 +178,7 @@ export function useDashboard() {
         sessionsThisWeek: weekSessionsResult.count ?? 0,
         overdueTotal,
         attendanceRate,
+        lapsedClients,
       };
     },
   });

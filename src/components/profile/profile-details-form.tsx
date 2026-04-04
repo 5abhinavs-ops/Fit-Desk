@@ -21,6 +21,9 @@ interface ProfileDetailsFormProps {
   initialBookingHeadline: string
   initialWhyTrainWithMe: string
   initialPricingFrom: string
+  initialTestimonial1: string
+  initialTestimonial2: string
+  initialTestimonial3: string
 }
 
 export function ProfileDetailsForm({
@@ -33,6 +36,9 @@ export function ProfileDetailsForm({
   initialBookingHeadline,
   initialWhyTrainWithMe,
   initialPricingFrom,
+  initialTestimonial1,
+  initialTestimonial2,
+  initialTestimonial3,
 }: ProfileDetailsFormProps) {
   const [saving, setSaving] = useState(false)
   const [name, setName] = useState(initialName)
@@ -43,6 +49,9 @@ export function ProfileDetailsForm({
   const [bookingHeadline, setBookingHeadline] = useState(initialBookingHeadline)
   const [whyTrainWithMe, setWhyTrainWithMe] = useState(initialWhyTrainWithMe)
   const [pricingFrom, setPricingFrom] = useState(initialPricingFrom)
+  const [testimonial1, setTestimonial1] = useState(initialTestimonial1)
+  const [testimonial2, setTestimonial2] = useState(initialTestimonial2)
+  const [testimonial3, setTestimonial3] = useState(initialTestimonial3)
 
   async function handleSave() {
     const trimmedInstagram = instagramUrl.trim()
@@ -69,6 +78,9 @@ export function ProfileDetailsForm({
         booking_headline: bookingHeadline || null,
         why_train_with_me: whyTrainWithMe || null,
         pricing_from: parsedPrice,
+        testimonial_1: testimonial1 || null,
+        testimonial_2: testimonial2 || null,
+        testimonial_3: testimonial3 || null,
       })
       .eq("id", profileId)
 
@@ -168,6 +180,18 @@ export function ProfileDetailsForm({
           value={pricingFrom}
           onChange={(e) => setPricingFrom(e.target.value)}
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="testimonial1">Testimonial 1</Label>
+        <Input id="testimonial1" placeholder={`"Lost 8kg in 3 months. Life changing!" — Sarah T.`} value={testimonial1} onChange={(e) => setTestimonial1(e.target.value)} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="testimonial2">Testimonial 2</Label>
+        <Input id="testimonial2" placeholder={`"Best PT in Singapore." — Marcus L.`} value={testimonial2} onChange={(e) => setTestimonial2(e.target.value)} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="testimonial3">Testimonial 3</Label>
+        <Input id="testimonial3" placeholder={`"Highly recommend!" — Priya R.`} value={testimonial3} onChange={(e) => setTestimonial3(e.target.value)} />
       </div>
       <Button onClick={handleSave} disabled={saving}>
         {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -96,6 +96,10 @@ export interface Profile {
   booking_headline: string | null;
   why_train_with_me: string | null;
   pricing_from: number | null;
+  testimonial_1: string | null;
+  testimonial_2: string | null;
+  testimonial_3: string | null;
+  training_locations: string[];
   onboarding_completed: boolean;
   onboarding_steps: Record<string, boolean>;
   created_at: string;
