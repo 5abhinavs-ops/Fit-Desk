@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [whatsappNumber, setWhatsappNumber] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -24,6 +25,11 @@ export default function SignupPage() {
 
     if (password.length < 8) {
       toast.error("Password must be at least 8 characters")
+      return
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match")
       return
     }
 
@@ -103,6 +109,18 @@ export default function SignupPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Re-enter your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
             />
           </div>
 
