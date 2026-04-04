@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sensitive files — never commit
+Twilio Recovery code.txt
+fitdesk_credentials_table.xlsx
+*.xlsx
+*.txt

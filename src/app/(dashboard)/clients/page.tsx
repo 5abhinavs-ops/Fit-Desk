@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { useClients } from "@/hooks/useClients"
 import { ClientCard } from "@/components/clients/ClientCard"
-import { AddClientSheet } from "@/components/clients/AddClientSheet"
+import { AddClientWithPackageSheet } from "@/components/clients/AddClientWithPackageSheet"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -110,7 +110,7 @@ export default function ClientsPage() {
         <Plus className="h-6 w-6" />
       </Button>
 
-      <AddClientSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      <AddClientWithPackageSheet open={sheetOpen} onOpenChange={setSheetOpen} />
     </div>
   )
 }
