@@ -40,7 +40,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/book/") ||
     request.nextUrl.pathname.startsWith("/session/") ||
     request.nextUrl.pathname.startsWith("/onboarding") ||
-    request.nextUrl.pathname.startsWith("/upgrade");
+    request.nextUrl.pathname.startsWith("/upgrade") ||
+    request.nextUrl.pathname.startsWith("/reset-password") ||
+    request.nextUrl.pathname.startsWith("/auth/callback");
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
