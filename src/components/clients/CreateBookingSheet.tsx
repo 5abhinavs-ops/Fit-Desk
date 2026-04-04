@@ -11,8 +11,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { format } from "date-fns"
 import type { BookingPaymentMode } from "@/types/database"
 
 interface CreateBookingSheetProps {
@@ -51,6 +53,8 @@ export function CreateBookingSheet({ defaultDate, open, onOpenChange }: CreateBo
   const [paymentMode, setPaymentMode] = useState<BookingPaymentMode>("pay_later")
   const [notes, setNotes] = useState("")
   const [defaultMode, setDefaultMode] = useState<BookingPaymentMode>("pay_later")
+  const [repeatEnabled, setRepeatEnabled] = useState(false)
+  const [repeatWeeks, setRepeatWeeks] = useState("4")
 
   const { data: clientPackages } = usePackages(clientId || undefined)
   const activePackage = clientPackages?.find((p) => p.status === "active")
@@ -95,38 +99,64 @@ export function CreateBookingSheet({ defaultDate, open, onOpenChange }: CreateBo
     }
 
     const dateTime = new Date(`${date}T${time}:00`).toISOString()
+    const totalWeeks = repeatEnabled ? Math.min(Math.max(parseInt(repeatWeeks, 10) || 1, 1), 12) : 1
 
-    createBooking.mutate(
-      {
-        client_id: clientId,
-        package_id: paymentMode === "from_package" && activePackage ? activePackage.id : null,
-        date_time: dateTime,
-        duration_mins: parseInt(duration, 10),
-        session_type: sessionType as "1-on-1" | "group" | "assessment",
-        status: "confirmed",
-        location: location || null,
-        payment_mode: paymentMode,
-        stripe_payment_intent_id: null,
-        booking_source: "trainer",
-        client_intake_notes: notes || null,
-      },
-      {
-        onSuccess: () => {
+    const bookingData = {
+      client_id: clientId,
+      package_id: paymentMode === "from_package" && activePackage ? activePackage.id : null,
+      date_time: dateTime,
+      duration_mins: parseInt(duration, 10),
+      session_type: sessionType as "1-on-1" | "group" | "assessment",
+      status: "confirmed" as const,
+      location: location || null,
+      payment_mode: paymentMode,
+      stripe_payment_intent_id: null,
+      booking_source: "trainer" as const,
+      client_intake_notes: notes || null,
+    }
+
+    createBooking.mutate(bookingData, {
+      onSuccess: async () => {
+        let succeeded = 1
+        let failed = 0
+        if (totalWeeks > 1) {
+          for (let i = 1; i < totalWeeks; i++) {
+            const repeatDate = new Date(new Date(`${date}T${time}:00`).getTime() + i * 7 * 24 * 60 * 60 * 1000)
+            try {
+              await createBooking.mutateAsync({
+                ...bookingData,
+                date_time: repeatDate.toISOString(),
+                status: "upcoming",
+              })
+              succeeded++
+            } catch {
+              failed++
+            }
+          }
+          const firstDate = format(new Date(`${date}T${time}:00`), "d MMM")
+          if (failed > 0) {
+            toast.warning(`${succeeded} of ${totalWeeks} sessions booked — ${failed} failed`)
+          } else {
+            toast.success(`Booked ${succeeded} sessions — first on ${firstDate}`)
+          }
+        } else {
           toast.success("Session booked")
-          setClientId("")
-          setTime("09:00")
-          setDuration("60")
-          setSessionType("1-on-1")
-          setLocation("")
-          setPaymentMode(defaultMode)
-          setNotes("")
-          onOpenChange(false)
-        },
-        onError: (error) => {
-          toast.error(error instanceof Error ? error.message : "Failed to book session")
-        },
-      }
-    )
+        }
+        setClientId("")
+        setTime("09:00")
+        setDuration("60")
+        setSessionType("1-on-1")
+        setLocation("")
+        setPaymentMode(defaultMode)
+        setNotes("")
+        setRepeatEnabled(false)
+        setRepeatWeeks("4")
+        onOpenChange(false)
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Failed to book session")
+      },
+    })
   }
 
   return (
@@ -251,6 +281,33 @@ export function CreateBookingSheet({ defaultDate, open, onOpenChange }: CreateBo
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
+          </div>
+
+          {/* Repeat weekly */}
+          <div className="space-y-2 rounded-lg border p-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="repeat-toggle" className="text-sm">Repeat this booking weekly</Label>
+              <Switch
+                id="repeat-toggle"
+                checked={repeatEnabled}
+                onCheckedChange={setRepeatEnabled}
+              />
+            </div>
+            {repeatEnabled && (
+              <div className="flex items-center gap-2">
+                <Label htmlFor="repeat-weeks" className="text-xs text-muted-foreground shrink-0">For</Label>
+                <Input
+                  id="repeat-weeks"
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={repeatWeeks}
+                  onChange={(e) => setRepeatWeeks(e.target.value)}
+                  className="w-16 h-8"
+                />
+                <span className="text-xs text-muted-foreground">weeks</span>
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={createBooking.isPending}>

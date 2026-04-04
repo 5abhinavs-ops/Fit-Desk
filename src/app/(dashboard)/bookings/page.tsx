@@ -10,7 +10,19 @@ import { CreateBookingSheet } from "@/components/clients/CreateBookingSheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
+import { Plus, ChevronLeft, ChevronRight, Copy, Loader2 } from "lucide-react"
 import { format, addDays, parseISO } from "date-fns"
 import type { Booking } from "@/types/database"
 
@@ -47,6 +59,9 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState(todayStr)
   const [actionBooking, setActionBooking] = useState<Booking | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [copyConfirmOpen, setCopyConfirmOpen] = useState(false)
+  const [copyPending, setCopyPending] = useState(false)
+  const queryClient = useQueryClient()
 
   const weekStart = getWeekStart(weekOffset)
   const { data: weekBookings, isLoading: weekLoading } = useWeekBookings(weekStart)
@@ -73,6 +88,30 @@ export default function BookingsPage() {
     setWeekOffset(0)
     setSelectedDate(todayStr)
     setViewMode("week")
+  }
+
+  async function handleCopyWeek() {
+    setCopyPending(true)
+    try {
+      const res = await fetch("/api/bookings/copy-week", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source_week_start: weekStart }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success(`${data.created} session${data.created !== 1 ? "s" : ""} copied to next week${data.skipped > 0 ? ` (${data.skipped} skipped)` : ""}`)
+        queryClient.invalidateQueries({ queryKey: ["bookings"] })
+        queryClient.invalidateQueries({ queryKey: ["weekBookings"] })
+      } else {
+        toast.error(data.error || "Failed to copy week")
+      }
+    } catch {
+      toast.error("Failed to copy week")
+    } finally {
+      setCopyPending(false)
+      setCopyConfirmOpen(false)
+    }
   }
 
   return (
@@ -103,16 +142,27 @@ export default function BookingsPage() {
         </div>
       </div>
 
-      {weekOffset !== 0 && (
+      <div className="flex gap-2">
+        {weekOffset !== 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-xs"
+            onClick={handleThisWeek}
+          >
+            This week
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"
-          className="w-full text-xs"
-          onClick={handleThisWeek}
+          className={`${weekOffset !== 0 ? "flex-1" : "w-full"} text-xs`}
+          onClick={() => setCopyConfirmOpen(true)}
         >
-          This week
+          <Copy className="mr-1 h-3 w-3" />
+          Copy week →
         </Button>
-      )}
+      </div>
 
       {/* Week heatmap — always visible */}
       <WeekHeatmap
@@ -201,6 +251,25 @@ export default function BookingsPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
       />
+
+      {/* Copy week confirmation */}
+      <AlertDialog open={copyConfirmOpen} onOpenChange={setCopyConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Copy week?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Copy all sessions from {weekLabel} to the following week? This will duplicate all confirmed, pending, and upcoming bookings.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={copyPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCopyWeek} disabled={copyPending}>
+              {copyPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Copy
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

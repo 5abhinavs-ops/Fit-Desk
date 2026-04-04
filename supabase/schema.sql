@@ -475,3 +475,47 @@ ALTER TABLE public.profiles
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS onboarding_completed boolean NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS onboarding_steps jsonb NOT NULL DEFAULT '{}';
+
+-- Migration: PT Availability System
+
+CREATE TABLE IF NOT EXISTS public.pt_working_hours (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  day_of_week integer NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+  start_time text NOT NULL,
+  end_time text NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(trainer_id, day_of_week)
+);
+
+ALTER TABLE public.pt_working_hours ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers manage own working hours"
+  ON public.pt_working_hours FOR ALL
+  USING (trainer_id = auth.uid());
+
+CREATE POLICY "Public can read working hours for booking"
+  ON public.pt_working_hours FOR SELECT
+  USING (true);
+
+CREATE TABLE IF NOT EXISTS public.pt_blocked_slots (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  date date NOT NULL,
+  start_time text,
+  end_time text,
+  reason text,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_blocked_slots_trainer_date
+  ON public.pt_blocked_slots(trainer_id, date);
+
+ALTER TABLE public.pt_blocked_slots ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers manage own blocked slots"
+  ON public.pt_blocked_slots FOR ALL
+  USING (trainer_id = auth.uid());
+
+CREATE POLICY "Public can read blocked slots for booking"
+  ON public.pt_blocked_slots FOR SELECT
+  USING (true);

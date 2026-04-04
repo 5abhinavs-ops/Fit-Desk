@@ -16,6 +16,7 @@ import { ProfileDetailsForm } from "@/components/profile/profile-details-form"
 import { BookingSettingsForm } from "@/components/profile/booking-settings-form"
 import { CancellationPolicyForm } from "@/components/profile/cancellation-policy-form"
 import { PaymentDetailsForm } from "@/components/profile/payment-details-form"
+import { AvailabilitySettings } from "@/components/profile/availability-settings"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -157,7 +158,13 @@ export default function ProfilePage() {
 
       <Separator />
 
-      {/* Section 5 — Subscription */}
+      {/* Section 5 — Availability */}
+      <h2 className="text-lg font-semibold">Availability</h2>
+      <AvailabilitySettings />
+
+      <Separator />
+
+      {/* Section 6 — Subscription */}
       <h2 className="text-lg font-semibold">Subscription</h2>
       <Card>
         <CardContent className="p-4 space-y-3">

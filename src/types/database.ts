@@ -252,3 +252,23 @@ export interface BookingApproval {
   decided_at: string | null;
   created_at: string;
 }
+
+export interface PTWorkingHours {
+  id: string;
+  trainer_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface PTBlockedSlot {
+  id: string;
+  trainer_id: string;
+  date: string;
+  start_time: string | null;
+  end_time: string | null;
+  reason: string | null;
+  created_at: string;
+}

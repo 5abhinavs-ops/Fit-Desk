@@ -54,29 +54,70 @@ export async function GET(request: NextRequest) {
   }
 
   const { trainer_id, date } = parsed.data
+
+  // Per-trainer rate limit to prevent schedule enumeration
+  const trainerLimit = checkRateLimit(`availability:trainer:${trainer_id}`, 30, 60_000)
+  if (!trainerLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(trainerLimit.retryAfterSeconds) } },
+    )
+  }
   const startOfDay = `${date}T00:00:00.000Z`
   const endOfDay = `${date}T23:59:59.999Z`
 
   const supabase = createServiceClient()
 
-  const { data: bookings, error } = await supabase
-    .from("bookings")
-    .select("date_time, duration_mins")
-    .eq("trainer_id", trainer_id)
-    .gte("date_time", startOfDay)
-    .lte("date_time", endOfDay)
-    .in("status", ["confirmed", "pending"])
+  // Fetch bookings, working hours, and blocked slots in parallel
+  const [bookingsResult, workingHoursResult, blockedSlotsResult] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("date_time, duration_mins")
+      .eq("trainer_id", trainer_id)
+      .gte("date_time", startOfDay)
+      .lte("date_time", endOfDay)
+      .in("status", ["confirmed", "pending"]),
+    supabase
+      .from("pt_working_hours")
+      .select("day_of_week, start_time, end_time, is_active")
+      .eq("trainer_id", trainer_id),
+    supabase
+      .from("pt_blocked_slots")
+      .select("start_time, end_time")
+      .eq("trainer_id", trainer_id)
+      .eq("date", date),
+  ])
 
-  if (error) {
+  if (bookingsResult.error) {
     return NextResponse.json(
       { error: "Failed to fetch availability" },
       { status: 500 }
     )
   }
 
-  const busySet = new Set<string>()
+  const bookings = bookingsResult.data ?? []
+  const workingHours = workingHoursResult.data ?? []
+  const blockedSlots = blockedSlotsResult.data ?? []
 
-  for (const booking of bookings ?? []) {
+  // Step 1: Determine which slots fall within working hours
+  const requestedDate = new Date(`${date}T00:00:00.000Z`)
+  const dayOfWeek = requestedDate.getUTCDay() // 0=Sun...6=Sat
+  const dayConfig = workingHours.find((wh) => wh.day_of_week === dayOfWeek)
+
+  const workingSet = new Set<string>()
+  if (!dayConfig || !dayConfig.is_active) {
+    // Day off — no slots available (workingSet stays empty)
+  } else {
+    for (const slot of ALL_SLOTS) {
+      if (slot >= dayConfig.start_time && slot < dayConfig.end_time) {
+        workingSet.add(slot)
+      }
+    }
+  }
+
+  // Step 2: Mark booked slots as busy
+  const busySet = new Set<string>()
+  for (const booking of bookings) {
     const dt = new Date(booking.date_time)
     const hours = dt.getUTCHours()
     const minutes = dt.getUTCMinutes()
@@ -96,8 +137,23 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const busySlots = ALL_SLOTS.filter((s) => busySet.has(s))
-  const availableSlots = ALL_SLOTS.filter((s) => !busySet.has(s))
+  // Step 3: Apply blocked slots
+  for (const blocked of blockedSlots) {
+    if (!blocked.start_time || !blocked.end_time) {
+      // Full day block
+      ALL_SLOTS.forEach((s) => busySet.add(s))
+    } else {
+      for (const slot of ALL_SLOTS) {
+        if (slot >= blocked.start_time && slot < blocked.end_time) {
+          busySet.add(slot)
+        }
+      }
+    }
+  }
+
+  // Step 4: A slot is available only if within working hours AND not busy
+  const availableSlots = ALL_SLOTS.filter((s) => workingSet.has(s) && !busySet.has(s))
+  const busySlots = ALL_SLOTS.filter((s) => !availableSlots.includes(s))
 
   return NextResponse.json(
     { date, busySlots, availableSlots },
