@@ -40,6 +40,8 @@ const CONTENT_SID_MAP: Record<string, string | undefined> = {
   session_chase_1h: process.env.TWILIO_CONTENT_SID_CHASE_1H,
   pt_payment_confirmed: process.env.TWILIO_CONTENT_SID_PT_PAYMENT_CONFIRMED,
   payment_reminder: process.env.TWILIO_CONTENT_SID_PAYMENT_REMINDER,
+  package_renewal_created: process.env.TWILIO_CONTENT_SID_PACKAGE_RENEWAL,
+  client_lapsed_alert: process.env.TWILIO_CONTENT_SID_CLIENT_LAPSED,
 }
 
 let _client: twilio.Twilio | null = null

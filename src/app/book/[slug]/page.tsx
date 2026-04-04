@@ -13,7 +13,7 @@ const getTrainer = cache(async (slug: string) => {
   const supabase = createServiceClient()
   const { data } = await supabase
     .from("profiles")
-    .select("id, name, photo_url, bio, specialisations, instagram_url")
+    .select("id, name, photo_url, bio, specialisations, instagram_url, booking_headline, why_train_with_me, pricing_from, cancellation_policy_hours")
     .eq("booking_slug", slug)
     .single()
   return data
@@ -79,9 +79,12 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
             </div>
           )}
 
-          {/* Name + Instagram */}
+          {/* Name + headline + Instagram */}
           <div>
             <h1 className="text-xl font-bold">{trainer.name}</h1>
+            {trainer.booking_headline && (
+              <p className="text-muted-foreground text-sm mt-1">{trainer.booking_headline}</p>
+            )}
             {trainer.instagram_url && trainer.instagram_url.startsWith("https://") && (
               <a
                 href={trainer.instagram_url}
@@ -116,6 +119,30 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
                 </Badge>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* Why train with me */}
+        {trainer.why_train_with_me && (
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold">Why train with me</h2>
+            <p className="text-muted-foreground text-sm whitespace-pre-line">
+              {trainer.why_train_with_me}
+            </p>
+          </div>
+        )}
+
+        {/* Pricing + cancellation policy */}
+        <div className="space-y-1">
+          {trainer.pricing_from && (
+            <p className="text-sm font-medium">
+              Sessions from <span className="text-primary">${trainer.pricing_from}</span>
+            </p>
+          )}
+          {trainer.cancellation_policy_hours > 0 && (
+            <p className="text-muted-foreground text-xs">
+              {trainer.cancellation_policy_hours} hours cancellation notice required
+            </p>
           )}
         </div>
 

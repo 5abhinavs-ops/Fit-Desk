@@ -2,12 +2,14 @@
 
 import { useState } from "react"
 import type { Booking } from "@/types/database"
+import { createClient } from "@/lib/supabase/client"
 import { usePackages } from "@/hooks/usePackages"
 import { useQueryClient } from "@tanstack/react-query"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
   AlertDialog,
@@ -81,9 +83,30 @@ export function BookingActionSheet({
   const [rescheduleTime, setRescheduleTime] = useState("")
   const [paymentAmount, setPaymentAmount] = useState(booking.payment_amount ? String(booking.payment_amount) : "")
   const [paymentPending, setPaymentPending] = useState(false)
+  const [sessionNotes, setSessionNotes] = useState(booking.session_notes || "")
+  const [notesSaving, setNotesSaving] = useState(false)
 
   const bookingTime = new Date(booking.date_time)
   const isActionable = ["confirmed", "pending", "upcoming", "pending_approval"].includes(booking.status)
+
+  async function saveNotes() {
+    setNotesSaving(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { toast.error("Not authenticated"); setNotesSaving(false); return }
+    const { error } = await supabase
+      .from("bookings")
+      .update({ session_notes: sessionNotes || null })
+      .eq("id", booking.id)
+      .eq("trainer_id", user.id)
+    if (error) {
+      toast.error("Failed to save notes")
+    } else {
+      toast.success("Notes saved")
+      queryClient.invalidateQueries({ queryKey: ["bookings"] })
+    }
+    setNotesSaving(false)
+  }
 
   const activePackage = packages?.find((p) => p.id === booking.package_id && p.status === "active")
   const sessionsRemaining = activePackage
@@ -199,6 +222,27 @@ export function BookingActionSheet({
                 }
               }}
             />
+
+            {/* Session notes */}
+            <div className="space-y-2">
+              <Label htmlFor="session-notes" className="text-sm font-medium">Session notes</Label>
+              <Textarea
+                id="session-notes"
+                placeholder="What did you work on this session?"
+                value={sessionNotes}
+                onChange={(e) => setSessionNotes(e.target.value)}
+                rows={3}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={saveNotes}
+                disabled={notesSaving}
+              >
+                {notesSaving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                Save notes
+              </Button>
+            </div>
 
             {/* Cancellation policy hint */}
             <p className="text-muted-foreground text-xs">

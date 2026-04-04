@@ -449,3 +449,19 @@ CREATE POLICY "Clients can view their own logs"
 CREATE POLICY "PTs can view logs for their clients"
   ON public.nutrition_logs FOR SELECT
   USING (trainer_id = auth.uid());
+
+-- Migration: add session_notes to bookings
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS session_notes text;
+
+-- Migration: add booking page sales fields to profiles
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS booking_headline text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS why_train_with_me text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS pricing_from numeric(10,2);
+
+-- Migration: add last_reactivation_alert_sent to clients
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS last_reactivation_alert_sent timestamptz;
+
+-- Migration: add onboarding fields to profiles
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS onboarding_completed boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS onboarding_steps jsonb NOT NULL DEFAULT '{}';

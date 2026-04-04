@@ -13,6 +13,10 @@ interface DashboardStats {
     sessions_remaining: number;
     package_name: string;
   }>;
+  monthlyRevenue: number;
+  sessionsThisWeek: number;
+  overdueTotal: number;
+  attendanceRate: number | null;
 }
 
 export function useDashboard() {
@@ -27,8 +31,21 @@ export function useDashboard() {
       const sgtTime = new Date(now.getTime() + (sgtOffset + now.getTimezoneOffset()) * 60000);
       const today = sgtTime.toISOString().split("T")[0];
 
-      // Fetch today's bookings, outstanding payments, and low-session packages in parallel
-      const [bookingsResult, paymentsResult, packagesResult, pendingConfirmResult] =
+      // Calculate SGT week boundaries (Mon 00:00 to Sun 23:59)
+      const sgtDay = sgtTime.getDay(); // 0=Sun, 1=Mon...
+      const mondayOffset = sgtDay === 0 ? -6 : 1 - sgtDay;
+      const weekStart = new Date(sgtTime);
+      weekStart.setDate(weekStart.getDate() + mondayOffset);
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      const monthStr = today.slice(0, 7); // YYYY-MM
+
+      // Fetch all dashboard data in parallel
+      const [bookingsResult, paymentsResult, packagesResult, pendingConfirmResult,
+             revenueResult, weekSessionsResult, overdueResult, attendanceResult] =
         await Promise.all([
           supabase
             .from("bookings")
@@ -54,6 +71,36 @@ export function useDashboard() {
             .from("bookings")
             .select("id", { count: "exact", head: true })
             .eq("payment_status", "client_confirmed"),
+
+          // Monthly revenue
+          supabase
+            .from("payments")
+            .select("amount")
+            .eq("status", "received")
+            .gte("received_date", `${monthStr}-01`)
+            .lte("received_date", `${monthStr}-31`),
+
+          // Sessions this week
+          supabase
+            .from("bookings")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "completed")
+            .gte("date_time", weekStart.toISOString())
+            .lte("date_time", weekEnd.toISOString()),
+
+          // Overdue total
+          supabase
+            .from("payments")
+            .select("amount")
+            .eq("status", "overdue"),
+
+          // Attendance rate this month
+          supabase
+            .from("bookings")
+            .select("status")
+            .gte("date_time", `${monthStr}-01T00:00:00+08:00`)
+            .lte("date_time", `${monthStr}-31T23:59:59+08:00`)
+            .in("status", ["completed", "no-show", "no_show"]),
         ]);
 
       if (bookingsResult.error) throw bookingsResult.error;
@@ -79,11 +126,34 @@ export function useDashboard() {
           };
         });
 
+      const monthlyRevenue = (revenueResult.data ?? []).reduce(
+        (sum, p) => sum + p.amount,
+        0
+      );
+
+      const overdueTotal = (overdueResult.data ?? []).reduce(
+        (sum, p) => sum + p.amount,
+        0
+      );
+
+      const attendanceData = attendanceResult.data ?? [];
+      let attendanceRate: number | null = null;
+      if (attendanceData.length > 0) {
+        const completed = attendanceData.filter(
+          (b) => b.status === "completed"
+        ).length;
+        attendanceRate = Math.round((completed / attendanceData.length) * 100);
+      }
+
       return {
         todayBookingsCount: bookingsResult.count ?? 0,
         outstandingPayments,
         pendingPaymentConfirmations: pendingConfirmResult.count ?? 0,
         lowSessionClients,
+        monthlyRevenue,
+        sessionsThisWeek: weekSessionsResult.count ?? 0,
+        overdueTotal,
+        attendanceRate,
       };
     },
   });

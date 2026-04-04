@@ -99,6 +99,9 @@ export default function ProfilePage() {
         initialBio={profile.bio || ""}
         initialSpecialisations={(profile.specialisations || []).join(", ")}
         initialInstagramUrl={profile.instagram_url || ""}
+        initialBookingHeadline={profile.booking_headline || ""}
+        initialWhyTrainWithMe={profile.why_train_with_me || ""}
+        initialPricingFrom={profile.pricing_from ? String(profile.pricing_from) : ""}
       />
 
       <Separator />

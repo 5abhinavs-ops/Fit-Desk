@@ -28,6 +28,7 @@ export async function GET(request: Request) {
   let trigger8Count = 0
   let trigger9Count = 0
   let trigger10Count = 0
+  let trigger11Count = 0
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fitdesk.app"
 
   // TRIGGER 1 — 24h session reminders (with session management link)
@@ -485,6 +486,50 @@ export async function GET(request: Request) {
     errorLog.push({ trigger: "payment_reminder", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
+  // TRIGGER 11 — Lapsed client reactivation alert to trainer
+  try {
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+
+    const { data: lapsedClients } = await supabase
+      .from("clients")
+      .select("id, first_name, last_name, last_session_date, last_reactivation_alert_sent, trainer_id, profiles:trainer_id(whatsapp_number, name)")
+      .eq("status", "active")
+      .lt("last_session_date", fourteenDaysAgo)
+
+    for (const c of lapsedClients ?? []) {
+      // Skip if alert was sent within the last 14 days
+      if (c.last_reactivation_alert_sent && c.last_reactivation_alert_sent > fourteenDaysAgo) continue
+      if (!c.last_session_date) continue
+
+      try {
+        const trainer = c.profiles as unknown as { whatsapp_number: string; name: string } | null
+        if (!trainer) continue
+        const clientName = `${c.first_name} ${c.last_name}`.trim()
+        const daysSince = Math.floor((Date.now() - new Date(c.last_session_date).getTime()) / (24 * 60 * 60 * 1000))
+
+        const result = await sendTemplateMessage({
+          whatsappNumber: trainer.whatsapp_number,
+          templateName: "client_lapsed_alert",
+          parameters: [
+            { name: "trainer_name", value: trainer.name },
+            { name: "client_name", value: clientName },
+            { name: "days_since", value: String(daysSince) },
+          ],
+        })
+        if (result.success) {
+          await supabase.from("clients").update({ last_reactivation_alert_sent: new Date().toISOString() }).eq("id", c.id)
+          trigger11Count++
+        } else {
+          errorLog.push({ trigger: "client_lapsed", itemId: c.id, error: result.error || "Send failed" })
+        }
+      } catch (err) {
+        errorLog.push({ trigger: "client_lapsed", itemId: c.id, error: err instanceof Error ? err.message : String(err) })
+      }
+    }
+  } catch (err) {
+    errorLog.push({ trigger: "client_lapsed", itemId: "query", error: err instanceof Error ? err.message : String(err) })
+  }
+
   return NextResponse.json({
     success: true,
     summary: {
@@ -498,6 +543,7 @@ export async function GET(request: Request) {
       overdue_day7: trigger8Count,
       chase_1h: trigger9Count,
       payment_reminder: trigger10Count,
+      client_lapsed: trigger11Count,
     },
     errors: errorLog.length > 0 ? errorLog : undefined,
     ran_at: new Date().toISOString(),

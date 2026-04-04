@@ -93,6 +93,11 @@ export interface Profile {
   bank_account_name: string | null;
   payment_link: string | null;
   payment_reminder_default_days: number;
+  booking_headline: string | null;
+  why_train_with_me: string | null;
+  pricing_from: number | null;
+  onboarding_completed: boolean;
+  onboarding_steps: Record<string, boolean>;
   created_at: string;
 }
 
@@ -111,6 +116,7 @@ export interface Client {
   status: ClientStatus;
   last_session_date: string | null;
   payment_reminder_days: number | null;
+  last_reactivation_alert_sent: string | null;
   created_at: string;
 }
 
@@ -179,6 +185,7 @@ export interface Booking {
   client_paid_at: string | null;
   pt_confirmed_at: string | null;
   payment_reminder_sent_at: string | null;
+  session_notes: string | null;
   created_at: string;
 }
 

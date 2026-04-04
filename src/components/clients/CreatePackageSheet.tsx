@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, MessageCircle, Check } from "lucide-react"
 
 interface CreatePackageSheetProps {
   clientId: string
@@ -23,6 +23,30 @@ export function CreatePackageSheet({ clientId, open, onOpenChange }: CreatePacka
   const [price, setPrice] = useState("")
   const [startDate, setStartDate] = useState(() => new Date().toISOString().split("T")[0])
   const [expiryDate, setExpiryDate] = useState("")
+  const [newPackageId, setNewPackageId] = useState<string | null>(null)
+  const [notifySending, setNotifySending] = useState(false)
+  const [notifySent, setNotifySent] = useState(false)
+
+  async function handleNotifyClient() {
+    if (!newPackageId) return
+    setNotifySending(true)
+    try {
+      const res = await fetch(`/api/packages/${newPackageId}/renewal-message`, {
+        method: "POST",
+      })
+      if (res.ok) {
+        setNotifySent(true)
+        toast.success("WhatsApp notification sent")
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "Failed to send notification")
+      }
+    } catch {
+      toast.error("Failed to send notification")
+    } finally {
+      setNotifySending(false)
+    }
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,13 +61,13 @@ export function CreatePackageSheet({ clientId, open, onOpenChange }: CreatePacka
         expiry_date: expiryDate || null,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           toast.success("Package created")
+          setNewPackageId(data.id)
           setName("")
           setTotalSessions("10")
           setPrice("")
           setExpiryDate("")
-          onOpenChange(false)
         },
         onError: (error) => {
           toast.error(error instanceof Error ? error.message : "Failed to create package")
@@ -119,11 +143,44 @@ export function CreatePackageSheet({ clientId, open, onOpenChange }: CreatePacka
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={createPackage.isPending}>
+          <Button type="submit" className="w-full" disabled={createPackage.isPending || !!newPackageId}>
             {createPackage.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create package
           </Button>
         </form>
+
+        {newPackageId && !notifySent && (
+          <div className="pt-4 space-y-2">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleNotifyClient}
+              disabled={notifySending}
+            >
+              {notifySending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <MessageCircle className="mr-2 h-4 w-4" />
+              )}
+              Notify client via WhatsApp
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => { setNewPackageId(null); onOpenChange(false) }}>
+              Skip
+            </Button>
+          </div>
+        )}
+
+        {notifySent && (
+          <div className="pt-4 flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2 text-green-600">
+              <Check className="h-5 w-5" />
+              <span className="text-sm font-medium">WhatsApp sent</span>
+            </div>
+            <Button variant="ghost" className="w-full" onClick={() => { setNewPackageId(null); setNotifySent(false); onOpenChange(false) }}>
+              Done
+            </Button>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   )

@@ -8,8 +8,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { CalendarDays, DollarSign, AlertTriangle } from "lucide-react"
+import { CalendarDays, DollarSign, AlertTriangle, TrendingUp, Dumbbell, AlertCircle, UserCheck } from "lucide-react"
 import { PendingApprovalsCard } from "@/components/dashboard/pending-approvals-card"
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist"
 import { format } from "date-fns"
 
 function getGreeting(): string {
@@ -56,6 +57,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Onboarding checklist */}
+      <OnboardingChecklist />
+
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold">
@@ -111,6 +115,59 @@ export default function DashboardPage() {
                     {data?.pendingPaymentConfirmations} awaiting confirmation
                   </p>
                 )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Business metrics row */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Monthly revenue */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="text-muted-foreground h-4 w-4" />
+                  <span className="text-muted-foreground text-xs">Revenue this month</span>
+                </div>
+                <p className="mt-2 text-2xl font-bold">
+                  {formatCurrency(data?.monthlyRevenue ?? 0)}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Sessions this week */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="text-muted-foreground h-4 w-4" />
+                  <span className="text-muted-foreground text-xs">Sessions this week</span>
+                </div>
+                <p className="mt-2 text-2xl font-bold">{data?.sessionsThisWeek ?? 0}</p>
+              </CardContent>
+            </Card>
+
+            {/* Overdue total */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className={`h-4 w-4 ${(data?.overdueTotal ?? 0) > 0 ? "text-red-500" : "text-muted-foreground"}`} />
+                  <span className="text-muted-foreground text-xs">Overdue</span>
+                </div>
+                <p className={`mt-2 text-2xl font-bold ${(data?.overdueTotal ?? 0) > 0 ? "text-red-500" : ""}`}>
+                  {formatCurrency(data?.overdueTotal ?? 0)}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Attendance rate */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <UserCheck className={`h-4 w-4 ${(data?.attendanceRate ?? 0) >= 80 ? "text-green-500" : "text-muted-foreground"}`} />
+                  <span className="text-muted-foreground text-xs">Attendance rate</span>
+                </div>
+                <p className={`mt-2 text-2xl font-bold ${(data?.attendanceRate ?? 0) >= 80 ? "text-green-500" : ""}`}>
+                  {data?.attendanceRate !== null ? `${data?.attendanceRate}%` : "—"}
+                </p>
               </CardContent>
             </Card>
           </div>

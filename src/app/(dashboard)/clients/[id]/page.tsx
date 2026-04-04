@@ -1,10 +1,11 @@
 "use client"
 
-import { use, useState } from "react"
+import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useClient } from "@/hooks/useClients"
 import { useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { usePackages, useLogSession } from "@/hooks/usePackages"
 import { CreatePackageSheet } from "@/components/clients/CreatePackageSheet"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,7 +18,8 @@ import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NutritionTab } from "@/components/clients/nutrition-tab"
-import { ArrowLeft, MessageCircle, Mail, Loader2 } from "lucide-react"
+import { ArrowLeft, MessageCircle, Mail, Loader2, FileText } from "lucide-react"
+import { format } from "date-fns"
 import type { ClientStatus } from "@/types/database"
 
 const statusCycle: ClientStatus[] = ["active", "paused", "inactive"]
@@ -43,12 +45,29 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   const [reminderDays, setReminderDays] = useState("")
   const [reminderSaving, setReminderSaving] = useState(false)
 
+  const supabase = createClient()
+  const { data: recentNotes } = useQuery({
+    queryKey: ["client-notes", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bookings")
+        .select("id, date_time, session_notes")
+        .eq("client_id", id)
+        .not("session_notes", "is", null)
+        .order("date_time", { ascending: false })
+        .limit(5)
+      return data ?? []
+    },
+  })
+
   const activePackage = packages?.find((p) => p.status === "active")
 
   // Init reminder days from client data
-  if (client && !reminderDays && client.payment_reminder_days !== null) {
-    setReminderDays(String(client.payment_reminder_days))
-  }
+  useEffect(() => {
+    if (client && client.payment_reminder_days !== null) {
+      setReminderDays(String(client.payment_reminder_days))
+    }
+  }, [client])
 
   async function saveReminderDays() {
     if (!client) return
@@ -235,6 +254,26 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
             <p className="text-muted-foreground text-sm">No active package</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Recent notes */}
+      {recentNotes && recentNotes.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold flex items-center gap-1.5">
+            <FileText className="h-4 w-4" />
+            Recent notes
+          </h2>
+          {recentNotes.map((note) => (
+            <Card key={note.id}>
+              <CardContent className="p-3">
+                <p className="text-muted-foreground text-xs">
+                  {format(new Date(note.date_time), "d MMM yyyy")}
+                </p>
+                <p className="text-sm mt-1">{note.session_notes}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
       <Button variant="outline" className="w-full" onClick={() => setPkgSheetOpen(true)}>

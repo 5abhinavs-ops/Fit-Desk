@@ -18,6 +18,9 @@ interface ProfileDetailsFormProps {
   initialBio: string
   initialSpecialisations: string
   initialInstagramUrl: string
+  initialBookingHeadline: string
+  initialWhyTrainWithMe: string
+  initialPricingFrom: string
 }
 
 export function ProfileDetailsForm({
@@ -27,6 +30,9 @@ export function ProfileDetailsForm({
   initialBio,
   initialSpecialisations,
   initialInstagramUrl,
+  initialBookingHeadline,
+  initialWhyTrainWithMe,
+  initialPricingFrom,
 }: ProfileDetailsFormProps) {
   const [saving, setSaving] = useState(false)
   const [name, setName] = useState(initialName)
@@ -34,6 +40,9 @@ export function ProfileDetailsForm({
   const [bio, setBio] = useState(initialBio)
   const [specialisations, setSpecialisations] = useState(initialSpecialisations)
   const [instagramUrl, setInstagramUrl] = useState(initialInstagramUrl)
+  const [bookingHeadline, setBookingHeadline] = useState(initialBookingHeadline)
+  const [whyTrainWithMe, setWhyTrainWithMe] = useState(initialWhyTrainWithMe)
+  const [pricingFrom, setPricingFrom] = useState(initialPricingFrom)
 
   async function handleSave() {
     const trimmedInstagram = instagramUrl.trim()
@@ -48,6 +57,7 @@ export function ProfileDetailsForm({
       .map((s) => s.trim())
       .filter(Boolean)
 
+    const parsedPrice = pricingFrom ? parseFloat(pricingFrom) : null
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -56,6 +66,9 @@ export function ProfileDetailsForm({
         bio: bio || null,
         specialisations: specArray,
         instagram_url: trimmedInstagram || null,
+        booking_headline: bookingHeadline || null,
+        why_train_with_me: whyTrainWithMe || null,
+        pricing_from: parsedPrice,
       })
       .eq("id", profileId)
 
@@ -125,6 +138,36 @@ export function ProfileDetailsForm({
             Preview link ↗
           </a>
         )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="bookingHeadline">Booking page headline</Label>
+        <Input
+          id="bookingHeadline"
+          placeholder="Singapore's top HIIT coach"
+          value={bookingHeadline}
+          onChange={(e) => setBookingHeadline(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="whyTrainWithMe">Why train with me</Label>
+        <Textarea
+          id="whyTrainWithMe"
+          placeholder="Tell potential clients why they should book with you"
+          value={whyTrainWithMe}
+          onChange={(e) => setWhyTrainWithMe(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="pricingFrom">Pricing from (SGD)</Label>
+        <Input
+          id="pricingFrom"
+          type="number"
+          min={0}
+          step="0.01"
+          placeholder="80"
+          value={pricingFrom}
+          onChange={(e) => setPricingFrom(e.target.value)}
+        />
       </div>
       <Button onClick={handleSave} disabled={saving}>
         {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
