@@ -35,15 +35,22 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={cn(
-                "flex flex-1 flex-col items-center gap-1 py-3 text-xs font-semibold transition-colors",
-                isActive
-                  ? "text-[#00C6D4]"
-                  : "text-[#7A9BB5] hover:text-white"
-              )}
+              className="flex flex-1 flex-col items-center gap-1.5 py-3 transition-colors"
             >
-              <Icon className="h-5 w-5" />
-              <span style={{ fontSize: "9px", letterSpacing: "0.03em" }}>{label}</span>
+              <Icon
+                className="h-6 w-6"
+                style={{ color: isActive ? "#00C6D4" : "#7A9BB5" }}
+              />
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: isActive ? 700 : 500,
+                  letterSpacing: "0.03em",
+                  color: isActive ? "#00C6D4" : "#7A9BB5",
+                }}
+              >
+                {label}
+              </span>
             </Link>
           );
         })}

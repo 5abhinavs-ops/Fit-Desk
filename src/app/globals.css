@@ -56,6 +56,16 @@
   --color-fd-surface-hi: var(--fd-surface-hi);
   --color-fd-muted: var(--fd-muted);
   --color-fd-border: var(--fd-border);
+
+  /* ── Override Tailwind font-size scale for better mobile readability ── */
+  --font-size-xs:   0.8125rem;   /* 13px  — was 12px */
+  --font-size-sm:   0.9375rem;   /* 15px  — was 14px */
+  --font-size-base: 0.9375rem;   /* 15px */
+  --font-size-lg:   1.0625rem;   /* 17px  — was 18px */
+  --font-size-xl:   1.1875rem;   /* 19px */
+  --font-size-2xl:  1.375rem;    /* 22px  — was 24px */
+  --font-size-3xl:  1.75rem;     /* 28px  — was 30px */
+  --font-size-4xl:  2.125rem;    /* 34px  — was 36px */
 }
 
 /* ─── FitDesk Dark Theme (default) ─────────────────────────── */
@@ -154,6 +164,7 @@
     @apply bg-background text-foreground;
     font-size: 15px;
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
   html {
     @apply font-sans;
@@ -162,10 +173,6 @@
 
 /* ─── FitDesk Global Utilities ──────────────────────────────── */
 @layer utilities {
-
-  /* Readable small text on dark background */
-  .text-xs { font-size: 13px; line-height: 1.5; }
-  .text-sm { font-size: 15px; }
 
   /* Gradient primary button — cyan→green */
   .btn-gradient {
