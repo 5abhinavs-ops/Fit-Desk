@@ -56,10 +56,10 @@ export default function AnalyticsPage() {
       <Card>
         <CardContent className="p-5">
           <div className="flex items-center gap-2">
-            <TrendingUp className="text-primary h-5 w-5" />
+            <TrendingUp className="text-[#00E096] h-5 w-5" />
             <span className="text-muted-foreground text-sm">Revenue this month</span>
           </div>
-          <p className="mt-2 text-4xl font-bold">
+          <p className="mt-2 text-4xl font-bold text-[#00E096]">
             {formatCurrency(data?.monthlyRevenue ?? 0)}
           </p>
         </CardContent>
@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <Users className="text-muted-foreground h-4 w-4" />
+              <Users className="text-[#00C6D4] h-4 w-4" />
               <span className="text-muted-foreground text-xs">Sessions completed</span>
             </div>
             <p className="mt-2 text-3xl font-bold">{data?.sessionsCompleted ?? 0}</p>
@@ -107,10 +107,10 @@ export default function AnalyticsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <UserX className={`h-4 w-4 ${(data?.noShowRate ?? 0) > 10 ? "text-red-500" : "text-muted-foreground"}`} />
+              <UserX className={`h-4 w-4 ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : "text-[#7A9BB5]"}`} />
               <span className="text-muted-foreground text-xs">No-show rate</span>
             </div>
-            <p className={`mt-2 text-3xl font-bold ${(data?.noShowRate ?? 0) > 10 ? "text-red-500" : ""}`}>
+            <p className={`mt-2 text-3xl font-bold ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : ""}`}>
               {data?.noShowRate ?? 0}%
             </p>
           </CardContent>
@@ -121,10 +121,10 @@ export default function AnalyticsPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
-            <AlertCircle className={`h-4 w-4 ${(data?.outstandingTotal ?? 0) > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
+            <AlertCircle className="h-4 w-4 text-[#FFB347]" />
             <span className="text-muted-foreground text-xs">Outstanding payments</span>
           </div>
-          <p className="mt-2 text-2xl font-bold">
+          <p className="mt-2 text-2xl font-bold text-[#FFB347]">
             {formatCurrency(data?.outstandingTotal ?? 0)}
           </p>
         </CardContent>
@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
       {data && data.clientRevenue.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-semibold flex items-center gap-1.5">
-            <DollarSign className="h-4 w-4" />
+            <DollarSign className="h-4 w-4 text-[#00E096]" />
             Revenue by client
           </h2>
           {data.clientRevenue.map((client) => {
@@ -168,16 +168,16 @@ export default function AnalyticsPage() {
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{client.client_name}</p>
+                  <p className="text-base font-semibold truncate">{client.client_name}</p>
                 </div>
                 <div className="text-right shrink-0">
                   {client.paid_this_month > 0 && (
-                    <p className="text-sm font-semibold text-green-600">
+                    <p className="text-sm font-semibold text-[#00E096]">
                       {formatCurrency(client.paid_this_month)}
                     </p>
                   )}
                   {client.outstanding > 0 && (
-                    <p className="text-xs text-amber-600">
+                    <p className="text-xs text-[#FF4C7A]">
                       {formatCurrency(client.outstanding)} owed
                     </p>
                   )}
@@ -210,7 +210,7 @@ export default function AnalyticsPage() {
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{client.client_name}</p>
+                  <p className="text-base font-semibold">{client.client_name}</p>
                 </div>
                 <span className="text-sm font-semibold">
                   {client.session_count} session{client.session_count !== 1 ? "s" : ""}

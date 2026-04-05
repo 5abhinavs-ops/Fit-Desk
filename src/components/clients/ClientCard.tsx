@@ -28,7 +28,7 @@ export function ClientCard({ client }: ClientCardProps) {
         <AvatarFallback className="text-xs">{initials}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate">
+        <p className="text-base font-semibold truncate">
           {client.first_name} {client.last_name}
         </p>
         <p className="text-muted-foreground text-xs truncate">{client.whatsapp_number}</p>

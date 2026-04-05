@@ -85,8 +85,8 @@ export default function PaymentsPage() {
         <Skeleton className="h-14 rounded-lg" />
       ) : (
         <div>
-          <p className="text-2xl font-bold">{formatCurrency(outstanding.total)} <span className="text-muted-foreground text-sm font-normal">outstanding</span></p>
-          <p className="text-muted-foreground text-xs">
+          <p className="text-2xl font-bold text-[#FFB347]">{formatCurrency(outstanding.total)} <span className="text-[#7A9BB5] text-sm font-normal">outstanding</span></p>
+          <p className="text-[#7A9BB5] text-xs">
             {outstanding.overdue} overdue · {outstanding.pending} pending
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function PaymentsPage() {
               <div
                 key={p.id}
                 className={`hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
-                  p.status === "overdue" ? "border-l-4 border-l-red-500" : ""
+                  p.status === "overdue" ? "border-l-4 border-l-[#FF4C7A]" : ""
                 }`}
                 onClick={() => setDetailPayment(p)}
               >
@@ -133,7 +133,7 @@ export default function PaymentsPage() {
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{clientName}</p>
+                  <p className="text-base font-semibold truncate">{clientName}</p>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-[10px]">
                       {methodLabels[p.method] ?? p.method}

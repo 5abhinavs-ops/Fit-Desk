@@ -86,8 +86,8 @@ export default function DashboardPage() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <CalendarDays className="text-muted-foreground h-4 w-4" />
-                  <span className="text-muted-foreground text-xs">Today&apos;s sessions</span>
+                  <CalendarDays className="text-[#00C6D4] h-4 w-4" />
+                  <span className="text-[#7A9BB5] text-xs">Today&apos;s sessions</span>
                 </div>
                 <p className="mt-2 text-3xl font-bold">{data?.todayBookingsCount ?? 0}</p>
               </CardContent>
@@ -100,14 +100,14 @@ export default function DashboardPage() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="text-muted-foreground h-4 w-4" />
-                  <span className="text-muted-foreground text-xs">Outstanding</span>
+                  <DollarSign className="text-[#FFB347] h-4 w-4" />
+                  <span className="text-[#7A9BB5] text-xs">Outstanding</span>
                 </div>
-                <p className="mt-2 text-3xl font-bold">
+                <p className="mt-2 text-3xl font-bold text-[#FFB347]">
                   {formatCurrency(data?.outstandingPayments ?? 0)}
                 </p>
                 {(data?.pendingPaymentConfirmations ?? 0) > 0 && (
-                  <p className="mt-1 text-xs text-amber-600">
+                  <p className="mt-1 text-xs text-[#FFB347]">
                     {data?.pendingPaymentConfirmations} awaiting confirmation
                   </p>
                 )}
@@ -121,10 +121,10 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="text-muted-foreground h-4 w-4" />
-                  <span className="text-muted-foreground text-xs">Revenue this month</span>
+                  <TrendingUp className="text-[#00E096] h-4 w-4" />
+                  <span className="text-[#7A9BB5] text-xs">Revenue this month</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold">
+                <p className="mt-2 text-2xl font-bold text-[#00E096]">
                   {formatCurrency(data?.monthlyRevenue ?? 0)}
                 </p>
               </CardContent>
@@ -134,8 +134,8 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <Dumbbell className="text-muted-foreground h-4 w-4" />
-                  <span className="text-muted-foreground text-xs">Sessions this week</span>
+                  <Dumbbell className="text-[#00C6D4] h-4 w-4" />
+                  <span className="text-[#7A9BB5] text-xs">Sessions this week</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold">{data?.sessionsThisWeek ?? 0}</p>
               </CardContent>
@@ -145,10 +145,10 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className={`h-4 w-4 ${(data?.overdueTotal ?? 0) > 0 ? "text-red-500" : "text-muted-foreground"}`} />
-                  <span className="text-muted-foreground text-xs">Overdue</span>
+                  <AlertCircle className="h-4 w-4 text-[#FF4C7A]" />
+                  <span className="text-[#7A9BB5] text-xs">Overdue</span>
                 </div>
-                <p className={`mt-2 text-2xl font-bold ${(data?.overdueTotal ?? 0) > 0 ? "text-red-500" : ""}`}>
+                <p className="mt-2 text-2xl font-bold text-[#FF4C7A]">
                   {formatCurrency(data?.overdueTotal ?? 0)}
                 </p>
               </CardContent>
@@ -158,10 +158,10 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <UserCheck className={`h-4 w-4 ${(data?.attendanceRate ?? 0) >= 80 ? "text-green-500" : "text-muted-foreground"}`} />
-                  <span className="text-muted-foreground text-xs">Attendance rate</span>
+                  <UserCheck className={`h-4 w-4 ${(data?.attendanceRate ?? 0) >= 80 ? "text-[#00E096]" : "text-[#FF4C7A]"}`} />
+                  <span className="text-[#7A9BB5] text-xs">Attendance rate</span>
                 </div>
-                <p className={`mt-2 text-2xl font-bold ${(data?.attendanceRate ?? 0) >= 80 ? "text-green-500" : ""}`}>
+                <p className={`mt-2 text-2xl font-bold ${(data?.attendanceRate ?? 0) >= 80 ? "text-[#00E096]" : "text-[#FF4C7A]"}`}>
                   {data?.attendanceRate !== null ? `${data?.attendanceRate}%` : "—"}
                 </p>
               </CardContent>
@@ -176,10 +176,10 @@ export default function DashboardPage() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <UserMinus className="h-4 w-4 text-amber-500" />
-                  <span className="text-muted-foreground text-xs">Lapsed clients</span>
+                  <UserMinus className="h-4 w-4 text-[#FF4C7A]" />
+                  <span className="text-[#7A9BB5] text-xs">Lapsed clients</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold text-amber-500">{data?.lapsedClients.length}</p>
+                <p className="mt-2 text-2xl font-bold text-[#FF4C7A]">{data?.lapsedClients.length}</p>
               </CardContent>
             </Card>
           )}
@@ -192,10 +192,10 @@ export default function DashboardPage() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="text-muted-foreground h-4 w-4" />
-                  <span className="text-muted-foreground text-xs">Renew soon</span>
+                  <AlertTriangle className="text-[#FFB347] h-4 w-4" />
+                  <span className="text-[#7A9BB5] text-xs">Renew soon</span>
                 </div>
-                <p className="mt-2 text-3xl font-bold">{data.lowSessionClients.length}</p>
+                <p className="mt-2 text-3xl font-bold text-[#FFB347]">{data.lowSessionClients.length}</p>
               </CardContent>
             </Card>
           )}
@@ -230,7 +230,7 @@ export default function DashboardPage() {
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{client.client_name}</p>
+                  <p className="text-base font-semibold">{client.client_name}</p>
                 </div>
                 <Badge variant={client.sessions_remaining <= 1 ? "destructive" : "secondary"}>
                   {client.sessions_remaining} session{client.sessions_remaining !== 1 ? "s" : ""} left
@@ -263,7 +263,7 @@ export default function DashboardPage() {
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{client.client_name}</p>
+                  <p className="text-base font-semibold">{client.client_name}</p>
                 </div>
                 <Badge className="bg-[rgba(255,179,71,0.15)] text-[#FFB347]">
                   {client.days_since_last_session} days

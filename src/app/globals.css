@@ -152,6 +152,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 15px;
+    line-height: 1.6;
   }
   html {
     @apply font-sans;
@@ -160,6 +162,10 @@
 
 /* ─── FitDesk Global Utilities ──────────────────────────────── */
 @layer utilities {
+
+  /* Readable small text on dark background */
+  .text-xs { font-size: 13px; line-height: 1.5; }
+  .text-sm { font-size: 15px; }
 
   /* Gradient primary button — cyan→green */
   .btn-gradient {
