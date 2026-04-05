@@ -85,8 +85,8 @@ export default function PaymentsPage() {
         <Skeleton className="h-14 rounded-lg" />
       ) : (
         <div>
-          <p className="text-2xl font-bold text-[#FFB347]">{formatCurrency(outstanding.total)} <span className="text-[#7A9BB5] text-[15px] font-normal">outstanding</span></p>
-          <p className="text-[#7A9BB5] text-[13px]">
+          <p className="text-2xl font-bold text-[#FFB347]">{formatCurrency(outstanding.total)} <span className="text-muted-foreground text-[15px] font-normal">outstanding</span></p>
+          <p className="text-muted-foreground text-[13px]">
             {outstanding.overdue} overdue · {outstanding.pending} pending
           </p>
         </div>

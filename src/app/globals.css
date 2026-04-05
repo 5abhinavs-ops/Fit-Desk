@@ -63,7 +63,7 @@
   --fd-amber:      #FFB347;
   --fd-surface:    #12263A;
   --fd-surface-hi: #1A3349;
-  --fd-muted:      #7A9BB5;
+  --fd-muted:      #FFFFFF;
   --fd-border:     rgba(0,198,212,0.18);
   --background:          #0D1B2A;
   --foreground:          #FFFFFF;
@@ -76,7 +76,7 @@
   --secondary:           #1A3349;
   --secondary-foreground:#FFFFFF;
   --muted:               #1A3349;
-  --muted-foreground:    #7A9BB5;
+  --muted-foreground:    #FFFFFF;
   --accent:              #1A3349;
   --accent-foreground:   #FFFFFF;
   --destructive:         #FF4C7A;
@@ -87,7 +87,7 @@
   --chart-2: #00E096;
   --chart-3: #FFB347;
   --chart-4: #FF4C7A;
-  --chart-5: #7A9BB5;
+  --chart-5: rgba(255,255,255,0.55);
   --radius: 1.125rem;
   --sidebar:                #12263A;
   --sidebar-foreground:     #FFFFFF;
@@ -111,7 +111,7 @@
   --secondary:           #1A3349;
   --secondary-foreground:#FFFFFF;
   --muted:               #1A3349;
-  --muted-foreground:    #7A9BB5;
+  --muted-foreground:    #FFFFFF;
   --accent:              #1A3349;
   --accent-foreground:   #FFFFFF;
   --destructive:         #FF4C7A;
@@ -122,7 +122,7 @@
   --chart-2: #00E096;
   --chart-3: #FFB347;
   --chart-4: #FF4C7A;
-  --chart-5: #7A9BB5;
+  --chart-5: rgba(255,255,255,0.55);
   --sidebar:                #12263A;
   --sidebar-foreground:     #FFFFFF;
   --sidebar-primary:        #00C6D4;
@@ -212,7 +212,7 @@
     color: #FF4C7A;
     border: 1px solid rgba(255,76,122,0.3);
   }
-  .badge-neutral { background: #1A3349; color: #7A9BB5; }
+  .badge-neutral { background: #1A3349; color: #FFFFFF; }
   .badge-cyan {
     background: rgba(0,198,212,0.15);
     color: #00C6D4;
@@ -222,7 +222,7 @@
   .label-upper {
     font-size: 13px;
     font-weight: 700;
-    color: #7A9BB5;
+    color: #FFFFFF;
     text-transform: uppercase;
     letter-spacing: 0.07em;
   }

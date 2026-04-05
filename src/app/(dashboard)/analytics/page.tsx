@@ -107,7 +107,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <UserX className={`h-4 w-4 ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : "text-[#7A9BB5]"}`} />
+              <UserX className={`h-4 w-4 ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : "text-muted-foreground"}`} />
               <span className="text-muted-foreground text-[13px]">No-show rate</span>
             </div>
             <p className={`mt-2 text-3xl font-bold ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : ""}`}>

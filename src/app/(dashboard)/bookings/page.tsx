@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useBookings } from "@/hooks/useBookings"
 import { useWeekBookings, getWeekStart } from "@/hooks/useWeekBookings"
 import { useClients } from "@/hooks/useClients"
@@ -29,12 +29,12 @@ import type { Booking } from "@/types/database"
 const statusDot: Record<string, string> = {
   confirmed: "bg-green-500",
   pending: "bg-amber-500",
-  cancelled: "bg-[#7A9BB5]",
+  cancelled: "bg-[#64748B]",
   completed: "bg-green-500",
   "no-show": "bg-red-500",
   no_show: "bg-red-500",
   upcoming: "bg-green-500",
-  forfeited: "bg-[#7A9BB5]",
+  forfeited: "bg-[#64748B]",
   pending_approval: "bg-amber-500",
   reschedule_requested: "bg-amber-500",
 }
@@ -53,15 +53,18 @@ function getSGTToday(): string {
 }
 
 export default function BookingsPage() {
-  const todayStr = getSGTToday()
   const [viewMode, setViewMode] = useState<"week" | "day">("week")
   const [weekOffset, setWeekOffset] = useState(0)
-  const [selectedDate, setSelectedDate] = useState(todayStr)
+  const [selectedDate, setSelectedDate] = useState("")
   const [actionBooking, setActionBooking] = useState<Booking | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [copyConfirmOpen, setCopyConfirmOpen] = useState(false)
   const [copyPending, setCopyPending] = useState(false)
   const queryClient = useQueryClient()
+
+  useEffect(() => {
+    setSelectedDate(getSGTToday())
+  }, [])
 
   const weekStart = getWeekStart(weekOffset)
   const { data: weekBookings, isLoading: weekLoading } = useWeekBookings(weekStart)
@@ -86,7 +89,7 @@ export default function BookingsPage() {
 
   function handleThisWeek() {
     setWeekOffset(0)
-    setSelectedDate(todayStr)
+    setSelectedDate(getSGTToday())
     setViewMode("week")
   }
 
@@ -209,7 +212,7 @@ export default function BookingsPage() {
                     <div className="text-right">
                       <p className="text-sm font-medium">{format(bTime, "h:mm a")}</p>
                     </div>
-                    <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status] ?? "bg-[#7A9BB5]"}`} />
+                    <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status] ?? "bg-[#64748B]"}`} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{getClientName(b.client_id)}</p>
                       <p className="text-muted-foreground truncate text-xs">

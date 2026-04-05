@@ -12,7 +12,7 @@ const paymentStatusStyles: Record<string, { label: string; className: string }> 
   unpaid: { label: "Unpaid", className: "bg-[rgba(255,76,122,0.15)] text-[#FF4C7A]" },
   client_confirmed: { label: "Client confirmed", className: "bg-[rgba(255,179,71,0.15)] text-[#FFB347]" },
   paid: { label: "Paid", className: "bg-[rgba(0,224,150,0.15)] text-[#00E096]" },
-  waived: { label: "Waived", className: "bg-[#1A3349] text-[#7A9BB5]" },
+  waived: { label: "Waived", className: "bg-[#1A3349] text-white" },
 }
 
 interface PaymentSectionProps {
