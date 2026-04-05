@@ -170,7 +170,7 @@ export default function ProfilePage() {
         <CardContent className="p-4 space-y-3">
           {profile.subscription_plan === "pro" ? (
             <>
-              <Badge className="bg-green-100 text-green-800">Pro</Badge>
+              <Badge className="bg-[rgba(0,224,150,0.15)] text-[#00E096]">Pro</Badge>
               <p className="text-sm">Unlimited clients. All features active.</p>
               <Button variant="outline" onClick={handleManageSubscription}>
                 Manage subscription

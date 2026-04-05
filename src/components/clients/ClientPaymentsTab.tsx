@@ -8,9 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { format } from "date-fns"
 
 const statusColors: Record<string, string> = {
-  received: "bg-green-100 text-green-800",
-  pending: "bg-amber-100 text-amber-800",
-  overdue: "bg-red-100 text-red-800",
+  received: "bg-[rgba(0,224,150,0.15)] text-[#00E096]",
+  pending: "bg-[rgba(255,179,71,0.15)] text-[#FFB347]",
+  overdue: "bg-[rgba(255,76,122,0.15)] text-[#FF4C7A]",
 }
 
 interface ClientPaymentsTabProps {
@@ -62,10 +62,10 @@ export function ClientPaymentsTab({ clientId }: ClientPaymentsTabProps) {
     <div className="space-y-4">
       {/* Summary pills */}
       <div className="flex gap-2">
-        <span className="rounded-full bg-green-100 text-green-800 px-3 py-1 text-xs font-medium">
+        <span className="rounded-full bg-[rgba(0,224,150,0.15)] text-[#00E096] px-3 py-1 text-xs font-medium">
           Total paid: ${totalPaid.toFixed(0)}
         </span>
-        <span className="rounded-full bg-amber-100 text-amber-800 px-3 py-1 text-xs font-medium">
+        <span className="rounded-full bg-[rgba(255,179,71,0.15)] text-[#FFB347] px-3 py-1 text-xs font-medium">
           Outstanding: ${outstanding.toFixed(0)}
         </span>
       </div>

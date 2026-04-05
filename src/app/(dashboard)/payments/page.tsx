@@ -162,7 +162,7 @@ export default function PaymentsPage() {
       {/* FAB */}
       <Button
         size="icon"
-        className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full shadow-lg"
+        className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full fab-glow"
         onClick={() => setLogOpen(true)}
       >
         <Plus className="h-6 w-6" />

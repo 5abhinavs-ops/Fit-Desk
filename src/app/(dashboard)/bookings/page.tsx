@@ -29,12 +29,12 @@ import type { Booking } from "@/types/database"
 const statusDot: Record<string, string> = {
   confirmed: "bg-green-500",
   pending: "bg-amber-500",
-  cancelled: "bg-gray-400",
+  cancelled: "bg-[#7A9BB5]",
   completed: "bg-green-500",
   "no-show": "bg-red-500",
   no_show: "bg-red-500",
   upcoming: "bg-green-500",
-  forfeited: "bg-gray-400",
+  forfeited: "bg-[#7A9BB5]",
   pending_approval: "bg-amber-500",
   reschedule_requested: "bg-amber-500",
 }
@@ -209,7 +209,7 @@ export default function BookingsPage() {
                     <div className="text-right">
                       <p className="text-sm font-medium">{format(bTime, "h:mm a")}</p>
                     </div>
-                    <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status] ?? "bg-gray-400"}`} />
+                    <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status] ?? "bg-[#7A9BB5]"}`} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{getClientName(b.client_id)}</p>
                       <p className="text-muted-foreground truncate text-xs">
@@ -230,7 +230,7 @@ export default function BookingsPage() {
       {/* FAB */}
       <Button
         size="icon"
-        className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full shadow-lg"
+        className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full fab-glow"
         onClick={() => setCreateOpen(true)}
       >
         <Plus className="h-6 w-6" />

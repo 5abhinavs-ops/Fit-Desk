@@ -146,7 +146,7 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
                   className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
                     freeCount === 0
                       ? "bg-muted text-muted-foreground"
-                      : "bg-green-100 text-green-700"
+                      : "bg-[rgba(0,224,150,0.15)] text-[#00E096]"
                   }`}
                 >
                   {freeCount} free

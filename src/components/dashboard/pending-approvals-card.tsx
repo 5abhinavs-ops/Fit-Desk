@@ -49,7 +49,7 @@ export function PendingApprovalsCard() {
           <span className="text-sm font-semibold text-amber-800">
             Pending approval
           </span>
-          <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+          <Badge variant="secondary" className="bg-[rgba(255,179,71,0.15)] text-[#FFB347]">
             {approvals.length}
           </Badge>
         </div>
@@ -61,7 +61,7 @@ export function PendingApprovalsCard() {
             const isActing = actingOn === a.booking_id
 
             return (
-              <div key={a.id} className="rounded-lg bg-white p-3 space-y-2">
+              <div key={a.id} className="rounded-lg bg-[#1A3349] p-3 space-y-2">
                 <div>
                   <p className="text-sm font-medium">{clientName}</p>
                   <p className="text-xs text-muted-foreground">

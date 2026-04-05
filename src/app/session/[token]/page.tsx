@@ -183,20 +183,20 @@ export default async function SessionManagementPage({ params }: SessionPageProps
 
         {/* Payment details */}
         {(booking.payment_status === "unpaid" || pendingPayment) && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-            <p className="text-sm font-semibold text-amber-800">
+          <div className="rounded-xl border border-[rgba(255,179,71,0.3)] bg-[rgba(255,179,71,0.1)] p-4 space-y-2">
+            <p className="text-sm font-semibold text-[#FFB347]">
               {booking.payment_amount
                 ? `Payment outstanding — $${booking.payment_amount}`
                 : "Payment outstanding"}
             </p>
             {(trainer.paynow_number || trainer.paynow_details) && (
-              <div className="rounded-lg bg-white p-3 text-sm">
+              <div className="rounded-lg bg-[#1A3349] p-3 text-sm">
                 <p className="text-xs text-muted-foreground">PayNow</p>
                 <p className="font-mono font-medium">{trainer.paynow_number || trainer.paynow_details}</p>
               </div>
             )}
             {trainer.bank_name && trainer.bank_account_number && (
-              <div className="rounded-lg bg-white p-3 text-sm">
+              <div className="rounded-lg bg-[#1A3349] p-3 text-sm">
                 <p className="text-xs text-muted-foreground">Bank transfer</p>
                 <p className="font-medium">{trainer.bank_name}</p>
                 <p className="font-mono">{trainer.bank_account_number}</p>
@@ -210,7 +210,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
                 href={trainer.payment_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block rounded-lg bg-white p-3 text-sm text-primary hover:underline"
+                className="block rounded-lg bg-[#1A3349] p-3 text-sm text-primary hover:underline"
               >
                 Pay online →
               </a>

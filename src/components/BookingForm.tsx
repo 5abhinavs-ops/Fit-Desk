@@ -143,8 +143,8 @@ export function BookingForm({ trainerId, trainerName }: BookingFormProps) {
   if (success) {
     return (
       <div className="space-y-4 text-center py-8">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-          <Check className="h-6 w-6 text-green-600" />
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(0,224,150,0.15)]">
+          <Check className="h-6 w-6 text-[#00E096]" />
         </div>
         <h2 className="text-xl font-bold">Booking request sent!</h2>
         <p className="text-muted-foreground text-sm">
@@ -219,8 +219,8 @@ export function BookingForm({ trainerId, trainerName }: BookingFormProps) {
       />
 
       {selectedTime && date && (
-        <div className="bg-green-50 text-green-800 rounded-lg px-3 py-2 flex items-center gap-2">
-          <Check className="h-3.5 w-3.5 text-green-600 shrink-0" />
+        <div className="bg-[rgba(0,224,150,0.15)] text-[#00E096] rounded-lg px-3 py-2 flex items-center gap-2">
+          <Check className="h-3.5 w-3.5 text-[#00E096] shrink-0" />
           <span className="text-sm">
             {format(parseISO(date), "EEEE d MMM")} &middot; {formatTime(selectedTime)} selected
           </span>

@@ -76,9 +76,9 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Demo mode banner */}
       {isDemoMode && (
-        <div className="flex items-center justify-between rounded-lg bg-amber-100 px-4 py-2">
-          <span className="text-sm font-medium text-amber-800">Demo mode — this is sample data</span>
-          <button onClick={() => setIsDemoMode(false)} className="text-amber-800 hover:text-amber-900">
+        <div className="flex items-center justify-between rounded-lg bg-[rgba(255,179,71,0.15)] px-4 py-2">
+          <span className="text-sm font-medium text-[#FFB347]">Demo mode — this is sample data</span>
+          <button onClick={() => setIsDemoMode(false)} className="text-[#FFB347] hover:text-white">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -306,7 +306,7 @@ export default function DashboardPage() {
                 <div className="flex-1">
                   <p className="text-sm font-medium">{client.client_name}</p>
                 </div>
-                <Badge className="bg-amber-100 text-amber-800">
+                <Badge className="bg-[rgba(255,179,71,0.15)] text-[#FFB347]">
                   {client.days_since_last_session} days
                 </Badge>
               </div>

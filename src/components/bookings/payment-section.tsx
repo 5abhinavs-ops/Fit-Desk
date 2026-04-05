@@ -9,10 +9,10 @@ import { Loader2, DollarSign } from "lucide-react"
 import { format } from "date-fns"
 
 const paymentStatusStyles: Record<string, { label: string; className: string }> = {
-  unpaid: { label: "Unpaid", className: "bg-red-100 text-red-700" },
-  client_confirmed: { label: "Client confirmed", className: "bg-amber-100 text-amber-700" },
-  paid: { label: "Paid", className: "bg-green-100 text-green-700" },
-  waived: { label: "Waived", className: "bg-gray-100 text-gray-600" },
+  unpaid: { label: "Unpaid", className: "bg-[rgba(255,76,122,0.15)] text-[#FF4C7A]" },
+  client_confirmed: { label: "Client confirmed", className: "bg-[rgba(255,179,71,0.15)] text-[#FFB347]" },
+  paid: { label: "Paid", className: "bg-[rgba(0,224,150,0.15)] text-[#00E096]" },
+  waived: { label: "Waived", className: "bg-[#1A3349] text-[#7A9BB5]" },
 }
 
 interface PaymentSectionProps {
