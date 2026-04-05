@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Users, CalendarDays, DollarSign, BarChart2, Salad, UserCircle } from "lucide-react";
@@ -16,6 +17,8 @@ const tabs = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <nav
@@ -27,8 +30,9 @@ export function BottomNav() {
     >
       <div className="mx-auto flex max-w-lg items-center justify-around">
         {tabs.map(({ href, label, icon: Icon }) => {
-          const isActive =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
+          const isActive = mounted && (
+            href === "/" ? pathname === "/" : pathname.startsWith(href)
+          );
 
           const activeColor = "#00C6D4";
           const inactiveColor = "#4A6A85";
