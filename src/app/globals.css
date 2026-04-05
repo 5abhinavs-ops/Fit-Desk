@@ -4,6 +4,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ── Override Tailwind v4 font-size scale (must be in @theme, not @theme inline) ── */
+@theme {
+  --font-size-xs:   0.8125rem;   /* 13px */
+  --font-size-sm:   0.9375rem;   /* 15px */
+  --font-size-base: 0.9375rem;   /* 15px */
+  --font-size-lg:   1.0625rem;   /* 17px */
+  --font-size-xl:   1.1875rem;   /* 19px */
+  --font-size-2xl:  1.375rem;    /* 22px */
+  --font-size-3xl:  1.75rem;     /* 28px */
+  --font-size-4xl:  2.125rem;    /* 34px */
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -47,7 +59,7 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* FitDesk brand tokens — available as Tailwind utilities */
+  /* FitDesk brand tokens */
   --color-fd-cyan: var(--fd-cyan);
   --color-fd-green: var(--fd-green);
   --color-fd-pink: var(--fd-pink);
@@ -56,21 +68,10 @@
   --color-fd-surface-hi: var(--fd-surface-hi);
   --color-fd-muted: var(--fd-muted);
   --color-fd-border: var(--fd-border);
-
-  /* ── Override Tailwind font-size scale for better mobile readability ── */
-  --font-size-xs:   0.8125rem;   /* 13px  — was 12px */
-  --font-size-sm:   0.9375rem;   /* 15px  — was 14px */
-  --font-size-base: 0.9375rem;   /* 15px */
-  --font-size-lg:   1.0625rem;   /* 17px  — was 18px */
-  --font-size-xl:   1.1875rem;   /* 19px */
-  --font-size-2xl:  1.375rem;    /* 22px  — was 24px */
-  --font-size-3xl:  1.75rem;     /* 28px  — was 30px */
-  --font-size-4xl:  2.125rem;    /* 34px  — was 36px */
 }
 
 /* ─── FitDesk Dark Theme (default) ─────────────────────────── */
 :root {
-  /* Brand palette */
   --fd-cyan:       #00C6D4;
   --fd-green:      #00E096;
   --fd-pink:       #FF4C7A;
@@ -80,7 +81,6 @@
   --fd-muted:      #7A9BB5;
   --fd-border:     rgba(0,198,212,0.18);
 
-  /* shadcn / Tailwind token mapping → dark theme */
   --background:          #0D1B2A;
   --foreground:          #FFFFFF;
   --card:                #12263A;
@@ -100,17 +100,14 @@
   --input:               #12263A;
   --ring:                #00C6D4;
 
-  /* Charts */
   --chart-1: #00C6D4;
   --chart-2: #00E096;
   --chart-3: #FFB347;
   --chart-4: #FF4C7A;
   --chart-5: #7A9BB5;
 
-  /* Radius — matches design's 18px card radius */
   --radius: 1.125rem;
 
-  /* Sidebar */
   --sidebar:                #12263A;
   --sidebar-foreground:     #FFFFFF;
   --sidebar-primary:        #00C6D4;
@@ -121,7 +118,6 @@
   --sidebar-ring:           #00C6D4;
 }
 
-/* Keep .dark class identical so any dark-mode class still works */
 .dark {
   --background:          #0D1B2A;
   --foreground:          #FFFFFF;
@@ -174,7 +170,6 @@
 /* ─── FitDesk Global Utilities ──────────────────────────────── */
 @layer utilities {
 
-  /* Gradient primary button — cyan→green */
   .btn-gradient {
     background: linear-gradient(90deg, #00C6D4, #00E096);
     color: #0D1B2A;
@@ -182,21 +177,14 @@
     letter-spacing: 0.02em;
     box-shadow: 0 6px 24px rgba(0,198,212,0.3);
   }
-  .btn-gradient:hover {
-    opacity: 0.92;
-  }
+  .btn-gradient:hover { opacity: 0.92; }
 
-  /* FAB — green glow */
   .fab-glow {
     background: #00E096;
     box-shadow: 0 4px 20px rgba(0,224,150,0.4);
   }
 
-  /* Card accent top edge (2px gradient line) */
-  .card-accent-top {
-    position: relative;
-    overflow: hidden;
-  }
+  .card-accent-top { position: relative; overflow: hidden; }
   .card-accent-top::before {
     content: '';
     position: absolute;
@@ -205,26 +193,22 @@
     background: linear-gradient(90deg, #00C6D4, #00E096);
   }
 
-  /* Card left border accents */
   .card-border-cyan  { border-left: 3px solid #00C6D4; }
   .card-border-pink  { border-left: 3px solid #FF4C7A; }
   .card-border-amber { border-left: 3px solid #FFB347; }
   .card-border-green { border-left: 3px solid #00E096; }
 
-  /* Avatar ring */
   .avatar-ring {
     border: 2px solid #00C6D4;
     background: rgba(0,198,212,0.1);
     color: #00C6D4;
   }
 
-  /* Coloured avatar backgrounds */
   .av-cyan   { background: rgba(0,198,212,0.14);  color: #00C6D4; }
   .av-green  { background: rgba(0,224,150,0.14);  color: #00E096; }
   .av-pink   { background: rgba(255,76,122,0.14); color: #FF4C7A; }
   .av-amber  { background: rgba(255,179,71,0.14); color: #FFB347; }
 
-  /* Status badge colours */
   .badge-success {
     background: rgba(0,224,150,0.15);
     color: #00E096;
@@ -240,17 +224,13 @@
     color: #FF4C7A;
     border: 1px solid rgba(255,76,122,0.3);
   }
-  .badge-neutral {
-    background: #1A3349;
-    color: #7A9BB5;
-  }
+  .badge-neutral { background: #1A3349; color: #7A9BB5; }
   .badge-cyan {
     background: rgba(0,198,212,0.15);
     color: #00C6D4;
     border: 1px solid rgba(0,198,212,0.3);
   }
 
-  /* Muted uppercase section labels */
   .label-upper {
     font-size: 11px;
     font-weight: 700;
@@ -259,7 +239,6 @@
     letter-spacing: 0.07em;
   }
 
-  /* Gradient pill badge (e.g. "IN 25 MINS") */
   .pill-gradient {
     background: linear-gradient(90deg, #00C6D4, #00E096);
     color: #0D1B2A;
@@ -270,7 +249,6 @@
     letter-spacing: 0.05em;
   }
 
-  /* Pro badge gradient */
   .badge-pro {
     background: linear-gradient(90deg, rgba(0,198,212,0.2), rgba(0,224,150,0.2));
     border: 1px solid rgba(0,198,212,0.4);
