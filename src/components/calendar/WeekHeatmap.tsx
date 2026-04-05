@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { parseISO, addDays, format } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
+import { X } from "lucide-react"
 import type { Booking, BookingStatus } from "@/types/database"
 
 interface WeekHeatmapProps {
@@ -11,6 +12,7 @@ interface WeekHeatmapProps {
   isLoading: boolean
   selectedDate: string
   onDayTap: (date: string) => void
+  blockedDays?: string[]
 }
 
 const BAND_HEIGHT = 120
@@ -48,7 +50,9 @@ export function WeekHeatmap({
   isLoading,
   selectedDate,
   onDayTap,
+  blockedDays = [],
 }: WeekHeatmapProps) {
+  const blockedSet = useMemo(() => new Set(blockedDays), [blockedDays])
   const todayStr = sgtToday()
 
   const columns = useMemo(() => {
@@ -103,6 +107,7 @@ export function WeekHeatmap({
         const dayBookings = grouped.get(col.dateStr) ?? []
         const isToday = col.dateStr === todayStr
         const isSelected = col.dateStr === selectedDate
+        const isDayBlocked = blockedSet.has(col.dateStr)
         const hasPending = dayBookings.some(
           (b) => b.status === "pending" || b.status === "reschedule_requested",
         )
@@ -116,9 +121,13 @@ export function WeekHeatmap({
             type="button"
             onClick={() => onDayTap(col.dateStr)}
             className={`flex flex-col items-center rounded-lg transition-colors ${
-              isSelected ? "bg-accent/50" : "hover:bg-accent/30"
+              isDayBlocked
+                ? "bg-rose-500/10 border border-rose-500/30"
+                : isSelected
+                  ? "bg-accent/50"
+                  : "hover:bg-accent/30"
             }`}
-            aria-label={`${col.dayName}, ${col.dayNum}, ${dayBookings.length} session${dayBookings.length !== 1 ? "s" : ""}`}
+            aria-label={`${col.dayName}, ${col.dayNum}, ${isDayBlocked ? "blocked" : `${dayBookings.length} session${dayBookings.length !== 1 ? "s" : ""}`}`}
           >
             {/* Day header */}
             <span className="text-muted-foreground mt-1 text-[9px] font-medium uppercase">
@@ -133,14 +142,20 @@ export function WeekHeatmap({
               <span className="text-[15px] font-bold leading-none">{col.dayNum}</span>
             )}
 
-            {/* Session dot */}
+            {/* Session dot / blocked indicator */}
             <div className="flex h-2 items-center justify-center gap-0.5">
-              {hasNonPending && <span className="bg-primary h-1 w-1 rounded-full" />}
-              {hasPending && <span className="h-1 w-1 rounded-full bg-amber-500" />}
+              {isDayBlocked ? (
+                <X className="h-2.5 w-2.5 text-rose-500" />
+              ) : (
+                <>
+                  {hasNonPending && <span className="bg-primary h-1 w-1 rounded-full" />}
+                  {hasPending && <span className="h-1 w-1 rounded-full bg-amber-500" />}
+                </>
+              )}
             </div>
 
             {/* Time band area */}
-            <div className="bg-muted/30 relative h-[120px] w-full rounded-sm">
+            <div className={`relative h-[120px] w-full rounded-sm ${isDayBlocked ? "bg-rose-500/10" : "bg-muted/30"}`}>
               {dayBookings.map((b) => {
                 const sgt = toSGT(b.date_time)
                 const hour = sgt.getUTCHours()

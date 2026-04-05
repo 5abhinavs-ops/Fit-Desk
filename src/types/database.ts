@@ -23,7 +23,7 @@ export type CancelledBy = "pt" | "client";
 
 export type BookingApprovalStatus = "pending" | "approved" | "declined";
 export type BookingSessionType = "1-on-1" | "group" | "assessment";
-export type BookingSource = "trainer" | "client_link";
+export type BookingSource = "trainer" | "client_link" | "recurring";
 
 /**
  * How payment is collected when a client books a session.
@@ -270,5 +270,40 @@ export interface PTBlockedSlot {
   start_time: string | null;
   end_time: string | null;
   reason: string | null;
+  created_at: string;
+}
+
+export interface PTOpenSlot {
+  id: string;
+  trainer_id: string;
+  day_of_week: number;
+  start_time: string;
+  duration_mins: number;
+  created_at: string;
+}
+
+export interface PTDateSlotOverride {
+  id: string;
+  trainer_id: string;
+  date: string;
+  start_time: string;
+  duration_mins: number | null;
+  is_removed: boolean;
+  created_at: string;
+}
+
+export type RecurringScheduleBookingSource = "recurring";
+
+export interface RecurringSchedule {
+  id: string;
+  trainer_id: string;
+  client_id: string;
+  package_id: string | null;
+  day_of_week: number;
+  start_time: string;
+  duration_mins: number;
+  active: boolean;
+  start_date: string;
+  end_date: string | null;
   created_at: string;
 }

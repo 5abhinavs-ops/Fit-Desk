@@ -519,3 +519,67 @@ CREATE POLICY "Trainers manage own blocked slots"
 CREATE POLICY "Public can read blocked slots for booking"
   ON public.pt_blocked_slots FOR SELECT
   USING (true);
+
+-- ============================================================
+-- Migration: Calendar Control Features
+-- ============================================================
+
+-- Weekly default open slots per trainer
+CREATE TABLE IF NOT EXISTS public.pt_open_slots (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  day_of_week integer NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+  start_time text NOT NULL,
+  duration_mins integer NOT NULL DEFAULT 60,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(trainer_id, day_of_week, start_time)
+);
+ALTER TABLE public.pt_open_slots ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers manage own open slots"
+  ON public.pt_open_slots FOR ALL USING (trainer_id = auth.uid());
+CREATE POLICY "Public read open slots"
+  ON public.pt_open_slots FOR SELECT USING (true);
+
+-- Per-date overrides (add or remove slots for a specific date)
+CREATE TABLE IF NOT EXISTS public.pt_date_slot_overrides (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  date date NOT NULL,
+  start_time text NOT NULL,
+  duration_mins integer,
+  is_removed boolean NOT NULL DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(trainer_id, date, start_time)
+);
+CREATE INDEX IF NOT EXISTS idx_date_slot_overrides_trainer_date
+  ON public.pt_date_slot_overrides(trainer_id, date);
+ALTER TABLE public.pt_date_slot_overrides ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers manage own date overrides"
+  ON public.pt_date_slot_overrides FOR ALL USING (trainer_id = auth.uid());
+CREATE POLICY "Public read date overrides"
+  ON public.pt_date_slot_overrides FOR SELECT USING (true);
+
+-- Recurring schedules for package clients
+CREATE TABLE IF NOT EXISTS public.recurring_schedules (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  client_id uuid REFERENCES public.clients(id) ON DELETE CASCADE NOT NULL,
+  package_id uuid REFERENCES public.packages(id) ON DELETE SET NULL,
+  day_of_week integer NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+  start_time text NOT NULL,
+  duration_mins integer NOT NULL DEFAULT 60,
+  active boolean NOT NULL DEFAULT true,
+  start_date date NOT NULL,
+  end_date date,
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_recurring_schedules_trainer
+  ON public.recurring_schedules(trainer_id, active);
+ALTER TABLE public.recurring_schedules ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers manage own recurring schedules"
+  ON public.recurring_schedules FOR ALL USING (trainer_id = auth.uid());
+
+-- Migration: add 'recurring' to booking_source check constraint
+ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS bookings_booking_source_check;
+ALTER TABLE public.bookings ADD CONSTRAINT bookings_booking_source_check
+  CHECK (booking_source IN ('trainer', 'client_link', 'recurring'));

@@ -7,6 +7,7 @@ import { useClient } from "@/hooks/useClients"
 import { useQueryClient } from "@tanstack/react-query"
 import { useQuery } from "@tanstack/react-query"
 import { usePackages, useLogSession } from "@/hooks/usePackages"
+import { useRecurringSchedules, useCreateRecurringSchedule, useDeleteRecurringSchedule } from "@/hooks/useRecurringSchedules"
 import { CreatePackageSheet } from "@/components/clients/CreatePackageSheet"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,8 @@ import { Label } from "@/components/ui/label"
 import { NutritionTab } from "@/components/clients/nutrition-tab"
 import { ClientPaymentsTab } from "@/components/clients/ClientPaymentsTab"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, MessageCircle, Mail, Loader2, FileText, Salad, ChevronDown, ChevronUp } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ArrowLeft, MessageCircle, Mail, Loader2, FileText, Salad, ChevronDown, ChevronUp, Trash2, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
 import type { ClientStatus } from "@/types/database"
 
@@ -47,6 +49,16 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   const [reminderDays, setReminderDays] = useState("")
   const [reminderSaving, setReminderSaving] = useState(false)
   const [nutritionExpanded, setNutritionExpanded] = useState(false)
+  const [recurringExpanded, setRecurringExpanded] = useState(false)
+  const [showRecurringForm, setShowRecurringForm] = useState(false)
+  const [recurDow, setRecurDow] = useState("1")
+  const [recurTime, setRecurTime] = useState("09:00")
+  const [recurDuration, setRecurDuration] = useState("60")
+  const [recurPackageId, setRecurPackageId] = useState("")
+
+  const { data: recurringSchedules } = useRecurringSchedules(id)
+  const createRecurring = useCreateRecurringSchedule()
+  const deleteRecurring = useDeleteRecurringSchedule()
 
   const supabase = createClient()
   const { data: recentNotes } = useQuery({
@@ -310,6 +322,203 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
             {nutritionExpanded && (
               <div className="mt-3">
                 <NutritionTab clientId={id} />
+              </div>
+            )}
+          </div>
+
+          {/* Recurring sessions — collapsible */}
+          <div className="rounded-lg border p-3">
+            <button
+              className="flex items-center justify-between w-full"
+              onClick={() => setRecurringExpanded(!recurringExpanded)}
+            >
+              <div className="flex items-center gap-1.5">
+                <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold">Recurring sessions</span>
+              </div>
+              {recurringExpanded ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+              )}
+            </button>
+            {recurringExpanded && (
+              <div className="mt-3 space-y-3">
+                {recurringSchedules && recurringSchedules.length > 0 ? (
+                  <div className="space-y-2">
+                    {recurringSchedules.map((sched) => (
+                      <div
+                        key={sched.id}
+                        className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2"
+                      >
+                        <div>
+                          <p className="text-sm font-medium">
+                            Every {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][sched.day_of_week]} at{" "}
+                            {(() => {
+                              const [hStr, mStr] = sched.start_time.split(":")
+                              const h = parseInt(hStr, 10)
+                              const ampm = h >= 12 ? "PM" : "AM"
+                              const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+                              return `${h12}:${mStr} ${ampm}`
+                            })()}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {sched.duration_mins} min
+                            {sched.package_name && ` · ${sched.package_name}`}
+                            {sched.sessions_remaining !== null && ` · ${sched.sessions_remaining} left`}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-rose-500"
+                          onClick={() =>
+                            deleteRecurring.mutate(
+                              { id: sched.id, clientId: id },
+                              {
+                                onSuccess: () => toast.success("Recurring schedule deactivated"),
+                                onError: () => toast.error("Failed to deactivate"),
+                              },
+                            )
+                          }
+                          disabled={deleteRecurring.isPending}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-xs text-center py-2">
+                    No recurring schedules
+                  </p>
+                )}
+
+                {showRecurringForm ? (
+                  <div className="space-y-2 rounded-lg border p-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Day</Label>
+                        <Select value={recurDow} onValueChange={(v) => { if (v) setRecurDow(v) }}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
+                              <SelectItem key={i} value={String(i)}>{d}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Time</Label>
+                        <Select value={recurTime} onValueChange={(v) => { if (v) setRecurTime(v) }}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 32 }, (_, i) => {
+                              const h = Math.floor(i / 2) + 6
+                              const m = (i % 2) * 30
+                              if (h === 21 && m === 30) return null
+                              const t = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
+                              const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+                              const ampm = h >= 12 ? "PM" : "AM"
+                              return (
+                                <SelectItem key={t} value={t}>
+                                  {h12}:{m.toString().padStart(2, "0")} {ampm}
+                                </SelectItem>
+                              )
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Duration</Label>
+                        <Select value={recurDuration} onValueChange={(v) => { if (v) setRecurDuration(v) }}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[30, 60, 90, 120].map((d) => (
+                              <SelectItem key={d} value={String(d)}>{d} min</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Package</Label>
+                        <Select value={recurPackageId} onValueChange={(v) => { if (v) setRecurPackageId(v) }}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Select..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(packages ?? [])
+                              .filter((p) => p.status === "active")
+                              .map((p) => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.name} ({p.total_sessions - p.sessions_used} left)
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <Button
+                      className="w-full"
+                      size="sm"
+                      onClick={() => {
+                        if (!recurPackageId) {
+                          toast.error("Select a package")
+                          return
+                        }
+                        // Calculate start_date as next occurrence of day_of_week
+                        const dow = parseInt(recurDow, 10)
+                        const today = new Date()
+                        const todayDow = today.getDay()
+                        const diff = (dow - todayDow + 7) % 7 || 7
+                        const startDate = new Date(today)
+                        startDate.setDate(today.getDate() + diff)
+                        const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
+
+                        createRecurring.mutate(
+                          {
+                            client_id: id,
+                            package_id: recurPackageId,
+                            day_of_week: dow,
+                            start_time: recurTime,
+                            duration_mins: parseInt(recurDuration, 10),
+                            start_date: startDateStr,
+                          },
+                          {
+                            onSuccess: (data) => {
+                              toast.success(`${data.created} sessions scheduled`)
+                              setShowRecurringForm(false)
+                              setRecurPackageId("")
+                            },
+                            onError: (err) =>
+                              toast.error(err instanceof Error ? err.message : "Failed to create schedule"),
+                          },
+                        )
+                      }}
+                      disabled={createRecurring.isPending}
+                    >
+                      {createRecurring.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Schedule sessions
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => setShowRecurringForm(true)}
+                  >
+                    Add recurring schedule
+                  </Button>
+                )}
               </div>
             )}
           </div>

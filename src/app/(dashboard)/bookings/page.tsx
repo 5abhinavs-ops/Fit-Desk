@@ -4,7 +4,9 @@ import { useState, useEffect } from "react"
 import { useBookings } from "@/hooks/useBookings"
 import { useWeekBookings, getWeekStart } from "@/hooks/useWeekBookings"
 import { useClients } from "@/hooks/useClients"
+import { useBlockedDays, useBlockDay, useUnblockDay } from "@/hooks/useAvailability"
 import { WeekHeatmap } from "@/components/calendar/WeekHeatmap"
+import { SlotManager } from "@/components/calendar/SlotManager"
 import { BookingActionSheet } from "@/components/clients/BookingActionSheet"
 import { CreateBookingSheet } from "@/components/clients/CreateBookingSheet"
 import { Badge } from "@/components/ui/badge"
@@ -22,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
-import { Plus, ChevronLeft, ChevronRight, Copy, Loader2 } from "lucide-react"
+import { Plus, ChevronLeft, ChevronRight, Copy, Loader2, Ban } from "lucide-react"
 import { format, addDays, parseISO } from "date-fns"
 import type { Booking } from "@/types/database"
 
@@ -60,7 +62,13 @@ export default function BookingsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [copyConfirmOpen, setCopyConfirmOpen] = useState(false)
   const [copyPending, setCopyPending] = useState(false)
+  const [cancelDayOpen, setCancelDayOpen] = useState(false)
+  const [cancelDayPending, setCancelDayPending] = useState(false)
+  const [blockDayOpen, setBlockDayOpen] = useState(false)
   const queryClient = useQueryClient()
+  const { data: blockedDays } = useBlockedDays()
+  const blockDay = useBlockDay()
+  const unblockDay = useUnblockDay()
 
   useEffect(() => {
     setSelectedDate(getSGTToday())
@@ -91,6 +99,57 @@ export default function BookingsPage() {
     setWeekOffset(0)
     setSelectedDate(getSGTToday())
     setViewMode("week")
+  }
+
+  const isBlocked = blockedDays?.includes(selectedDate)
+
+  async function handleCancelDay() {
+    if (!dayBookings || dayBookings.length === 0) return
+    const bookingIds = dayBookings
+      .filter((b) => ["confirmed", "pending", "upcoming"].includes(b.status))
+      .map((b) => b.id)
+    if (bookingIds.length === 0) {
+      toast.error("No active sessions to cancel")
+      return
+    }
+    setCancelDayPending(true)
+    try {
+      const res = await fetch("/api/bookings/bulk-cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_ids: bookingIds, action: "cancel_day" }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success(`${data.cancelled} session${data.cancelled !== 1 ? "s" : ""} cancelled & day blocked`)
+        queryClient.invalidateQueries({ queryKey: ["bookings"] })
+        queryClient.invalidateQueries({ queryKey: ["weekBookings"] })
+        queryClient.invalidateQueries({ queryKey: ["blocked-days"] })
+        queryClient.invalidateQueries({ queryKey: ["blocked-slots"] })
+      } else {
+        toast.error(data.error || "Failed to cancel sessions")
+      }
+    } catch {
+      toast.error("Failed to cancel sessions")
+    } finally {
+      setCancelDayPending(false)
+      setCancelDayOpen(false)
+    }
+  }
+
+  function handleBlockDay() {
+    blockDay.mutate(selectedDate, {
+      onSuccess: () => toast.success("Day blocked from new bookings"),
+      onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to block day"),
+    })
+    setBlockDayOpen(false)
+  }
+
+  function handleUnblockDay() {
+    unblockDay.mutate(selectedDate, {
+      onSuccess: () => toast.success("Day unblocked"),
+      onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to unblock day"),
+    })
   }
 
   async function handleCopyWeek() {
@@ -174,6 +233,7 @@ export default function BookingsPage() {
         isLoading={weekLoading}
         selectedDate={selectedDate}
         onDayTap={handleDayTap}
+        blockedDays={blockedDays ?? []}
       />
 
       {/* Day detail panel */}
@@ -189,6 +249,33 @@ export default function BookingsPage() {
             </h2>
           </div>
 
+          {/* Slot manager */}
+          <SlotManager date={selectedDate} />
+
+          {/* Blocked day banner */}
+          {isBlocked && (
+            <div
+              style={{
+                background: "rgba(225,29,72,0.15)",
+                border: "1px solid rgba(225,29,72,0.4)",
+                borderRadius: "12px",
+              }}
+              className="flex items-center justify-between p-3"
+            >
+              <span className="flex items-center gap-1.5" style={{ color: "#e11d48", fontSize: "14px", fontWeight: 600 }}>
+                <Ban className="h-4 w-4" />
+                Day blocked — no new bookings
+              </span>
+              <button
+                onClick={handleUnblockDay}
+                style={{ color: "#e11d48", fontSize: "13px" }}
+                className="font-medium underline"
+              >
+                Remove block
+              </button>
+            </div>
+          )}
+
           {dayLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -196,36 +283,65 @@ export default function BookingsPage() {
               ))}
             </div>
           ) : !dayBookings || dayBookings.length === 0 ? (
-            <p className="text-muted-foreground py-12 text-center text-sm">
-              No sessions on {format(parseISO(selectedDate), "EEEE")}. Tap + to book.
-            </p>
+            <>
+              <p className="text-muted-foreground py-12 text-center text-sm">
+                No sessions on {format(parseISO(selectedDate), "EEEE")}. Tap + to book.
+              </p>
+              {!isBlocked && (
+                <Button
+                  variant="outline"
+                  className="w-full text-rose-600 border-rose-300 hover:bg-rose-50"
+                  onClick={() => setBlockDayOpen(true)}
+                >
+                  <Ban className="mr-2 h-4 w-4" />
+                  Block day from new bookings
+                </Button>
+              )}
+            </>
           ) : (
-            <div className="space-y-2">
-              {dayBookings.map((b) => {
-                const bTime = new Date(b.date_time)
-                return (
-                  <div
-                    key={b.id}
-                    className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
-                    onClick={() => setActionBooking(b)}
-                  >
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{format(bTime, "h:mm a")}</p>
+            <>
+              <div className="space-y-2">
+                {dayBookings.map((b) => {
+                  const bTime = new Date(b.date_time)
+                  return (
+                    <div
+                      key={b.id}
+                      className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
+                      onClick={() => setActionBooking(b)}
+                    >
+                      <div className="text-right">
+                        <p className="text-sm font-medium">{format(bTime, "h:mm a")}</p>
+                      </div>
+                      <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status] ?? "bg-[#64748B]"}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{getClientName(b.client_id)}</p>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {b.duration_mins} min{b.location ? ` · ${b.location}` : ""}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {b.booking_source === "recurring" && (
+                          <span className="text-xs text-cyan-500">↻</span>
+                        )}
+                        <Badge variant="secondary" className="text-xs">
+                          {sessionTypeBadge[b.session_type] ?? b.session_type}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status] ?? "bg-[#64748B]"}`} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{getClientName(b.client_id)}</p>
-                      <p className="text-muted-foreground truncate text-xs">
-                        {b.duration_mins} min{b.location ? ` · ${b.location}` : ""}
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="shrink-0 text-xs">
-                      {sessionTypeBadge[b.session_type] ?? b.session_type}
-                    </Badge>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+              {!isBlocked && dayBookings.some((b) => ["confirmed", "pending", "upcoming"].includes(b.status)) && (
+                <Button
+                  variant="outline"
+                  className="w-full text-rose-600 border-rose-300 hover:bg-rose-50"
+                  onClick={() => setCancelDayOpen(true)}
+                >
+                  <Ban className="mr-2 h-4 w-4" />
+                  Cancel all sessions & block day
+                </Button>
+              )}
+            </>
           )}
         </div>
       )}
@@ -254,6 +370,43 @@ export default function BookingsPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
       />
+
+      {/* Cancel day confirmation */}
+      <AlertDialog open={cancelDayOpen} onOpenChange={setCancelDayOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel all sessions on {selectedDate ? format(parseISO(selectedDate), "EEEE, d MMMM") : ""}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will cancel {dayBookings?.filter((b) => ["confirmed", "pending", "upcoming"].includes(b.status)).length ?? 0} session{(dayBookings?.filter((b) => ["confirmed", "pending", "upcoming"].includes(b.status)).length ?? 0) !== 1 ? "s" : ""} and block the day from new bookings. Each client will receive a WhatsApp notification with your booking link to reschedule.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelDayPending}>Go back</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelDay} disabled={cancelDayPending} className="bg-rose-600 hover:bg-rose-700">
+              {cancelDayPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Cancel sessions
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Block empty day confirmation */}
+      <AlertDialog open={blockDayOpen} onOpenChange={setBlockDayOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Block {selectedDate ? format(parseISO(selectedDate), "EEEE, d MMMM") : ""}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will prevent new bookings on this day. You can remove the block at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go back</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBlockDay} className="bg-rose-600 hover:bg-rose-700">
+              Block day
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Copy week confirmation */}
       <AlertDialog open={copyConfirmOpen} onOpenChange={setCopyConfirmOpen}>
