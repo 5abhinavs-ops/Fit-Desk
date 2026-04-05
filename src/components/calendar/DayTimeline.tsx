@@ -31,9 +31,9 @@ function sgtToday(): string {
   return format(sgt, "yyyy-MM-dd")
 }
 
-function sgtNow(): Date {
-  const now = new Date()
-  return new Date(now.getTime() + (8 * 60 + now.getTimezoneOffset()) * 60000)
+function sgtNowHM(): { h: number; m: number } {
+  const d = new Date(Date.now() + 8 * 60 * 60 * 1000)
+  return { h: d.getUTCHours(), m: d.getUTCMinutes() }
 }
 
 function toSGT(isoString: string): Date {
@@ -75,8 +75,8 @@ export function DayTimeline({
 }: DayTimelineProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [nowMinutes, setNowMinutes] = useState(() => {
-    const sgt = sgtNow()
-    return sgt.getUTCHours() * 60 + sgt.getUTCMinutes()
+    const { h, m } = sgtNowHM()
+    return h * 60 + m
   })
 
   const todayStr = sgtToday()
@@ -101,9 +101,10 @@ export function DayTimeline({
     for (const b of visibleBookings) {
       const sgt = toSGT(b.date_time)
       const startMins = sgt.getUTCHours() * 60 + sgt.getUTCMinutes()
-      const slots = Math.ceil(b.duration_mins / 30)
-      for (let i = 0; i < slots; i++) {
-        set.add(startMins + i * 30)
+      const endMins = startMins + b.duration_mins
+      // Mark every 30-min grid slot that the booking overlaps
+      for (let slot = HOUR_START * 60; slot < HOUR_END * 60; slot += 30) {
+        if (slot < endMins && slot + 30 > startMins) set.add(slot)
       }
     }
     return set
@@ -113,19 +114,20 @@ export function DayTimeline({
   useEffect(() => {
     if (!isToday) return
     const interval = setInterval(() => {
-      const sgt = sgtNow()
-      setNowMinutes(sgt.getUTCHours() * 60 + sgt.getUTCMinutes())
+      const { h, m } = sgtNowHM()
+      setNowMinutes(h * 60 + m)
     }, 60000)
     return () => clearInterval(interval)
   }, [isToday])
 
-  // Auto-scroll
+  // Auto-scroll once per date change (not on nowMinutes tick)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!scrollRef.current || !date) return
     const targetMinutes = isToday ? nowMinutes - 30 : 7 * 60
     const top = Math.max(0, ((targetMinutes - HOUR_START * 60) / 60) * HOUR_HEIGHT)
     scrollRef.current.scrollTop = top
-  }, [date, isToday, nowMinutes])
+  }, [date])
 
   // Loading state
   if (isLoading || !date) {

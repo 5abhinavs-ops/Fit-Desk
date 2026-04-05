@@ -38,6 +38,7 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState("")
   const [actionBooking, setActionBooking] = useState<Booking | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [prefilledTime, setPrefilledTime] = useState<string | undefined>()
   const [copyConfirmOpen, setCopyConfirmOpen] = useState(false)
   const [copyPending, setCopyPending] = useState(false)
   const [cancelDayOpen, setCancelDayOpen] = useState(false)
@@ -107,10 +108,12 @@ export default function BookingsPage() {
 
   function handleBlockDay() {
     blockDay.mutate(selectedDate, {
-      onSuccess: () => toast.success("Day blocked from new bookings"),
+      onSuccess: () => {
+        toast.success("Day blocked from new bookings")
+        setBlockDayOpen(false)
+      },
       onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to block day"),
     })
-    setBlockDayOpen(false)
   }
 
   function handleUnblockDay() {
@@ -287,7 +290,10 @@ export default function BookingsPage() {
           clients={clients ?? []}
           blockedDays={blockedDays ?? []}
           onBookingTap={(b) => setActionBooking(b)}
-          onEmptySlotTap={() => setCreateOpen(true)}
+          onEmptySlotTap={(startTime) => {
+            setPrefilledTime(startTime)
+            setCreateOpen(true)
+          }}
           isLoading={dayLoading}
         />
       </div>
@@ -313,8 +319,12 @@ export default function BookingsPage() {
 
       <CreateBookingSheet
         defaultDate={selectedDate}
+        defaultTime={prefilledTime}
         open={createOpen}
-        onOpenChange={setCreateOpen}
+        onOpenChange={(o) => {
+          setCreateOpen(o)
+          if (!o) setPrefilledTime(undefined)
+        }}
       />
 
       {/* Cancel day confirmation */}

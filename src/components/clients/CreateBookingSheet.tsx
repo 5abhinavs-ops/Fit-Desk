@@ -19,6 +19,7 @@ import type { BookingPaymentMode } from "@/types/database"
 
 interface CreateBookingSheetProps {
   defaultDate: string
+  defaultTime?: string
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -41,7 +42,7 @@ function formatTime(t: string): string {
   return `${h12}:${mStr} ${ampm}`
 }
 
-export function CreateBookingSheet({ defaultDate, open, onOpenChange }: CreateBookingSheetProps) {
+export function CreateBookingSheet({ defaultDate, defaultTime, open, onOpenChange }: CreateBookingSheetProps) {
   const { data: clients } = useClients()
   const createBooking = useCreateBooking()
   const [clientId, setClientId] = useState("")
@@ -62,6 +63,10 @@ export function CreateBookingSheet({ defaultDate, open, onOpenChange }: CreateBo
   useEffect(() => {
     setDate(defaultDate)
   }, [defaultDate])
+
+  useEffect(() => {
+    if (defaultTime) setTime(defaultTime)
+  }, [defaultTime])
 
   useEffect(() => {
     const supabase = createClient()
