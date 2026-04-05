@@ -5,7 +5,7 @@ import { useAnalytics } from "@/hooks/useAnalytics"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { TrendingUp, AlertCircle, Users, Package, UserX } from "lucide-react"
+import { TrendingUp, AlertCircle, Users, Package, UserX, DollarSign } from "lucide-react"
 import { format } from "date-fns"
 
 function formatCurrency(amount: number): string {
@@ -36,9 +36,13 @@ export default function AnalyticsPage() {
         </div>
         <Skeleton className="h-24 rounded-xl" />
         <Skeleton className="h-40 rounded-xl" />
+        <Skeleton className="h-48 rounded-xl" />
       </div>
     )
   }
+
+  // Find max revenue for bar chart scaling
+  const maxRevenue = Math.max(...(data?.revenueHistory ?? []).map((p) => p.amount), 1)
 
   return (
     <div className="space-y-6">
@@ -60,6 +64,33 @@ export default function AnalyticsPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Revenue history chart */}
+      {data && data.revenueHistory.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground mb-3">Revenue trend (6 months)</p>
+            <div className="flex items-end gap-1 h-24">
+              {data.revenueHistory.map((point) => {
+                const heightPct = maxRevenue > 0 ? (point.amount / maxRevenue) * 100 : 0
+                const isCurrentMonth = point.month === format(new Date(), "MMM") && point.year === new Date().getFullYear()
+                return (
+                  <div key={`${point.year}-${point.month}`} className="flex-1 flex flex-col items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">
+                      {point.amount > 0 ? `$${Math.round(point.amount)}` : ""}
+                    </span>
+                    <div
+                      className={`w-full rounded-t ${isCurrentMonth ? "bg-primary" : "bg-muted-foreground/20"}`}
+                      style={{ height: `${Math.max(heightPct, 2)}%` }}
+                    />
+                    <span className="text-[10px] text-muted-foreground">{point.month}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sessions + No-show rate */}
       <div className="grid grid-cols-2 gap-3">
@@ -112,7 +143,52 @@ export default function AnalyticsPage() {
         </CardContent>
       </Card>
 
-      {/* Top clients */}
+      {/* Client revenue breakdown */}
+      {data && data.clientRevenue.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold flex items-center gap-1.5">
+            <DollarSign className="h-4 w-4" />
+            Revenue by client
+          </h2>
+          {data.clientRevenue.map((client) => {
+            const initials = client.client_name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2)
+
+            return (
+              <div
+                key={client.client_id}
+                className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
+                onClick={() => router.push(`/clients/${client.client_id}`)}
+              >
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{client.client_name}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  {client.paid_this_month > 0 && (
+                    <p className="text-sm font-semibold text-green-600">
+                      {formatCurrency(client.paid_this_month)}
+                    </p>
+                  )}
+                  {client.outstanding > 0 && (
+                    <p className="text-xs text-amber-600">
+                      {formatCurrency(client.outstanding)} owed
+                    </p>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Top clients by sessions */}
       {data && data.topClients.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-semibold">Top clients this month</h2>
