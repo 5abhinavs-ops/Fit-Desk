@@ -146,7 +146,15 @@
   html {
     @apply font-sans;
   }
-  /* Font size overrides moved to arbitrary Tailwind values in components */
+  /* Bump Tailwind text-xs / text-sm (12px/14px) for mobile readability; wins over utility specificity with !important */
+  .text-xs {
+    font-size: 13px !important;
+    line-height: 1.45;
+  }
+  .text-sm {
+    font-size: 15px !important;
+    line-height: 1.45;
+  }
 }
 
 @layer utilities {
@@ -212,7 +220,7 @@
   }
 
   .label-upper {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: #7A9BB5;
     text-transform: uppercase;
