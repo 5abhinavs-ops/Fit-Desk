@@ -81,7 +81,7 @@ export default function ClientsPage() {
           <div className="flex flex-col items-center gap-4 py-16 text-center">
             <div className="space-y-1">
               <p className="text-sm font-medium">No clients yet</p>
-              <p className="text-muted-foreground text-xs">Add your first client to get started.</p>
+              <p className="text-muted-foreground text-[13px]">Add your first client to get started.</p>
             </div>
             <Button onClick={() => setSheetOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -89,7 +89,7 @@ export default function ClientsPage() {
             </Button>
           </div>
         ) : (
-          <p className="text-muted-foreground py-12 text-center text-sm">
+          <p className="text-muted-foreground py-12 text-center text-[15px]">
             No clients match your search.
           </p>
         )

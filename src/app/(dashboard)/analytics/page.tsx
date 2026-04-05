@@ -49,7 +49,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Analytics</h1>
-        <p className="text-muted-foreground text-sm">{monthYear}</p>
+        <p className="text-muted-foreground text-[15px]">{monthYear}</p>
       </div>
 
       {/* Revenue card (prominent) */}
@@ -57,7 +57,7 @@ export default function AnalyticsPage() {
         <CardContent className="p-5">
           <div className="flex items-center gap-2">
             <TrendingUp className="text-[#00E096] h-5 w-5" />
-            <span className="text-muted-foreground text-sm">Revenue this month</span>
+            <span className="text-muted-foreground text-[15px]">Revenue this month</span>
           </div>
           <p className="mt-2 text-4xl font-bold text-[#00E096]">
             {formatCurrency(data?.monthlyRevenue ?? 0)}
@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Users className="text-[#00C6D4] h-4 w-4" />
-              <span className="text-muted-foreground text-xs">Sessions completed</span>
+              <span className="text-muted-foreground text-[13px]">Sessions completed</span>
             </div>
             <p className="mt-2 text-3xl font-bold">{data?.sessionsCompleted ?? 0}</p>
           </CardContent>
@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <UserX className={`h-4 w-4 ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : "text-[#7A9BB5]"}`} />
-              <span className="text-muted-foreground text-xs">No-show rate</span>
+              <span className="text-muted-foreground text-[13px]">No-show rate</span>
             </div>
             <p className={`mt-2 text-3xl font-bold ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : ""}`}>
               {data?.noShowRate ?? 0}%
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-[#FFB347]" />
-            <span className="text-muted-foreground text-xs">Outstanding payments</span>
+            <span className="text-muted-foreground text-[13px]">Outstanding payments</span>
           </div>
           <p className="mt-2 text-2xl font-bold text-[#FFB347]">
             {formatCurrency(data?.outstandingTotal ?? 0)}
@@ -135,7 +135,7 @@ export default function AnalyticsPage() {
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <Package className="text-muted-foreground h-4 w-4" />
-            <span className="text-muted-foreground text-xs">Package renewal rate (90d)</span>
+            <span className="text-muted-foreground text-[13px]">Package renewal rate (90d)</span>
           </div>
           <p className="mt-2 text-2xl font-bold">
             {data?.packageRenewalRate !== null ? `${data?.packageRenewalRate}%` : "—"}

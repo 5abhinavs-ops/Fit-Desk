@@ -85,8 +85,8 @@ export default function PaymentsPage() {
         <Skeleton className="h-14 rounded-lg" />
       ) : (
         <div>
-          <p className="text-2xl font-bold text-[#FFB347]">{formatCurrency(outstanding.total)} <span className="text-[#7A9BB5] text-sm font-normal">outstanding</span></p>
-          <p className="text-[#7A9BB5] text-xs">
+          <p className="text-2xl font-bold text-[#FFB347]">{formatCurrency(outstanding.total)} <span className="text-[#7A9BB5] text-[15px] font-normal">outstanding</span></p>
+          <p className="text-[#7A9BB5] text-[13px]">
             {outstanding.overdue} overdue · {outstanding.pending} pending
           </p>
         </div>
@@ -110,7 +110,7 @@ export default function PaymentsPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">No payments found.</p>
+        <p className="text-muted-foreground py-12 text-center text-[15px]">No payments found.</p>
       ) : (
         <div className="space-y-2">
           {filtered.map((p) => {
@@ -138,7 +138,7 @@ export default function PaymentsPage() {
                     <Badge variant="secondary" className="text-[10px]">
                       {methodLabels[p.method] ?? p.method}
                     </Badge>
-                    <span className="text-muted-foreground text-xs truncate">
+                    <span className="text-muted-foreground text-[13px] truncate">
                       {p.status === "received" && p.received_date
                         ? `Received ${format(new Date(p.received_date + "T12:00:00"), "d MMM")}`
                         : p.due_date

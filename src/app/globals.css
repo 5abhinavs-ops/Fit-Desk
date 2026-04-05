@@ -146,9 +146,7 @@
   html {
     @apply font-sans;
   }
-  /* Increase all small text globally for readability on dark background */
-  .text-xs { font-size: 13px !important; line-height: 1.5; }
-  .text-sm { font-size: 15px !important; line-height: 1.5; }
+  /* Font size overrides moved to arbitrary Tailwind values in components */
 }
 
 @layer utilities {
