@@ -5,13 +5,11 @@ import { useBookings } from "@/hooks/useBookings"
 import { useWeekBookings, getWeekStart } from "@/hooks/useWeekBookings"
 import { useClients } from "@/hooks/useClients"
 import { useBlockedDays, useBlockDay, useUnblockDay } from "@/hooks/useAvailability"
-import { WeekHeatmap } from "@/components/calendar/WeekHeatmap"
-import { SlotManager } from "@/components/calendar/SlotManager"
+import { WeekStrip } from "@/components/calendar/WeekStrip"
+import { DayTimeline } from "@/components/calendar/DayTimeline"
 import { BookingActionSheet } from "@/components/clients/BookingActionSheet"
 import { CreateBookingSheet } from "@/components/clients/CreateBookingSheet"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,25 +26,6 @@ import { Plus, ChevronLeft, ChevronRight, Copy, Loader2, Ban } from "lucide-reac
 import { format, addDays, parseISO } from "date-fns"
 import type { Booking } from "@/types/database"
 
-const statusDot: Record<string, string> = {
-  confirmed: "bg-green-500",
-  pending: "bg-amber-500",
-  cancelled: "bg-[#64748B]",
-  completed: "bg-green-500",
-  "no-show": "bg-red-500",
-  no_show: "bg-red-500",
-  upcoming: "bg-green-500",
-  forfeited: "bg-[#64748B]",
-  pending_approval: "bg-amber-500",
-  reschedule_requested: "bg-amber-500",
-}
-
-const sessionTypeBadge: Record<string, string> = {
-  "1-on-1": "1-on-1",
-  group: "Group",
-  assessment: "Assessment",
-}
-
 function getSGTToday(): string {
   const now = new Date()
   const sgtOffset = 8 * 60
@@ -55,7 +34,6 @@ function getSGTToday(): string {
 }
 
 export default function BookingsPage() {
-  const [viewMode, setViewMode] = useState<"week" | "day">("week")
   const [weekOffset, setWeekOffset] = useState(0)
   const [selectedDate, setSelectedDate] = useState("")
   const [actionBooking, setActionBooking] = useState<Booking | null>(null)
@@ -86,19 +64,9 @@ export default function BookingsPage() {
     return c ? `${c.first_name} ${c.last_name}` : "Unknown"
   }
 
-  function handleDayTap(date: string) {
-    setSelectedDate(date)
-    setViewMode("day")
-  }
-
-  function handleBackToWeek() {
-    setViewMode("week")
-  }
-
   function handleThisWeek() {
     setWeekOffset(0)
     setSelectedDate(getSGTToday())
-    setViewMode("week")
   }
 
   const isBlocked = blockedDays?.includes(selectedDate)
@@ -176,175 +144,153 @@ export default function BookingsPage() {
     }
   }
 
-  return (
-    <div className="space-y-4">
-      {/* Page header with week navigation */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Calendar</h1>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => { setWeekOffset((o) => o - 1); setViewMode("week") }}
-            aria-label="Previous week"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium">{weekLabel}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => { setWeekOffset((o) => o + 1); setViewMode("week") }}
-            aria-label="Next week"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+  const activeBookingCount = dayBookings?.filter((b) => ["confirmed", "pending", "upcoming"].includes(b.status)).length ?? 0
 
-      <div className="flex gap-2">
-        {weekOffset !== 0 && (
+  return (
+    <div className="flex flex-col h-full">
+
+      {/* TOP SECTION — fixed header + week strip */}
+      <div className="shrink-0 space-y-3 pb-3">
+
+        {/* Header row */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Calendar</h1>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setWeekOffset((o) => o - 1)}
+              aria-label="Previous week"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium">{weekLabel}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setWeekOffset((o) => o + 1)}
+              aria-label="Next week"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* This week + Copy week buttons */}
+        <div className="flex gap-2">
+          {weekOffset !== 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs"
+              onClick={handleThisWeek}
+            >
+              This week
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 text-xs"
-            onClick={handleThisWeek}
+            className={`${weekOffset !== 0 ? "flex-1" : "w-full"} text-xs`}
+            onClick={() => setCopyConfirmOpen(true)}
           >
-            This week
+            <Copy className="mr-1 h-3 w-3" />
+            Copy week →
           </Button>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          className={`${weekOffset !== 0 ? "flex-1" : "w-full"} text-xs`}
-          onClick={() => setCopyConfirmOpen(true)}
-        >
-          <Copy className="mr-1 h-3 w-3" />
-          Copy week →
-        </Button>
+        </div>
+
+        {/* Week strip */}
+        <WeekStrip
+          weekStart={weekStart}
+          bookings={weekBookings ?? []}
+          blockedDays={blockedDays ?? []}
+          selectedDate={selectedDate}
+          onDayTap={setSelectedDate}
+          isLoading={weekLoading}
+        />
       </div>
 
-      {/* Week heatmap — always visible */}
-      <WeekHeatmap
-        weekStart={weekStart}
-        bookings={weekBookings ?? []}
-        isLoading={weekLoading}
-        selectedDate={selectedDate}
-        onDayTap={handleDayTap}
-        blockedDays={blockedDays ?? []}
-      />
+      {/* BOTTOM SECTION — day header + timeline */}
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
 
-      {/* Day detail panel */}
-      {viewMode === "day" && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={handleBackToWeek}>
-              <ChevronLeft className="mr-1 h-4 w-4" />
-              Week
-            </Button>
-            <h2 className="text-lg font-semibold">
-              {format(parseISO(selectedDate), "EEEE, d MMMM")}
-            </h2>
-          </div>
-
-          {/* Slot manager */}
-          <SlotManager date={selectedDate} />
-
-          {/* Blocked day banner */}
-          {isBlocked && (
-            <div
-              style={{
-                background: "rgba(225,29,72,0.15)",
-                border: "1px solid rgba(225,29,72,0.4)",
-                borderRadius: "12px",
-              }}
-              className="flex items-center justify-between p-3"
-            >
-              <span className="flex items-center gap-1.5" style={{ color: "#e11d48", fontSize: "14px", fontWeight: 600 }}>
-                <Ban className="h-4 w-4" />
-                Day blocked — no new bookings
-              </span>
-              <button
-                onClick={handleUnblockDay}
-                style={{ color: "#e11d48", fontSize: "13px" }}
-                className="font-medium underline"
-              >
-                Remove block
-              </button>
-            </div>
-          )}
-
-          {dayLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 rounded-lg" />
-              ))}
-            </div>
-          ) : !dayBookings || dayBookings.length === 0 ? (
-            <>
-              <p className="text-muted-foreground py-12 text-center text-sm">
-                No sessions on {format(parseISO(selectedDate), "EEEE")}. Tap + to book.
-              </p>
-              {!isBlocked && (
-                <Button
-                  variant="outline"
-                  className="w-full text-rose-600 border-rose-300 hover:bg-rose-50"
-                  onClick={() => setBlockDayOpen(true)}
-                >
-                  <Ban className="mr-2 h-4 w-4" />
-                  Block day from new bookings
-                </Button>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="space-y-2">
-                {dayBookings.map((b) => {
-                  const bTime = new Date(b.date_time)
-                  return (
-                    <div
-                      key={b.id}
-                      className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
-                      onClick={() => setActionBooking(b)}
-                    >
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{format(bTime, "h:mm a")}</p>
-                      </div>
-                      <div className={`h-8 w-0.5 rounded-full ${statusDot[b.status] ?? "bg-[#64748B]"}`} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold">{getClientName(b.client_id)}</p>
-                        <p className="text-muted-foreground truncate text-xs">
-                          {b.duration_mins} min{b.location ? ` · ${b.location}` : ""}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1">
-                        {b.booking_source === "recurring" && (
-                          <span className="text-xs text-cyan-500">↻</span>
-                        )}
-                        <Badge variant="secondary" className="text-xs">
-                          {sessionTypeBadge[b.session_type] ?? b.session_type}
-                        </Badge>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              {!isBlocked && dayBookings.some((b) => ["confirmed", "pending", "upcoming"].includes(b.status)) && (
-                <Button
-                  variant="outline"
-                  className="w-full text-rose-600 border-rose-300 hover:bg-rose-50"
-                  onClick={() => setCancelDayOpen(true)}
-                >
-                  <Ban className="mr-2 h-4 w-4" />
-                  Cancel all sessions & block day
-                </Button>
-              )}
-            </>
-          )}
+        {/* Day header */}
+        <div className="shrink-0 flex items-center justify-between py-2">
+          <h2 className="text-base font-semibold" style={{ color: "white" }}>
+            {selectedDate
+              ? format(parseISO(selectedDate), "EEEE, d MMMM")
+              : "Loading..."}
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            style={{ color: "#00C6D4" }}
+            className="text-xs"
+            onClick={() => setCreateOpen(true)}
+          >
+            + Add session
+          </Button>
         </div>
-      )}
+
+        {/* Cancel/Block day actions */}
+        {selectedDate && (
+          <div className="shrink-0 pb-2">
+            {isBlocked ? (
+              <div
+                className="flex items-center justify-between rounded-xl p-3"
+                style={{
+                  background: "rgba(225,29,72,0.15)",
+                  border: "1px solid rgba(225,29,72,0.4)",
+                }}
+              >
+                <span className="flex items-center gap-1.5" style={{ color: "#e11d48", fontSize: "13px", fontWeight: 600 }}>
+                  <Ban className="h-3.5 w-3.5" />
+                  Day blocked
+                </span>
+                <button
+                  onClick={handleUnblockDay}
+                  style={{ color: "#e11d48", fontSize: "12px" }}
+                  className="font-medium underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : activeBookingCount > 0 ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs text-rose-500 hover:text-rose-600"
+                onClick={() => setCancelDayOpen(true)}
+              >
+                <Ban className="mr-1 h-3 w-3" />
+                Cancel all & block day
+              </Button>
+            ) : !dayLoading ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs text-rose-500 hover:text-rose-600"
+                onClick={() => setBlockDayOpen(true)}
+              >
+                <Ban className="mr-1 h-3 w-3" />
+                Block day
+              </Button>
+            ) : null}
+          </div>
+        )}
+
+        {/* Day Timeline */}
+        <DayTimeline
+          date={selectedDate}
+          bookings={dayBookings ?? []}
+          clients={clients ?? []}
+          blockedDays={blockedDays ?? []}
+          onBookingTap={(b) => setActionBooking(b)}
+          onEmptySlotTap={() => setCreateOpen(true)}
+          isLoading={dayLoading}
+        />
+      </div>
 
       {/* FAB */}
       <Button
@@ -377,7 +323,7 @@ export default function BookingsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel all sessions on {selectedDate ? format(parseISO(selectedDate), "EEEE, d MMMM") : ""}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will cancel {dayBookings?.filter((b) => ["confirmed", "pending", "upcoming"].includes(b.status)).length ?? 0} session{(dayBookings?.filter((b) => ["confirmed", "pending", "upcoming"].includes(b.status)).length ?? 0) !== 1 ? "s" : ""} and block the day from new bookings. Each client will receive a WhatsApp notification with your booking link to reschedule.
+              This will cancel {activeBookingCount} session{activeBookingCount !== 1 ? "s" : ""} and block the day from new bookings. Each client will receive a WhatsApp notification with your booking link to reschedule.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
