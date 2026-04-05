@@ -8,12 +8,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { CalendarDays, DollarSign, AlertTriangle, TrendingUp, Dumbbell, AlertCircle, UserCheck, UserMinus, Eye, X } from "lucide-react"
+import { CalendarDays, DollarSign, AlertTriangle, TrendingUp, Dumbbell, AlertCircle, UserCheck, UserMinus } from "lucide-react"
 import { PendingApprovalsCard } from "@/components/dashboard/pending-approvals-card"
-import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist"
-import { DEMO_DASHBOARD_DATA } from "@/lib/demo-data"
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
 import { format } from "date-fns"
 
 function getGreeting(): string {
@@ -36,7 +32,6 @@ export default function DashboardPage() {
   const router = useRouter()
   const { data, isLoading, isError } = useDashboard()
   const [trainerName, setTrainerName] = useState("")
-  const [isDemoMode, setIsDemoMode] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -48,19 +43,6 @@ export default function DashboardPage() {
   }, [])
 
   const today = format(new Date(), "EEEE, d MMMM yyyy")
-
-  const hasRealData = !isLoading && data && (
-    data.todayBookingsCount > 0 ||
-    data.monthlyRevenue > 0 ||
-    data.lowSessionClients.length > 0 ||
-    data.lapsedClients.length > 0
-  )
-  const showDemoPrompt = !isLoading && !isDemoMode && !hasRealData && !isError
-  const displayData = isDemoMode ? DEMO_DASHBOARD_DATA : data
-
-  function handleDemoNav() {
-    toast("This is demo data — add a real client to get started")
-  }
 
   if (isError) {
     return (
@@ -74,29 +56,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Demo mode banner */}
-      {isDemoMode && (
-        <div className="flex items-center justify-between rounded-lg bg-[rgba(255,179,71,0.15)] px-4 py-2">
-          <span className="text-sm font-medium text-[#FFB347]">Demo mode — this is sample data</span>
-          <button onClick={() => setIsDemoMode(false)} className="text-[#FFB347] hover:text-white">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Onboarding checklist */}
-      <OnboardingChecklist />
-
-      {/* Demo prompt */}
-      {showDemoPrompt && (
-        <div className="rounded-xl border-dashed border-2 p-4 text-center space-y-2">
-          <Eye className="h-8 w-8 mx-auto text-muted-foreground" />
-          <p className="text-sm font-semibold">See FitDesk in action</p>
-          <p className="text-xs text-muted-foreground">Preview with sample data to explore the dashboard</p>
-          <Button size="sm" onClick={() => setIsDemoMode(true)}>Preview demo</Button>
-        </div>
-      )}
-
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold">
@@ -123,21 +82,21 @@ export default function DashboardPage() {
             {/* Today's sessions */}
             <Card
               className="cursor-pointer transition-colors hover:bg-accent"
-              onClick={() => isDemoMode ? handleDemoNav() : router.push("/bookings")}
+              onClick={() => router.push("/bookings")}
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <CalendarDays className="text-muted-foreground h-4 w-4" />
                   <span className="text-muted-foreground text-xs">Today&apos;s sessions</span>
                 </div>
-                <p className="mt-2 text-3xl font-bold">{displayData?.todayBookingsCount ?? 0}</p>
+                <p className="mt-2 text-3xl font-bold">{data?.todayBookingsCount ?? 0}</p>
               </CardContent>
             </Card>
 
             {/* Outstanding payments */}
             <Card
               className="cursor-pointer transition-colors hover:bg-accent"
-              onClick={() => isDemoMode ? handleDemoNav() : router.push("/payments")}
+              onClick={() => router.push("/payments")}
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
@@ -145,11 +104,11 @@ export default function DashboardPage() {
                   <span className="text-muted-foreground text-xs">Outstanding</span>
                 </div>
                 <p className="mt-2 text-3xl font-bold">
-                  {formatCurrency(displayData?.outstandingPayments ?? 0)}
+                  {formatCurrency(data?.outstandingPayments ?? 0)}
                 </p>
-                {(displayData?.pendingPaymentConfirmations ?? 0) > 0 && (
+                {(data?.pendingPaymentConfirmations ?? 0) > 0 && (
                   <p className="mt-1 text-xs text-amber-600">
-                    {displayData?.pendingPaymentConfirmations} awaiting confirmation
+                    {data?.pendingPaymentConfirmations} awaiting confirmation
                   </p>
                 )}
               </CardContent>
@@ -166,7 +125,7 @@ export default function DashboardPage() {
                   <span className="text-muted-foreground text-xs">Revenue this month</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold">
-                  {formatCurrency(displayData?.monthlyRevenue ?? 0)}
+                  {formatCurrency(data?.monthlyRevenue ?? 0)}
                 </p>
               </CardContent>
             </Card>
@@ -178,7 +137,7 @@ export default function DashboardPage() {
                   <Dumbbell className="text-muted-foreground h-4 w-4" />
                   <span className="text-muted-foreground text-xs">Sessions this week</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold">{displayData?.sessionsThisWeek ?? 0}</p>
+                <p className="mt-2 text-2xl font-bold">{data?.sessionsThisWeek ?? 0}</p>
               </CardContent>
             </Card>
 
@@ -186,11 +145,11 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className={`h-4 w-4 ${(displayData?.overdueTotal ?? 0) > 0 ? "text-red-500" : "text-muted-foreground"}`} />
+                  <AlertCircle className={`h-4 w-4 ${(data?.overdueTotal ?? 0) > 0 ? "text-red-500" : "text-muted-foreground"}`} />
                   <span className="text-muted-foreground text-xs">Overdue</span>
                 </div>
-                <p className={`mt-2 text-2xl font-bold ${(displayData?.overdueTotal ?? 0) > 0 ? "text-red-500" : ""}`}>
-                  {formatCurrency(displayData?.overdueTotal ?? 0)}
+                <p className={`mt-2 text-2xl font-bold ${(data?.overdueTotal ?? 0) > 0 ? "text-red-500" : ""}`}>
+                  {formatCurrency(data?.overdueTotal ?? 0)}
                 </p>
               </CardContent>
             </Card>
@@ -199,44 +158,44 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <UserCheck className={`h-4 w-4 ${(displayData?.attendanceRate ?? 0) >= 80 ? "text-green-500" : "text-muted-foreground"}`} />
+                  <UserCheck className={`h-4 w-4 ${(data?.attendanceRate ?? 0) >= 80 ? "text-green-500" : "text-muted-foreground"}`} />
                   <span className="text-muted-foreground text-xs">Attendance rate</span>
                 </div>
-                <p className={`mt-2 text-2xl font-bold ${(displayData?.attendanceRate ?? 0) >= 80 ? "text-green-500" : ""}`}>
-                  {displayData?.attendanceRate !== null ? `${displayData?.attendanceRate}%` : "—"}
+                <p className={`mt-2 text-2xl font-bold ${(data?.attendanceRate ?? 0) >= 80 ? "text-green-500" : ""}`}>
+                  {data?.attendanceRate !== null ? `${data?.attendanceRate}%` : "—"}
                 </p>
               </CardContent>
             </Card>
           </div>
 
           {/* Lapsed clients stat */}
-          {(displayData?.lapsedClients?.length ?? 0) > 0 && (
+          {(data?.lapsedClients?.length ?? 0) > 0 && (
             <Card
               className="cursor-pointer transition-colors hover:bg-accent"
-              onClick={() => isDemoMode ? handleDemoNav() : router.push("/clients")}
+              onClick={() => router.push("/clients")}
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <UserMinus className="h-4 w-4 text-amber-500" />
                   <span className="text-muted-foreground text-xs">Lapsed clients</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold text-amber-500">{displayData?.lapsedClients.length}</p>
+                <p className="mt-2 text-2xl font-bold text-amber-500">{data?.lapsedClients.length}</p>
               </CardContent>
             </Card>
           )}
 
           {/* Renew soon card */}
-          {displayData && displayData.lowSessionClients.length > 0 && (
+          {data && data.lowSessionClients.length > 0 && (
             <Card
               className="cursor-pointer transition-colors hover:bg-accent"
-              onClick={() => isDemoMode ? handleDemoNav() : router.push("/clients")}
+              onClick={() => router.push("/clients")}
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="text-muted-foreground h-4 w-4" />
                   <span className="text-muted-foreground text-xs">Renew soon</span>
                 </div>
-                <p className="mt-2 text-3xl font-bold">{displayData.lowSessionClients.length}</p>
+                <p className="mt-2 text-3xl font-bold">{data.lowSessionClients.length}</p>
               </CardContent>
             </Card>
           )}
@@ -250,10 +209,10 @@ export default function DashboardPage() {
           <Skeleton className="h-14 rounded-lg" />
           <Skeleton className="h-14 rounded-lg" />
         </div>
-      ) : displayData && displayData.lowSessionClients.length > 0 ? (
+      ) : data && data.lowSessionClients.length > 0 ? (
         <div className="space-y-3">
           <h2 className="text-sm font-semibold">Renew soon</h2>
-          {displayData.lowSessionClients.map((client) => {
+          {data.lowSessionClients.map((client) => {
             const initials = client.client_name
               .split(" ")
               .map((n) => n[0])
@@ -265,7 +224,7 @@ export default function DashboardPage() {
               <div
                 key={client.client_id}
                 className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-                onClick={() => isDemoMode ? handleDemoNav() : router.push(`/clients/${client.client_id}`)}
+                onClick={() => router.push(`/clients/${client.client_id}`)}
               >
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
@@ -283,10 +242,10 @@ export default function DashboardPage() {
       ) : null}
 
       {/* Lapsed clients list */}
-      {!isLoading && displayData && displayData.lapsedClients.length > 0 && (
+      {!isLoading && data && data.lapsedClients.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-semibold">Lapsed clients</h2>
-          {displayData.lapsedClients.map((client) => {
+          {data.lapsedClients.map((client) => {
             const initials = client.client_name
               .split(" ")
               .map((n) => n[0])
@@ -298,7 +257,7 @@ export default function DashboardPage() {
               <div
                 key={client.client_id}
                 className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-                onClick={() => isDemoMode ? handleDemoNav() : router.push(`/clients/${client.client_id}`)}
+                onClick={() => router.push(`/clients/${client.client_id}`)}
               >
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
