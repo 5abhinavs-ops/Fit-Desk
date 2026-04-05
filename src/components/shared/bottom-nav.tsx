@@ -30,40 +30,41 @@ export function BottomNav() {
           const isActive =
             href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+          const activeColor = "#00C6D4";
+          const inactiveColor = "#4A6A85";
+          const color = isActive ? activeColor : inactiveColor;
+
           return (
             <Link
               key={href}
               href={href}
-              className="flex flex-1 flex-col items-center gap-1 py-3 transition-all"
-              style={{ minWidth: 0 }}
+              className="flex flex-1 flex-col items-center py-3 transition-all"
+              style={{ gap: "4px" }}
             >
-              {/* Active tab gets a cyan glow dot above the icon */}
-              {isActive && (
-                <div style={{
-                  width: "20px",
-                  height: "2px",
-                  borderRadius: "2px",
-                  background: "#00C6D4",
-                  marginBottom: "4px",
-                  boxShadow: "0 0 8px rgba(0,198,212,0.8)",
-                }} />
-              )}
+              {/* Top indicator bar — always rendered, opacity toggles */}
+              <div style={{
+                width: "20px",
+                height: "2px",
+                borderRadius: "2px",
+                background: activeColor,
+                boxShadow: "0 0 8px rgba(0,198,212,0.8)",
+                opacity: isActive ? 1 : 0,
+                marginBottom: "2px",
+              }} />
               <Icon
                 style={{
-                  width: isActive ? "26px" : "22px",
-                  height: isActive ? "26px" : "22px",
-                  color: isActive ? "#00C6D4" : "#4A6A85",
-                  filter: isActive ? "drop-shadow(0 0 6px rgba(0,198,212,0.6))" : "none",
-                  transition: "all 0.2s",
+                  width: isActive ? "24px" : "22px",
+                  height: isActive ? "24px" : "22px",
+                  color,
+                  filter: isActive ? "drop-shadow(0 0 4px rgba(0,198,212,0.5))" : "none",
                 }}
               />
               <span
                 style={{
                   fontSize: "10px",
-                  fontWeight: isActive ? 800 : 400,
+                  fontWeight: isActive ? 700 : 400,
                   letterSpacing: "0.04em",
-                  color: isActive ? "#00C6D4" : "#4A6A85",
-                  marginTop: "2px",
+                  color,
                   textTransform: "uppercase",
                 }}
               >
