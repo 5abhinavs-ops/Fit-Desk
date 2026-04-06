@@ -601,11 +601,14 @@ export async function GET(request: Request) {
     try {
       const now = new Date()
       const sgtHour = getSGTHour(now)
+      const sgtMinute = new Date(now.getTime() + 8 * 60 * 60 * 1000).getUTCMinutes()
 
-      if (sgtHour === config.triggerHour) {
+      // Only fire on the :00 run (not :30) to prevent duplicates from the */30 cron
+      if (sgtHour === config.triggerHour && sgtMinute < 30) {
         const todaySGT = getSGTDateString(now)
-        const dayStart = `${todaySGT}T00:00:00.000Z`
-        const dayEnd = `${todaySGT}T23:59:59.999Z`
+        // Use SGT timezone offset so the query window covers the full SGT day
+        const dayStart = `${todaySGT}T00:00:00+08:00`
+        const dayEnd = `${todaySGT}T23:59:59+08:00`
 
         const { data: todayBookings } = await supabase
           .from("bookings")
