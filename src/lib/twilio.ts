@@ -43,6 +43,9 @@ const CONTENT_SID_MAP: Record<string, string | undefined> = {
   package_renewal_created: process.env.TWILIO_CONTENT_SID_PACKAGE_RENEWAL,
   client_lapsed_alert: process.env.TWILIO_CONTENT_SID_CLIENT_LAPSED,
   session_cancelled_reschedule: process.env.TWILIO_CONTENT_SID_SESSION_CANCELLED_RESCHEDULE,
+  pt_daily_schedule_morning: process.env.TWILIO_CONTENT_SID_PT_SCHEDULE_MORNING,
+  pt_daily_schedule_afternoon: process.env.TWILIO_CONTENT_SID_PT_SCHEDULE_AFTERNOON,
+  pt_daily_schedule_evening: process.env.TWILIO_CONTENT_SID_PT_SCHEDULE_EVENING,
 }
 
 let _client: twilio.Twilio | null = null

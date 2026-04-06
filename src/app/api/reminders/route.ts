@@ -29,6 +29,9 @@ export async function GET(request: Request) {
   let trigger9Count = 0
   let trigger10Count = 0
   let trigger11Count = 0
+  let trigger12Count = 0
+  let trigger13Count = 0
+  let trigger14Count = 0
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fitdesk.app"
 
   // TRIGGER 1 — 24h session reminders (with session management link)
@@ -530,6 +533,163 @@ export async function GET(request: Request) {
     errorLog.push({ trigger: "client_lapsed", itemId: "query", error: err instanceof Error ? err.message : String(err) })
   }
 
+  // --- PT Daily Schedule Helpers ---
+  function getSGTDateString(date: Date): string {
+    const sgt = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+    return sgt.toISOString().split("T")[0]
+  }
+
+  function getSGTHour(date: Date): number {
+    const sgt = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+    return sgt.getUTCHours()
+  }
+
+  function buildSchedulePayload(
+    bookings: Array<{
+      date_time: string
+      session_type: string
+      status: string
+      clients: { first_name: string; last_name: string } | null
+    }>,
+    fromHourSGT: number,
+  ): { sessionList: string; remainingCount: number; cancelledNote: string } {
+    const activeStatuses = ["confirmed", "upcoming", "pending", "pending_approval"]
+    const cancelledStatuses = ["cancelled", "forfeited"]
+
+    const remaining = bookings.filter((b) => {
+      const sgtHour = getSGTHour(new Date(b.date_time))
+      return sgtHour >= fromHourSGT && activeStatuses.includes(b.status)
+    })
+
+    const cancelled = bookings.filter((b) => cancelledStatuses.includes(b.status))
+
+    const sessionList =
+      remaining.length === 0
+        ? "No sessions remaining."
+        : remaining
+            .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())
+            .map((b) => {
+              const sgt = new Date(new Date(b.date_time).getTime() + 8 * 60 * 60 * 1000)
+              const h = sgt.getUTCHours()
+              const m = sgt.getUTCMinutes()
+              const ampm = h >= 12 ? "PM" : "AM"
+              const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+              const timeStr = `${h12}:${m.toString().padStart(2, "0")} ${ampm}`
+              const clientName = b.clients
+                ? `${b.clients.first_name} ${b.clients.last_name}`.trim()
+                : "Unknown"
+              return `${timeStr} — ${clientName} (${b.session_type})`
+            })
+            .join(", ") + "."
+
+    const cancelledNote =
+      cancelled.length === 0
+        ? ""
+        : ` Note: ${cancelled.length} session${cancelled.length > 1 ? "s were" : " was"} cancelled today.`
+
+    return { sessionList, remainingCount: remaining.length, cancelledNote }
+  }
+
+  // --- TRIGGER 12, 13, 14: PT Daily Schedule Notifications ---
+  const scheduleConfigs = [
+    { triggerHour: 6, fromHour: 6, templateName: "pt_daily_schedule_morning", triggerLabel: "pt_schedule_morning" },
+    { triggerHour: 12, fromHour: 12, templateName: "pt_daily_schedule_afternoon", triggerLabel: "pt_schedule_afternoon" },
+    { triggerHour: 18, fromHour: 18, templateName: "pt_daily_schedule_evening", triggerLabel: "pt_schedule_evening" },
+  ] as const
+
+  for (const config of scheduleConfigs) {
+    try {
+      const now = new Date()
+      const sgtHour = getSGTHour(now)
+
+      if (sgtHour === config.triggerHour) {
+        const todaySGT = getSGTDateString(now)
+        const dayStart = `${todaySGT}T00:00:00.000Z`
+        const dayEnd = `${todaySGT}T23:59:59.999Z`
+
+        const { data: todayBookings } = await supabase
+          .from("bookings")
+          .select(`
+            id, date_time, session_type, status, trainer_id,
+            clients(first_name, last_name),
+            profiles:trainer_id(name, whatsapp_number)
+          `)
+          .gte("date_time", dayStart)
+          .lte("date_time", dayEnd)
+
+        const byTrainer = new Map<string, NonNullable<typeof todayBookings>>()
+        for (const b of todayBookings ?? []) {
+          const tid = b.trainer_id
+          if (!byTrainer.has(tid)) byTrainer.set(tid, [])
+          byTrainer.get(tid)!.push(b)
+        }
+
+        for (const [, trainerBookings] of byTrainer) {
+          if (!trainerBookings || trainerBookings.length === 0) continue
+          try {
+            const first = trainerBookings[0]
+            const profile = first.profiles as unknown as { name: string; whatsapp_number: string }
+            if (!profile?.whatsapp_number) continue
+
+            const trainerFirstName = profile.name.split(" ")[0] || profile.name
+
+            const sgtDate = new Date(now.getTime() + 8 * 60 * 60 * 1000)
+            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+            const dateStr = `${dayNames[sgtDate.getUTCDay()]}, ${sgtDate.getUTCDate()} ${monthNames[sgtDate.getUTCMonth()]}`
+
+            const { sessionList, remainingCount, cancelledNote } = buildSchedulePayload(
+              trainerBookings.map((b) => ({
+                date_time: b.date_time as string,
+                session_type: b.session_type as string,
+                status: b.status as string,
+                clients: b.clients as unknown as { first_name: string; last_name: string } | null,
+              })),
+              config.fromHour,
+            )
+
+            const result = await sendTemplateMessage({
+              whatsappNumber: profile.whatsapp_number,
+              templateName: config.templateName,
+              parameters: [
+                { name: "trainer_name", value: trainerFirstName },
+                { name: "date", value: dateStr },
+                { name: "session_list", value: sessionList },
+                { name: "session_count", value: String(remainingCount) },
+                { name: "cancelled_note", value: cancelledNote },
+              ],
+            })
+
+            if (result.success) {
+              if (config.triggerHour === 6) trigger12Count++
+              else if (config.triggerHour === 12) trigger13Count++
+              else trigger14Count++
+            } else {
+              errorLog.push({
+                trigger: config.triggerLabel,
+                itemId: first.trainer_id,
+                error: result.error || "Send failed",
+              })
+            }
+          } catch (err) {
+            const first = trainerBookings[0]
+            errorLog.push({
+              trigger: config.triggerLabel,
+              itemId: first?.trainer_id ?? "unknown",
+              error: err instanceof Error ? err.message : String(err),
+            })
+          }
+        }
+      }
+    } catch (err) {
+      errorLog.push({
+        trigger: config.triggerLabel,
+        itemId: "query",
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
   return NextResponse.json({
     success: true,
     summary: {
@@ -544,6 +704,9 @@ export async function GET(request: Request) {
       chase_1h: trigger9Count,
       payment_reminder: trigger10Count,
       client_lapsed: trigger11Count,
+      pt_schedule_morning: trigger12Count,
+      pt_schedule_afternoon: trigger13Count,
+      pt_schedule_evening: trigger14Count,
     },
     errors: errorLog.length > 0 ? errorLog : undefined,
     ran_at: new Date().toISOString(),
