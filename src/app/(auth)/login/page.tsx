@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { FitDeskLogo } from "@/components/shared/fitdesk-logo"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -122,9 +123,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">FitDesk</h1>
-          <p className="text-muted-foreground mt-2">Sign in to your account</p>
+        <div className="flex flex-col items-center gap-3">
+          <FitDeskLogo size="lg" />
+          <p className="text-muted-foreground text-sm">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
