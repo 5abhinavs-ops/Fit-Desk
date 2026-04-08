@@ -58,9 +58,9 @@ export function FitDeskLogo({ size = "lg", className = "" }: FitDeskLogoProps) {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <path d="M48 0L0 56H32L16 96L80 32H40L48 0Z" fill="url(#bolt-grad)" />
+        <path d="M48 0L0 56H32L16 96L80 32H40L48 0Z" fill={`url(#bolt-grad-${size})`} />
         <defs>
-          <linearGradient id="bolt-grad" x1="40" y1="0" x2="40" y2="96" gradientUnits="userSpaceOnUse">
+          <linearGradient id={`bolt-grad-${size}`} x1="40" y1="0" x2="40" y2="96" gradientUnits="userSpaceOnUse">
             <stop stopColor="#22D3EE" />
             <stop offset="1" stopColor="#0891b2" />
           </linearGradient>
