@@ -37,20 +37,24 @@ export interface AnalyticsData {
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-export function useAnalytics() {
+export function useAnalytics(month?: string) {
   const supabase = createClient();
 
+  // Determine the target month string "YYYY-MM"
+  const now = new Date();
+  const sgtOffset = 8 * 60;
+  const sgtTime = new Date(now.getTime() + (sgtOffset + now.getTimezoneOffset()) * 60000);
+  const currentMonthStr = sgtTime.toISOString().split("T")[0].slice(0, 7);
+  const monthStr = month ?? currentMonthStr;
+
   return useQuery({
-    queryKey: ["analytics"],
+    queryKey: ["analytics", monthStr],
     queryFn: async (): Promise<AnalyticsData> => {
-      const now = new Date();
-      const sgtOffset = 8 * 60;
-      const sgtTime = new Date(now.getTime() + (sgtOffset + now.getTimezoneOffset()) * 60000);
-      const monthStr = sgtTime.toISOString().split("T")[0].slice(0, 7);
       const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Calculate 6 months ago for history
-      const sixMonthsAgo = new Date(sgtTime);
+      // Calculate 6 months ago from the selected month for history
+      const selectedDate = new Date(`${monthStr}-15T00:00:00`);
+      const sixMonthsAgo = new Date(selectedDate);
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
       sixMonthsAgo.setDate(1);
       const historyStart = sixMonthsAgo.toISOString().split("T")[0];
@@ -130,7 +134,7 @@ export function useAnalytics() {
           .select("amount, client_id, clients(first_name, last_name)")
           .in("status", ["pending", "overdue"]),
 
-        // 9: Last 6 months revenue history
+        // 9: 6 months revenue history ending at selected month
         supabase
           .from("payments")
           .select("amount, received_date")
@@ -229,7 +233,7 @@ export function useAnalytics() {
 
       // Pre-populate last 6 months with 0
       for (let i = 5; i >= 0; i--) {
-        const d = new Date(sgtTime);
+        const d = new Date(selectedDate);
         d.setMonth(d.getMonth() - i);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         historyMap.set(key, {
