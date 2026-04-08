@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAnalytics } from "@/hooks/useAnalytics"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,7 +20,7 @@ function formatCurrency(amount: number): string {
 
 export default function AnalyticsPage() {
   const router = useRouter()
-  const currentMonth = format(new Date(), "yyyy-MM")
+  const currentMonth = useMemo(() => format(new Date(), "yyyy-MM"), [])
   const [selectedMonth, setSelectedMonth] = useState(() => currentMonth)
   const { data, isLoading } = useAnalytics(selectedMonth)
 

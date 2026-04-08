@@ -47,6 +47,11 @@ export function useAnalytics(month?: string) {
   const currentMonthStr = sgtTime.toISOString().split("T")[0].slice(0, 7);
   const monthStr = month ?? currentMonthStr;
 
+  // Compute last day of selected month (e.g. "2026-02-28", "2026-04-30")
+  const [yearNum, monthNum] = monthStr.split("-").map(Number);
+  const lastDay = new Date(yearNum, monthNum, 0).getDate();
+  const monthEnd = `${monthStr}-${String(lastDay).padStart(2, "0")}`;
+
   return useQuery({
     queryKey: ["analytics", monthStr],
     queryFn: async (): Promise<AnalyticsData> => {
@@ -77,7 +82,7 @@ export function useAnalytics(month?: string) {
           .select("id, client_id, clients(first_name, last_name)")
           .eq("status", "completed")
           .gte("date_time", `${monthStr}-01T00:00:00+08:00`)
-          .lte("date_time", `${monthStr}-31T23:59:59+08:00`),
+          .lte("date_time", `${monthEnd}T23:59:59+08:00`),
 
         // 1: No-show bookings this month
         supabase
@@ -85,7 +90,7 @@ export function useAnalytics(month?: string) {
           .select("id", { count: "exact", head: true })
           .in("status", ["no-show", "no_show"])
           .gte("date_time", `${monthStr}-01T00:00:00+08:00`)
-          .lte("date_time", `${monthStr}-31T23:59:59+08:00`),
+          .lte("date_time", `${monthEnd}T23:59:59+08:00`),
 
         // 2: Revenue received this month
         supabase
@@ -93,7 +98,7 @@ export function useAnalytics(month?: string) {
           .select("amount")
           .eq("status", "received")
           .gte("received_date", `${monthStr}-01`)
-          .lte("received_date", `${monthStr}-31`),
+          .lte("received_date", `${monthEnd}`),
 
         // 3: Outstanding payments
         supabase
@@ -126,7 +131,7 @@ export function useAnalytics(month?: string) {
           .select("amount, client_id, clients(first_name, last_name)")
           .eq("status", "received")
           .gte("received_date", `${monthStr}-01`)
-          .lte("received_date", `${monthStr}-31`),
+          .lte("received_date", `${monthEnd}`),
 
         // 8: Per-client outstanding (pending + overdue)
         supabase
@@ -140,7 +145,7 @@ export function useAnalytics(month?: string) {
           .select("amount, received_date")
           .eq("status", "received")
           .gte("received_date", historyStart)
-          .lte("received_date", `${monthStr}-31`),
+          .lte("received_date", `${monthEnd}`),
       ]);
 
       const completedBookings = completedResult.data ?? [];
@@ -171,7 +176,7 @@ export function useAnalytics(month?: string) {
         const name = client ? `${client.first_name} ${client.last_name}`.trim() : "Unknown";
         const existing = clientCounts.get(b.client_id);
         if (existing) {
-          existing.count++;
+          clientCounts.set(b.client_id, { ...existing, count: existing.count + 1 });
         } else {
           clientCounts.set(b.client_id, { name, count: 1 });
         }
