@@ -128,5 +128,22 @@ export async function POST(request: Request) {
     })
   }
 
+  // Notify PT of new auto-approved booking
+  try {
+    await sendTemplateMessage({
+      whatsappNumber: profile.whatsapp_number,
+      templateName: "new_booking_request",
+      parameters: [
+        { name: "trainer_name", value: profile.name },
+        { name: "client_name", value: client_name },
+        { name: "date", value: preferred_date },
+        { name: "time", value: preferred_time },
+        { name: "session_type", value: session_type },
+      ],
+    })
+  } catch {
+    // Notification failure must not block the booking response
+  }
+
   return NextResponse.json({ success: true, bookingId: booking.id })
 }
