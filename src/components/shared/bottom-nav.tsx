@@ -86,18 +86,6 @@ export function BottomNav() {
                   transition: "all 0.15s ease",
                 }}
               />
-              {/* Text label */}
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: isActive ? 600 : 400,
-                  color: color,
-                  letterSpacing: "0.02em",
-                  lineHeight: 1,
-                }}
-              >
-                {label}
-              </span>
             </Link>
           );
         })}
