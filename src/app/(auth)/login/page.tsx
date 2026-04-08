@@ -82,7 +82,7 @@ export default function LoginPage() {
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-sm space-y-6">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Reset password</h1>
+            <FitDeskLogo size="lg" />
             <p className="text-muted-foreground mt-2 text-sm">
               Enter your email and we&apos;ll send you a reset link.
             </p>

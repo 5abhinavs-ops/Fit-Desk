@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { FitDeskLogo } from "@/components/shared/fitdesk-logo"
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -68,9 +69,12 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Set up your FitDesk profile</h1>
-          <p className="text-muted-foreground mt-2">Takes 60 seconds. You can change this later.</p>
+        <div className="flex flex-col items-center gap-3">
+          <FitDeskLogo size="lg" />
+          <div className="text-center">
+            <h1 className="text-xl font-bold">Set up your profile</h1>
+            <p className="text-muted-foreground text-sm mt-1">Takes 60 seconds. You can change this later.</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
