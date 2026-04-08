@@ -188,7 +188,7 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
         </ErrorBoundary>
 
         <a
-          href="https://fitdesk.app"
+          href="https://fitdesk-pro.vercel.app"
           target="_blank"
           rel="noopener noreferrer"
           className="block text-center text-xs text-muted-foreground hover:text-primary transition-colors"
