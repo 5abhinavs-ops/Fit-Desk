@@ -3,15 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, CalendarDays, DollarSign, BarChart2, Salad, UserCircle } from "lucide-react";
+import { Home, Users, CalendarDays, DollarSign, UserCircle } from "lucide-react";
 
 const tabs = [
   { href: "/", label: "Home", icon: Home, active: "#00C6D4", inactive: "rgba(0,198,212,0.38)" },
   { href: "/clients", label: "Clients", icon: Users, active: "#00E096", inactive: "rgba(0,224,150,0.32)" },
   { href: "/bookings", label: "Calendar", icon: CalendarDays, active: "#FFB347", inactive: "rgba(255,179,71,0.35)" },
   { href: "/payments", label: "Payments", icon: DollarSign, active: "#FF4C7A", inactive: "rgba(255,76,122,0.35)" },
-  { href: "/analytics", label: "Analytics", icon: BarChart2, active: "#8B5CF6", inactive: "rgba(139,92,246,0.38)" },
-  { href: "/nutrition", label: "Nutrition", icon: Salad, active: "#84CC16", inactive: "rgba(132,204,22,0.35)" },
   { href: "/profile", label: "Profile", icon: UserCircle, active: "#F1F5F9", inactive: "rgba(241,245,249,0.35)" },
 ] as const;
 
@@ -63,8 +61,8 @@ export function BottomNav() {
               key={href}
               href={href}
               aria-label={label}
-              className="flex flex-1 flex-col items-center py-3 transition-all"
-              style={{ gap: "3px" }}
+              className="flex flex-1 flex-col items-center py-2 transition-all"
+              style={{ gap: "2px" }}
             >
               {/* Active indicator bar */}
               <div
@@ -88,6 +86,18 @@ export function BottomNav() {
                   transition: "all 0.15s ease",
                 }}
               />
+              {/* Text label */}
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: isActive ? 600 : 400,
+                  color: color,
+                  letterSpacing: "0.02em",
+                  lineHeight: 1,
+                }}
+              >
+                {label}
+              </span>
             </Link>
           );
         })}

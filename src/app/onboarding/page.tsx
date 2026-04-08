@@ -8,15 +8,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, ArrowLeft, Copy, Check } from "lucide-react"
 import { FitDeskLogo } from "@/components/shared/fitdesk-logo"
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const [step, setStep] = useState(1)
   const [paynowDetails, setPaynowDetails] = useState("")
   const [defaultPaymentMode, setDefaultPaymentMode] = useState("pay_later")
   const [slug, setSlug] = useState("")
   const [loading, setLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -31,8 +33,7 @@ export default function OnboardingPage() {
     })
   }, [router])
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit() {
     setLoading(true)
 
     const supabase = createClient()
@@ -66,46 +67,109 @@ export default function OnboardingPage() {
     setSlug(value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
   }
 
+  async function handleCopyLink() {
+    const url = `fitdesk-pro.vercel.app/book/${slug || "your-name"}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error("Failed to copy")
+    }
+  }
+
+  // Step 1 — Welcome
+  if (step === 1) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-sm space-y-8 text-center">
+          <FitDeskLogo size="lg" />
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">Welcome to FitDesk</h1>
+            <p className="text-muted-foreground text-sm">
+              Let&apos;s set up your account in 3 quick steps.
+            </p>
+          </div>
+          <Button className="w-full" onClick={() => setStep(2)}>
+            Get started →
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Step 2 — Payment setup
+  if (step === 2) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-sm space-y-6">
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
+
+          <p className="text-xs text-muted-foreground">Step 1 of 2</p>
+          <h1 className="text-xl font-bold">How will clients pay you?</h1>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="paynow">PayNow number</Label>
+              <Input
+                id="paynow"
+                type="text"
+                placeholder="9123 4567 or T12ABC123D"
+                value={paynowDetails}
+                onChange={(e) => setPaynowDetails(e.target.value)}
+              />
+              <p className="text-muted-foreground text-xs">
+                Used in payment reminder messages to clients
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Default payment mode</Label>
+              <Select value={defaultPaymentMode} onValueChange={(v) => setDefaultPaymentMode(v ?? "pay_later")}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pay_later">Pay later — cash, PayNow or bank transfer</SelectItem>
+                  <SelectItem value="pay_now">Pay now — Stripe card payment at booking</SelectItem>
+                  <SelectItem value="from_package">From session package</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Button className="w-full" onClick={() => setStep(3)}>
+            Next →
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Step 3 — Booking link
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
-        <div className="flex flex-col items-center gap-3">
-          <FitDeskLogo size="lg" />
-          <div className="text-center">
-            <h1 className="text-xl font-bold">Set up your profile</h1>
-            <p className="text-muted-foreground text-sm mt-1">Takes 60 seconds. You can change this later.</p>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => setStep(2)}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="paynow">PayNow number</Label>
-            <Input
-              id="paynow"
-              type="text"
-              placeholder="9123 4567 or T12ABC123D"
-              value={paynowDetails}
-              onChange={(e) => setPaynowDetails(e.target.value)}
-            />
-            <p className="text-muted-foreground text-xs">
-              Used in payment reminder messages to clients
-            </p>
-          </div>
+        <p className="text-xs text-muted-foreground">Step 2 of 2</p>
+        <h1 className="text-xl font-bold">Your booking link</h1>
 
-          <div className="space-y-2">
-            <Label>Default payment mode</Label>
-            <Select value={defaultPaymentMode} onValueChange={(v) => setDefaultPaymentMode(v ?? "pay_later")}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pay_later">Pay later — cash, PayNow or bank transfer</SelectItem>
-                <SelectItem value="pay_now">Pay now — Stripe card payment at booking</SelectItem>
-                <SelectItem value="from_package">From session package</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="slug">Booking link slug</Label>
             <Input
@@ -114,16 +178,27 @@ export default function OnboardingPage() {
               value={slug}
               onChange={(e) => handleSlugChange(e.target.value)}
             />
-            <p className="text-muted-foreground text-xs">
-              Your booking link: fitdesk.app/book/{slug || "your-name"}
-            </p>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Let&apos;s go
-          </Button>
-        </form>
+          <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2.5">
+            <p className="text-sm flex-1 truncate">
+              fitdesk-pro.vercel.app/book/<span className="font-semibold">{slug || "your-name"}</span>
+            </p>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              aria-label="Copy link"
+            >
+              {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <Button className="w-full" onClick={handleSubmit} disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          All done — open my dashboard →
+        </Button>
       </div>
     </div>
   )

@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
-import { LogOut, ChevronDown, ChevronUp } from "lucide-react"
+import { LogOut, ChevronDown, ChevronUp, Salad, BarChart2 } from "lucide-react"
 import type { Profile } from "@/types/database"
 import { ProfilePhotoUpload } from "@/components/profile/profile-photo-upload"
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form"
@@ -86,6 +86,20 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 pb-8">
+      {/* Quick links — Nutrition & Analytics */}
+      <div className="grid grid-cols-2 gap-3">
+        <button onClick={() => router.push("/nutrition")}
+          className="flex items-center gap-3 rounded-xl border p-4 hover:bg-accent transition-colors">
+          <Salad className="h-5 w-5 text-[#84CC16]" />
+          <span className="text-sm font-semibold">Nutrition</span>
+        </button>
+        <button onClick={() => router.push("/analytics")}
+          className="flex items-center gap-3 rounded-xl border p-4 hover:bg-accent transition-colors">
+          <BarChart2 className="h-5 w-5 text-[#8B5CF6]" />
+          <span className="text-sm font-semibold">Analytics</span>
+        </button>
+      </div>
+
       {/* Section 1 — Trainer profile */}
       <h2 className="text-lg font-semibold">Your profile</h2>
       <ProfilePhotoUpload
