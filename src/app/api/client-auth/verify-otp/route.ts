@@ -44,20 +44,21 @@ export async function POST(request: Request) {
     )
   }
 
-  // Verify OTP
+  // Verify OTP — mark as used regardless of match (single-attempt, prevents brute force)
   const matches = await bcrypt.compare(parsed.data.otp, otpRow.otp_hash)
+
+  // Mark OTP as used immediately (prevents retry on same OTP)
+  await supabase
+    .from("client_otps")
+    .update({ used_at: new Date().toISOString() })
+    .eq("id", otpRow.id)
+
   if (!matches) {
     return NextResponse.json(
       { error: "Invalid or expired code." },
       { status: 401 }
     )
   }
-
-  // Mark OTP as used
-  await supabase
-    .from("client_otps")
-    .update({ used_at: new Date().toISOString() })
-    .eq("id", otpRow.id)
 
   // Find client
   const { data: client } = await supabase

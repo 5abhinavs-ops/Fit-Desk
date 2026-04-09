@@ -6,8 +6,6 @@ import { sendTemplateMessage } from "@/lib/twilio"
 
 const NotifySchema = z.object({
   payment_id: z.string().uuid(),
-  amount: z.number(),
-  client_name: z.string(),
 })
 
 export async function POST(request: Request) {
@@ -32,11 +30,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 })
   }
 
-  // Verify payment belongs to this client
+  // Verify payment belongs to this client — fetch DB values for notification
   const serviceClient = createServiceClient()
   const { data: payment } = await serviceClient
     .from("payments")
-    .select("id, trainer_id, client_id, clients!inner(auth_user_id)")
+    .select(
+      "id, amount, trainer_id, client_id, clients!inner(auth_user_id, first_name, last_name)"
+    )
     .eq("id", parsed.data.payment_id)
     .single()
 
@@ -46,10 +46,15 @@ export async function POST(request: Request) {
 
   const paymentClient = payment.clients as unknown as {
     auth_user_id: string | null
+    first_name: string
+    last_name: string
   }
   if (paymentClient.auth_user_id !== user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
+
+  // Use DB values only — never trust request body for amount or name
+  const clientName = `${paymentClient.first_name} ${paymentClient.last_name}`.trim()
 
   // Get PT's WhatsApp number
   const { data: trainer } = await serviceClient
@@ -63,8 +68,8 @@ export async function POST(request: Request) {
       whatsappNumber: trainer.whatsapp_number,
       templateName: "client_uploaded_proof",
       parameters: [
-        { name: "1", value: parsed.data.client_name },
-        { name: "2", value: `$${parsed.data.amount}` },
+        { name: "1", value: clientName },
+        { name: "2", value: `$${payment.amount}` },
       ],
     })
   }

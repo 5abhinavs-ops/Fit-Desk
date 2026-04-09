@@ -71,15 +71,11 @@ export function PaymentProofSheet({
 
       if (updateError) throw updateError
 
-      // Notify PT
+      // Notify PT (amount + name fetched from DB server-side)
       await fetch("/api/client/notify-payment-proof", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          payment_id: paymentId,
-          amount,
-          client_name: clientName,
-        }),
+        body: JSON.stringify({ payment_id: paymentId }),
       })
 
       toast.success("Payment proof submitted")

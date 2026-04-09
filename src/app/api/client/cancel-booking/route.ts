@@ -55,6 +55,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  // Only allow cancellation of active bookings
+  const cancellableStatuses = ["confirmed", "pending", "upcoming", "pending_approval"]
+  if (!cancellableStatuses.includes(booking.status)) {
+    return NextResponse.json(
+      { error: "This booking cannot be cancelled" },
+      { status: 409 }
+    )
+  }
+
   // Check cancellation policy
   const { data: trainerProfile } = await supabase
     .from("profiles")

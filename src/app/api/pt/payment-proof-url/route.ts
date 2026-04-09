@@ -28,8 +28,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 })
   }
 
-  // Verify the path belongs to this PT (path starts with trainer_id)
-  if (!parsed.data.path.startsWith(user.id)) {
+  // Reject path traversal attempts
+  if (
+    parsed.data.path.includes("..") ||
+    parsed.data.path.includes("%2e") ||
+    parsed.data.path.includes("%2f") ||
+    parsed.data.path.includes("%2F")
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  // Verify the path belongs to this PT (path starts with trainer_id/)
+  if (!parsed.data.path.startsWith(`${user.id}/`)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

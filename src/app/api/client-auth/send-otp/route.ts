@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import crypto from "crypto"
 import bcrypt from "bcryptjs"
 import { createServiceClient } from "@/lib/supabase/service"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
   }
 
   // Generate and hash OTP
-  const otp = String(Math.floor(100000 + Math.random() * 900000))
+  const otp = String(crypto.randomInt(100000, 1000000))
   const otpHash = await bcrypt.hash(otp, 10)
 
   // Store OTP
