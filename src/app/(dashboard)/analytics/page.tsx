@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAnalytics } from "@/hooks/useAnalytics"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { TrendingUp, AlertCircle, Users, Package, UserX, DollarSign, ChevronLeft, ChevronRight } from "lucide-react"
-import { format, parseISO, subMonths, addMonths } from "date-fns"
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-SG", {
@@ -20,23 +19,41 @@ function formatCurrency(amount: number): string {
 
 export default function AnalyticsPage() {
   const router = useRouter()
-  const currentMonth = useMemo(() => format(new Date(), "yyyy-MM"), [])
-  const [selectedMonth, setSelectedMonth] = useState(() => currentMonth)
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const now = new Date()
+    const sgtOffset = 8 * 60
+    const sgt = new Date(now.getTime() + (sgtOffset + now.getTimezoneOffset()) * 60000)
+    return sgt.toISOString().slice(0, 7)
+  })
+
+  const currentMonth = (() => {
+    const now = new Date()
+    const sgtOffset = 8 * 60
+    const sgt = new Date(now.getTime() + (sgtOffset + now.getTimezoneOffset()) * 60000)
+    return sgt.toISOString().slice(0, 7)
+  })()
+
+  function prevMonth() {
+    const [y, m] = selectedMonth.split("-").map(Number)
+    const d = new Date(y, m - 2, 1)
+    setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`)
+  }
+
+  function nextMonth() {
+    if (selectedMonth >= currentMonth) return
+    const [y, m] = selectedMonth.split("-").map(Number)
+    const d = new Date(y, m, 1)
+    setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`)
+  }
+
+  function monthLabel(monthStr: string): string {
+    const [y, m] = monthStr.split("-").map(Number)
+    const d = new Date(y, m - 1, 1)
+    return d.toLocaleDateString("en-SG", { month: "long", year: "numeric" })
+  }
+
   const { data, isLoading } = useAnalytics(selectedMonth)
-
-  const selectedDate = parseISO(selectedMonth + "-01")
-  const monthYear = format(selectedDate, "MMMM yyyy")
-  const isCurrentMonth = selectedMonth === currentMonth
-
-  function goToPrevMonth() {
-    setSelectedMonth(format(subMonths(selectedDate, 1), "yyyy-MM"))
-  }
-
-  function goToNextMonth() {
-    if (!isCurrentMonth) {
-      setSelectedMonth(format(addMonths(selectedDate, 1), "yyyy-MM"))
-    }
-  }
 
   if (isLoading) {
     return (
@@ -63,28 +80,26 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-bold">Analytics</h1>
-        <div className="mt-1 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <button
-            type="button"
-            onClick={goToPrevMonth}
-            className="rounded-md p-1 transition-colors hover:bg-accent"
+            onClick={prevMonth}
+            className="flex items-center justify-center h-8 w-8 rounded-lg border hover:bg-accent transition-colors"
             aria-label="Previous month"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-muted-foreground text-[15px] min-w-[140px] text-center">
-            {monthYear}
+          <span className="text-[15px] font-medium flex-1 text-center">
+            {monthLabel(selectedMonth)}
           </span>
           <button
-            type="button"
-            onClick={goToNextMonth}
-            disabled={isCurrentMonth}
-            className="rounded-md p-1 transition-colors hover:bg-accent disabled:opacity-30 disabled:pointer-events-none"
+            onClick={nextMonth}
+            disabled={selectedMonth >= currentMonth}
+            className="flex items-center justify-center h-8 w-8 rounded-lg border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label="Next month"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -110,7 +125,9 @@ export default function AnalyticsPage() {
             <div className="flex items-end gap-1 h-24">
               {data.revenueHistory.map((point) => {
                 const heightPct = maxRevenue > 0 ? (point.amount / maxRevenue) * 100 : 0
-                const isSelectedMonth = point.month === format(selectedDate, "MMM") && point.year === selectedDate.getFullYear()
+                const [selY, selM] = selectedMonth.split("-").map(Number)
+                const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                const isSelectedMonth = point.month === MONTHS[selM - 1] && point.year === selY
                 return (
                   <div key={`${point.year}-${point.month}`} className="flex-1 flex flex-col items-center gap-1">
                     <span className="text-[10px] text-muted-foreground">

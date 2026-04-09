@@ -61,8 +61,7 @@ export function BottomNav() {
               key={href}
               href={href}
               aria-label={label}
-              className="flex flex-1 flex-col items-center py-2 transition-all"
-              style={{ gap: "2px" }}
+              className="flex flex-1 flex-col items-center py-3 transition-all"
             >
               {/* Active indicator bar */}
               <div
