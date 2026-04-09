@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -23,6 +23,8 @@ interface SessionActionsProps {
   cancellationPolicyHours: number
   sessionDateTime: string
   showPaymentButton?: boolean
+  paymentId?: string
+  trainerId?: string
 }
 
 export function SessionActions({
@@ -31,12 +33,18 @@ export function SessionActions({
   cancellationPolicyHours,
   sessionDateTime,
   showPaymentButton = false,
+  paymentId,
+  trainerId,
 }: SessionActionsProps) {
   const [pending, setPending] = useState(false)
   const [completed, setCompleted] = useState(false)
   const [resultMessage, setResultMessage] = useState("")
   const [confirmAction, setConfirmAction] = useState<SessionAction | null>(null)
   const [lateMinutes, setLateMinutes] = useState("10")
+  const [showProofUpload, setShowProofUpload] = useState(false)
+  const [proofFile, setProofFile] = useState<File | null>(null)
+  const [proofPreview, setProofPreview] = useState<string | null>(null)
+  const proofInputRef = useRef<HTMLInputElement>(null)
 
   const hoursUntil = (new Date(sessionDateTime).getTime() - Date.now()) / (1000 * 60 * 60)
   const canCancelFree = hoursUntil >= cancellationPolicyHours
@@ -88,6 +96,37 @@ export function SessionActions({
     } finally {
       setPending(false)
       setConfirmAction(null)
+    }
+  }
+
+  async function handleProofSubmit() {
+    if (!proofFile) return
+    setPending(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", proofFile)
+      formData.append("token", token)
+      formData.append("booking_id", bookingId)
+
+      const res = await fetch("/api/session/upload-payment-proof", {
+        method: "POST",
+        body: formData,
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        setResultMessage(data.error || "Upload failed. Try again.")
+      } else {
+        setResultMessage(
+          "Payment proof submitted — your trainer will confirm shortly."
+        )
+      }
+      setCompleted(true)
+    } catch {
+      setResultMessage("Something went wrong. Please try again.")
+      setCompleted(true)
+    } finally {
+      setPending(false)
     }
   }
 
@@ -158,21 +197,95 @@ export function SessionActions({
           </div>
         </Button>
 
-        {showPaymentButton && (
+        {showPaymentButton && !showProofUpload && (
           <Button
             variant="outline"
             className="w-full justify-start gap-3 h-auto py-3"
-            onClick={() => setConfirmAction("payment_confirm")}
+            onClick={() => setShowProofUpload(true)}
             disabled={pending}
           >
             <CreditCard className="h-5 w-5 shrink-0" />
             <div className="text-left">
               <p className="text-sm font-medium">I&apos;ve made payment</p>
-              <p className="text-xs text-muted-foreground font-normal">Notify your trainer that you&apos;ve paid</p>
+              <p className="text-xs text-muted-foreground font-normal">Upload proof and notify your trainer</p>
             </div>
           </Button>
         )}
       </div>
+
+      {/* Proof upload panel */}
+      {showProofUpload && (
+        <div className="space-y-4 rounded-xl border p-4">
+          <div>
+            <p className="text-sm font-semibold">Confirm your payment</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              For your trainer&apos;s convenience, please upload your payment screenshot
+            </p>
+          </div>
+
+          <input
+            ref={proofInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (!f) return
+              setProofFile(f)
+              setProofPreview(URL.createObjectURL(f))
+            }}
+          />
+
+          {proofPreview ? (
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={proofPreview}
+                alt="Payment proof"
+                className="w-full max-h-48 object-contain rounded-lg border"
+              />
+              <button
+                className="absolute top-2 right-2 bg-background/80 rounded-full px-2 py-0.5 text-xs"
+                onClick={() => { setProofFile(null); setProofPreview(null) }}
+              >
+                Change
+              </button>
+            </div>
+          ) : (
+            <button
+              className="w-full border-2 border-dashed rounded-xl p-6 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary/50 transition-colors"
+              onClick={() => proofInputRef.current?.click()}
+            >
+              <CreditCard className="h-7 w-7" />
+              <span className="text-sm">Tap to upload screenshot</span>
+            </button>
+          )}
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowProofUpload(false)
+                setProofFile(null)
+                setProofPreview(null)
+              }}
+              disabled={pending}
+            >
+              Back
+            </Button>
+            <Button
+              className="flex-1"
+              disabled={!proofFile || pending}
+              onClick={() => handleProofSubmit()}
+            >
+              {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Submit
+            </Button>
+          </div>
+        </div>
+      )}
 
       <p className="text-muted-foreground text-xs text-center">
         Free cancellation up to {cancellationPolicyHours}h before session
@@ -187,7 +300,6 @@ export function SessionActions({
               {confirmAction === "cancel" && "Cancel session?"}
               {confirmAction === "late" && "Running late?"}
               {confirmAction === "reschedule" && "Request reschedule?"}
-              {confirmAction === "payment_confirm" && "Confirm payment?"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmAction === "confirm" && "Your trainer will be notified that you're confirmed."}
@@ -198,7 +310,6 @@ export function SessionActions({
               )}
               {confirmAction === "late" && "Select how many minutes late you'll be."}
               {confirmAction === "reschedule" && "Your trainer will receive your request and get back to you."}
-              {confirmAction === "payment_confirm" && "Your trainer will be notified that you've made payment."}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
