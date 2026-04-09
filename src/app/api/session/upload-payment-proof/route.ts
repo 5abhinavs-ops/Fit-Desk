@@ -15,6 +15,22 @@ export async function POST(request: Request) {
     )
   }
 
+  // Validate booking_id is a UUID
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!UUID_RE.test(bookingId)) {
+    return NextResponse.json({ error: "Invalid booking_id" }, { status: 400 })
+  }
+
+  // Validate file type and size
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+  const MAX_BYTES = 5 * 1024 * 1024
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: "Invalid file type. Upload an image." }, { status: 400 })
+  }
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ error: "File too large. Max 5MB." }, { status: 400 })
+  }
+
   const supabase = createServiceClient()
 
   // Validate session token
@@ -45,14 +61,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 })
   }
 
-  // Find pending/overdue payment for this booking
-  const { data: payment } = await supabase
+  // Find pending/overdue payment for this booking (may not exist for from_package)
+  const { data: payment, error: paymentError } = await supabase
     .from("payments")
     .select("id, amount")
     .eq("booking_id", bookingId)
     .in("status", ["pending", "overdue"])
     .limit(1)
-    .single()
+    .maybeSingle()
+
+  if (paymentError) {
+    return NextResponse.json({ error: "Failed to look up payment" }, { status: 500 })
+  }
 
   // Upload file to storage
   const arrayBuffer = await file.arrayBuffer()

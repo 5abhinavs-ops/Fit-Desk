@@ -34,7 +34,11 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
         .then((data) => {
           if (data.url) setProofUrl(data.url)
         })
-        .catch(() => {})
+        .catch((err) => {
+          if (process.env.NODE_ENV === "development") {
+            console.error("Failed to fetch proof URL:", err)
+          }
+        })
         .finally(() => setProofLoading(false))
     } else if (!open) {
       setProofUrl(null)
@@ -175,7 +179,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
             </p>
           ) : (
             <div className="space-y-2">
-              {(payment.status as string) === "client_confirmed" && (
+              {payment.status === "client_confirmed" && (
                 <div className="rounded-lg border border-[rgba(0,198,212,0.3)] bg-[rgba(0,198,212,0.08)] p-3 space-y-1">
                   <p className="text-sm font-medium text-[#00C6D4]">
                     Client has confirmed payment

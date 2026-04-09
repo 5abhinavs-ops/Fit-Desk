@@ -50,7 +50,7 @@ export type PaymentMethod =
   | "bank_transfer"
   | "card"
   | "other";
-export type PaymentStatus = "received" | "pending" | "overdue";
+export type PaymentStatus = "received" | "pending" | "overdue" | "client_confirmed";
 
 /**
  * Overdue reminder stages tracked per Payment row.

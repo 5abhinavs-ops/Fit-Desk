@@ -23,8 +23,6 @@ interface SessionActionsProps {
   cancellationPolicyHours: number
   sessionDateTime: string
   showPaymentButton?: boolean
-  paymentId?: string
-  trainerId?: string
 }
 
 export function SessionActions({
@@ -33,8 +31,6 @@ export function SessionActions({
   cancellationPolicyHours,
   sessionDateTime,
   showPaymentButton = false,
-  paymentId,
-  trainerId,
 }: SessionActionsProps) {
   const [pending, setPending] = useState(false)
   const [completed, setCompleted] = useState(false)
