@@ -42,11 +42,15 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/onboarding") ||
     request.nextUrl.pathname.startsWith("/upgrade") ||
     request.nextUrl.pathname.startsWith("/reset-password") ||
-    request.nextUrl.pathname.startsWith("/auth/callback");
+    request.nextUrl.pathname.startsWith("/auth/callback") ||
+    request.nextUrl.pathname.startsWith("/client/login");
 
+  const isClientRoute = request.nextUrl.pathname.startsWith("/client");
+
+  // Unauthenticated: redirect to appropriate login
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = isClientRoute ? "/client/login" : "/login";
     return NextResponse.redirect(url);
   }
 
@@ -54,6 +58,13 @@ export async function updateSession(request: NextRequest) {
   if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/signup")) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect authenticated clients away from client login
+  if (user && request.nextUrl.pathname === "/client/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/client";
     return NextResponse.redirect(url);
   }
 

@@ -121,6 +121,7 @@ export interface Client {
   last_session_date: string | null;
   payment_reminder_days: number | null;
   last_reactivation_alert_sent: string | null;
+  auth_user_id: string | null;
   created_at: string;
 }
 
@@ -217,6 +218,32 @@ export interface Payment {
    * without re-sending already-dispatched messages.
    */
   overdue_reminder_stage: OverdueReminderStage;
+  proof_url: string | null;
+  proof_uploaded_at: string | null;
+  proof_requested_at: string | null;
+  created_at: string;
+}
+
+export interface BodyMeasurement {
+  id: string;
+  client_id: string;
+  trainer_id: string;
+  measured_at: string;
+  weight_kg: number | null;
+  body_fat_pct: number | null;
+  waist_cm: number | null;
+  chest_cm: number | null;
+  hips_cm: number | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface ClientOtp {
+  id: string;
+  whatsapp_number: string;
+  otp_hash: string;
+  expires_at: string;
+  used_at: string | null;
   created_at: string;
 }
 

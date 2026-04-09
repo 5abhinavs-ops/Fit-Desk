@@ -36,18 +36,21 @@ export async function POST(request: Request) {
 
   const logData = parsed.data
 
-  // Look up the client record for this user to find the trainer
-  // The user (client) is logged in via Supabase auth
-  // For now, we'll use the user ID as the client_id
-  // and look up their trainer from the clients table
-  const { data: clientRecord } = await supabase
+  // Look up client: first try auth_user_id (client app), then id (PT demo)
+  const { data: clientByAuth } = await supabase
     .from("clients")
     .select("id, trainer_id")
-    .eq("id", user.id)
+    .eq("auth_user_id", user.id)
     .single()
 
-  // If user is not a client, they might be logging as a PT for demo purposes
-  // Fall back to using user.id for both
+  const clientRecord = clientByAuth ?? (
+    await supabase
+      .from("clients")
+      .select("id, trainer_id")
+      .eq("id", user.id)
+      .single()
+  ).data
+
   const clientId = clientRecord?.id ?? user.id
   const trainerId = clientRecord?.trainer_id ?? user.id
 

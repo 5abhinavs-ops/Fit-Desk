@@ -48,7 +48,7 @@ export function useCreatePayment() {
   const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (payment: Omit<Payment, "id" | "trainer_id" | "created_at" | "overdue_reminder_stage">) => {
+    mutationFn: async (payment: Omit<Payment, "id" | "trainer_id" | "created_at" | "overdue_reminder_stage" | "proof_url" | "proof_uploaded_at" | "proof_requested_at">) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not authenticated")
       const { data, error } = await supabase.from("payments").insert({

@@ -433,18 +433,14 @@ CREATE TABLE IF NOT EXISTS public.nutrition_logs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_nutrition_logs_client_id ON public.nutrition_logs(client_id);
-CREATE INDEX IF NOT EXISTS idx_nutrition_logs_trainer_id ON public.nutrition_logs(trainer_id);
-CREATE INDEX IF NOT EXISTS idx_nutrition_logs_logged_at ON public.nutrition_logs(logged_at DESC);
+CREATE INDEX IF NOT EXISTS idx_nutrition_logs_trainer_logged
+  ON public.nutrition_logs (trainer_id, logged_at DESC);
 
 ALTER TABLE public.nutrition_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Clients can insert their own logs"
+CREATE POLICY "PTs can insert logs for their clients"
   ON public.nutrition_logs FOR INSERT
-  WITH CHECK (client_id = auth.uid());
-
-CREATE POLICY "Clients can view their own logs"
-  ON public.nutrition_logs FOR SELECT
-  USING (client_id = auth.uid());
+  WITH CHECK (trainer_id = auth.uid());
 
 CREATE POLICY "PTs can view logs for their clients"
   ON public.nutrition_logs FOR SELECT
