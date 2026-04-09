@@ -48,7 +48,10 @@ export function useClientIdentity() {
 
       if (error || !client) throw new Error("Client not found")
 
-      return client as unknown as ClientWithTrainer
+      const typed = client as unknown as ClientWithTrainer
+      if (!typed.trainer) throw new Error("Trainer not found")
+
+      return typed
     },
   })
 }

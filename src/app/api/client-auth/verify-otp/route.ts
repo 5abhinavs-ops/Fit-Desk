@@ -48,10 +48,17 @@ export async function POST(request: Request) {
   const matches = await bcrypt.compare(parsed.data.otp, otpRow.otp_hash)
 
   // Mark OTP as used immediately (prevents retry on same OTP)
-  await supabase
+  const { error: markError } = await supabase
     .from("client_otps")
     .update({ used_at: new Date().toISOString() })
     .eq("id", otpRow.id)
+
+  if (markError) {
+    return NextResponse.json(
+      { error: "Verification failed. Try again." },
+      { status: 500 }
+    )
+  }
 
   if (!matches) {
     return NextResponse.json(

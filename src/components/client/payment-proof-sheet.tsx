@@ -59,13 +59,12 @@ export function PaymentProofSheet({
 
       if (uploadError) throw uploadError
 
-      // Update payment record
+      // Update payment record — client_confirmed, NOT received (PT must confirm)
       const { error: updateError } = await supabase
         .from("payments")
         .update({
           proof_url: path,
           proof_uploaded_at: new Date().toISOString(),
-          status: "received",
         })
         .eq("id", paymentId)
 
