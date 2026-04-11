@@ -4,7 +4,7 @@ import crypto from "crypto"
 import bcrypt from "bcryptjs"
 import { createServiceClient } from "@/lib/supabase/service"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
-import { sendTemplateMessage } from "@/lib/twilio"
+import { sendTemplateMessage } from "@/lib/whatsapp"
 
 const SendOtpSchema = z.object({
   whatsapp_number: z.string().min(8),
@@ -74,10 +74,10 @@ export async function POST(request: Request) {
     )
   }
 
-  // Send via Twilio
+  // Send OTP via WhatsApp
   await sendTemplateMessage({
     whatsappNumber: normalised,
-    templateName: "client_otp",
+    templateName: "fitdesk_client_otp",
     parameters: [{ name: "1", value: otp }],
   })
 

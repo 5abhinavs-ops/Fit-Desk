@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
-import { sendTemplateMessage } from "@/lib/twilio"
+import { sendTemplateMessage } from "@/lib/whatsapp"
 
 const NotifySchema = z.object({
   payment_id: z.string().uuid(),

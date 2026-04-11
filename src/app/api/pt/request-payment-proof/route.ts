@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
-import { sendTemplateMessage } from "@/lib/twilio"
+import { sendTemplateMessage } from "@/lib/whatsapp"
 
 const RequestProofSchema = z.object({
   payment_id: z.string().uuid(),

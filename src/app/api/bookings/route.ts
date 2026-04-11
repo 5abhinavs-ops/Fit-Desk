@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createServiceClient } from "@/lib/supabase/service"
-import { sendTemplateMessage } from "@/lib/twilio"
+import { sendTemplateMessage } from "@/lib/whatsapp"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 

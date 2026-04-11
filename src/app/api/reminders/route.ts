@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
-import { sendTemplateMessage } from "@/lib/twilio"
+import { sendTemplateMessage } from "@/lib/whatsapp"
 import { getOrCreateSessionToken } from "@/lib/session-tokens"
 import { format } from "date-fns"
 
