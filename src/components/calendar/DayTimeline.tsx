@@ -124,7 +124,7 @@ export function DayTimeline({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!scrollRef.current || !date) return
-    const targetMinutes = isToday ? nowMinutes - 30 : 7 * 60
+    const targetMinutes = isToday ? nowMinutes - 60 : 7 * 60
     const top = Math.max(0, ((targetMinutes - HOUR_START * 60) / 60) * HOUR_HEIGHT)
     scrollRef.current.scrollTop = top
   }, [date])
@@ -181,7 +181,7 @@ export function DayTimeline({
       )}
 
       {/* Timeline grid */}
-      <div className="relative" style={{ height: `${TOTAL_HEIGHT}px` }}>
+      <div className="relative" style={{ height: `${TOTAL_HEIGHT + 8}px`, paddingTop: "8px" }}>
         {/* Hour rows + labels */}
         {Array.from({ length: HOUR_END - HOUR_START }, (_, i) => {
           const hour = HOUR_START + i
