@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import type { PaymentWithClient } from "@/hooks/usePayments"
 import { useMarkPaymentReceived } from "@/hooks/usePayments"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -30,7 +30,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
     enabled: open && !!payment.client_id,
     queryFn: async () => {
       const supabase = createClient()
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("packages")
         .select("*")
         .eq("client_id", payment.client_id)
@@ -38,6 +38,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle()
+      if (error) throw error
       return data
     },
   })
@@ -47,24 +48,25 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
     enabled: open && !!payment.client_id,
     queryFn: async () => {
       const supabase = createClient()
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("bookings")
         .select("*")
         .eq("client_id", payment.client_id)
         .not("status", "in", "(cancelled,forfeited,no_show,no-show)")
         .order("date_time", { ascending: true })
+      if (error) throw error
       return data ?? []
     },
   })
 
-  const now = new Date()
-  const upcoming = (bookings ?? [])
-    .filter((b) => new Date(b.date_time) > now)
-    .slice(0, 5)
-  const recent = (bookings ?? [])
-    .filter((b) => new Date(b.date_time) <= now)
-    .slice(-3)
-    .reverse()
+  const { upcoming, recent } = useMemo(() => {
+    const now = new Date()
+    const all = bookings ?? []
+    return {
+      upcoming: all.filter((b) => new Date(b.date_time) > now).slice(0, 5),
+      recent: all.filter((b) => new Date(b.date_time) <= now).slice(-3).reverse(),
+    }
+  }, [bookings])
 
   useEffect(() => {
     if (open && payment.proof_url) {
