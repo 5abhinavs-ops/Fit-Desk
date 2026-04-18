@@ -26,8 +26,10 @@ import {
   Wheat,
   Droplets,
   Salad,
+  UtensilsCrossed,
 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { EmptyState } from "@/components/ui/empty-state"
 import { format } from "date-fns"
 import type { MealType } from "@/types/database"
 
@@ -401,9 +403,15 @@ export default function ClientNutritionPage() {
           <Skeleton className="h-16 rounded-lg" />
         </div>
       ) : !todayLogs || todayLogs.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-center py-6">
-          No meals logged today. Tap the button above to start.
-        </p>
+        <EmptyState
+          icon={UtensilsCrossed}
+          title="No meals logged today"
+          body="Snap a photo of your next meal to start tracking."
+          action={{
+            label: "Log a meal",
+            onClick: () => fileRef.current?.click(),
+          }}
+        />
       ) : (
         <div className="space-y-2">
           {todayLogs.map((log) => (

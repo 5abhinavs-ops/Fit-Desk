@@ -8,8 +8,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MeasurementSheet } from "@/components/client/measurement-sheet"
-import { TrendingUp, Flame, CalendarCheck, Target, Plus } from "lucide-react"
+import { TrendingUp, Flame, CalendarCheck, Target, Plus, Ruler } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { EmptyState } from "@/components/ui/empty-state"
 import { format } from "date-fns"
 import type { BodyMeasurement } from "@/types/database"
 
@@ -227,49 +228,64 @@ export default function ClientProgressPage() {
       {/* Weight chart */}
       {renderWeightChart()}
 
-      {/* Log measurement button */}
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => setMeasureOpen(true)}
-      >
-        <Icon name={Plus} size="sm" className="mr-2" />
-        Log measurement
-      </Button>
+      {/* Measurements: hero empty state when none, list + small button otherwise */}
+      {(measurements ?? []).length === 0 ? (
+        <Card>
+          <CardContent className="p-4">
+            <EmptyState
+              icon={Ruler}
+              title="Track your progress"
+              body="Log your weight or body fat to see trends over time."
+              action={{
+                label: "Log measurement",
+                onClick: () => setMeasureOpen(true),
+              }}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setMeasureOpen(true)}
+          >
+            <Icon name={Plus} size="sm" className="mr-2" />
+            Log measurement
+          </Button>
 
-      {/* Recent measurements */}
-      {(measurements ?? []).length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Recent measurements
-          </h2>
-          {(measurements ?? []).slice(0, 5).map((m) => (
-            <Card key={m.id}>
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">
-                    {format(new Date(m.measured_at), "d MMM yyyy")}
-                  </span>
-                  <div className="flex items-center gap-3 text-sm">
-                    {m.weight_kg != null && (
-                      <span>{m.weight_kg}kg</span>
-                    )}
-                    {m.body_fat_pct != null && (
-                      <span className="text-muted-foreground">
-                        {m.body_fat_pct}%
-                      </span>
-                    )}
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Recent measurements
+            </h2>
+            {(measurements ?? []).slice(0, 5).map((m) => (
+              <Card key={m.id}>
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold">
+                      {format(new Date(m.measured_at), "d MMM yyyy")}
+                    </span>
+                    <div className="flex items-center gap-3 text-sm">
+                      {m.weight_kg != null && (
+                        <span>{m.weight_kg}kg</span>
+                      )}
+                      {m.body_fat_pct != null && (
+                        <span className="text-muted-foreground">
+                          {m.body_fat_pct}%
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {m.notes && (
-                  <p className="text-body-sm text-muted-foreground mt-1">
-                    {m.notes}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  {m.notes && (
+                    <p className="text-body-sm text-muted-foreground mt-1">
+                      {m.notes}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Goals */}
@@ -277,9 +293,9 @@ export default function ClientProgressPage() {
         <CardContent className="p-4">
           <h2 className="text-sm font-semibold mb-2">Goals</h2>
           {identity?.goals ? (
-            <p className="text-sm">{identity.goals}</p>
+            <p className="text-body-sm">{identity.goals}</p>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body-sm text-muted-foreground">
               No goals set yet. Ask your PT to add your goals to your
               profile.
             </p>

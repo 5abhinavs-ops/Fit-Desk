@@ -17,8 +17,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { CalendarDays, Loader2 } from "lucide-react"
+import { CalendarDays, CalendarPlus, History, Loader2 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { EmptyState } from "@/components/ui/empty-state"
 import { format } from "date-fns"
 import { toast } from "sonner"
 import type { Booking } from "@/types/database"
@@ -200,9 +201,23 @@ export default function ClientSessionsPage() {
           Upcoming
         </h2>
         {(upcoming ?? []).length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No upcoming sessions
-          </p>
+          <EmptyState
+            icon={CalendarPlus}
+            title="No sessions booked"
+            body={
+              identity?.trainer?.booking_slug
+                ? "Book your next session with your trainer."
+                : undefined
+            }
+            action={
+              identity?.trainer?.booking_slug
+                ? {
+                    label: "Book a session",
+                    href: `/book/${identity.trainer.booking_slug}`,
+                  }
+                : undefined
+            }
+          />
         ) : (
           (upcoming ?? []).map((b) => renderBookingCard(b, true))
         )}
@@ -219,7 +234,11 @@ export default function ClientSessionsPage() {
             <Skeleton className="h-20 rounded-xl" />
           </>
         ) : (past ?? []).length === 0 ? (
-          <p className="text-muted-foreground text-sm">No past sessions</p>
+          <EmptyState
+            icon={History}
+            title="No past sessions"
+            body="Completed sessions will appear here."
+          />
         ) : (
           (past ?? []).map((b) => renderBookingCard(b, false))
         )}

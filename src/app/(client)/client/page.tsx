@@ -10,12 +10,14 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   CalendarDays,
+  CalendarPlus,
   Package,
   AlertCircle,
   MessageCircle,
   Clock,
 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { EmptyState } from "@/components/ui/empty-state"
 import { format } from "date-fns"
 import Link from "next/link"
 
@@ -173,23 +175,29 @@ export default function ClientHomePage() {
               })()}
             </div>
           ) : (
-            <div>
-              <p className="text-muted-foreground">No upcoming sessions</p>
-              {trainer.booking_slug && (
-                <Link
-                  href={`/book/${trainer.booking_slug}`}
-                  className="text-primary text-sm mt-1 inline-block"
-                >
-                  Book a session &rarr;
-                </Link>
-              )}
-            </div>
+            <EmptyState
+              icon={CalendarPlus}
+              title="No upcoming sessions"
+              body={
+                trainer.booking_slug
+                  ? "Book your next session with your trainer."
+                  : undefined
+              }
+              action={
+                trainer.booking_slug
+                  ? {
+                      label: "Book a session",
+                      href: `/book/${trainer.booking_slug}`,
+                    }
+                  : undefined
+              }
+            />
           )}
         </CardContent>
       </Card>
 
       {/* Package balance */}
-      {activePackage && (
+      {activePackage ? (
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -245,6 +253,25 @@ export default function ClientHomePage() {
                 </div>
               )
             })()}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-4">
+            <EmptyState
+              icon={Package}
+              title="No active package"
+              body="Ask your trainer to set up a package so you can start booking sessions."
+              action={
+                trainer.whatsapp_number
+                  ? {
+                      label: "Message trainer",
+                      href: `https://wa.me/${trainer.whatsapp_number.replace(/\D/g, "")}`,
+                      external: true,
+                    }
+                  : undefined
+              }
+            />
           </CardContent>
         </Card>
       )}

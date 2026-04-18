@@ -8,8 +8,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PaymentProofSheet } from "@/components/client/payment-proof-sheet"
-import { DollarSign, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { DollarSign, CheckCircle, Clock, AlertCircle, Receipt } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { EmptyState } from "@/components/ui/empty-state"
 import { format } from "date-fns"
 import type { Payment } from "@/types/database"
 
@@ -156,9 +157,11 @@ export default function ClientPaymentsPage() {
       )}
 
       {(payments ?? []).length === 0 && (
-        <p className="text-muted-foreground text-center py-8">
-          No payments yet
-        </p>
+        <EmptyState
+          icon={Receipt}
+          title="No payments yet"
+          body="Payments will appear here once your trainer records them."
+        />
       )}
 
       {/* Proof upload sheet */}
