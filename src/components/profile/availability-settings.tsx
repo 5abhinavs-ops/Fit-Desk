@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
-import { Trash2, Plus, Loader2 } from "lucide-react"
+import { Trash2, Plus, Loader2, X } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0] // Mon–Sun
@@ -133,7 +134,8 @@ export function AvailabilitySettings() {
                       onClick={() => handleDeleteSlot(slot.id)}
                       disabled={deleteSlot.isPending}
                     >
-                      <Trash2 className="h-3 w-3" />
+                      {/* 12px inside 24px icon-sm button */}
+                      <Icon name={Trash2} size="sm" className="size-3" />
                     </Button>
                   </div>
                 ))}
@@ -180,8 +182,9 @@ export function AvailabilitySettings() {
                   onClick={handleSaveNewSlot}
                   disabled={saveSlot.isPending}
                 >
+                  {/* 12px inside size="sm" button */}
                   {saveSlot.isPending ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <Icon name={Loader2} size="sm" className="size-3 animate-spin" />
                   ) : (
                     "Add"
                   )}
@@ -192,7 +195,8 @@ export function AvailabilitySettings() {
                   className="h-8"
                   onClick={() => setAdding(null)}
                 >
-                  ✕
+                  {/* 12px cancel affordance inside size="sm" ghost button */}
+                  <Icon name={X} size="sm" className="size-3" />
                 </Button>
               </div>
             ) : (
@@ -202,7 +206,8 @@ export function AvailabilitySettings() {
                 className="w-full text-xs"
                 onClick={() => handleAddSlot(dayIdx)}
               >
-                <Plus className="mr-1 h-3 w-3" />
+                {/* 12px inside size="sm" button */}
+                <Icon name={Plus} size="sm" className="size-3 mr-1" />
                 Add slot for {DAY_NAMES[dayIdx]}
               </Button>
             )}

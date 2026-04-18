@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import { Camera, Loader2, Flame, Beef, Wheat, Droplets } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import type { MealType } from "@/types/database"
 
@@ -164,14 +165,14 @@ export default function NutritionPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Food log</h1>
+      <h1 className="text-2xl font-semibold">Food log</h1>
 
       {/* Daily summary */}
       <div className="grid grid-cols-4 gap-2">
-        <MacroCard icon={<Flame className="h-4 w-4 text-orange-500" />} label="Cal" value={totals.calories} unit="" />
-        <MacroCard icon={<Beef className="h-4 w-4 text-red-500" />} label="Protein" value={totals.protein} unit="g" />
-        <MacroCard icon={<Wheat className="h-4 w-4 text-amber-500" />} label="Carbs" value={totals.carbs} unit="g" />
-        <MacroCard icon={<Droplets className="h-4 w-4 text-blue-500" />} label="Fat" value={totals.fat} unit="g" />
+        <MacroCard icon={<Icon name={Flame} size="sm" className="text-orange-500" />} label="Cal" value={totals.calories} unit="" />
+        <MacroCard icon={<Icon name={Beef} size="sm" className="text-red-500" />} label="Protein" value={totals.protein} unit="g" />
+        <MacroCard icon={<Icon name={Wheat} size="sm" className="text-amber-500" />} label="Carbs" value={totals.carbs} unit="g" />
+        <MacroCard icon={<Icon name={Droplets} size="sm" className="text-blue-500" />} label="Fat" value={totals.fat} unit="g" />
       </div>
 
       {/* Camera/upload button or analysis flow */}
@@ -181,7 +182,7 @@ export default function NutritionPage() {
             className="w-full h-24 text-lg gap-3"
             onClick={() => fileRef.current?.click()}
           >
-            <Camera className="h-6 w-6" />
+            <Icon name={Camera} size="lg" />
             Log a meal
           </Button>
           <input
@@ -202,7 +203,7 @@ export default function NutritionPage() {
               <img src={previewUrl} alt="Meal" className="mx-auto h-40 w-40 rounded-lg object-cover" />
             )}
             <div className="flex items-center justify-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Icon name={Loader2} size="md" className="animate-spin" />
               <p className="text-sm">Analysing your meal...</p>
             </div>
           </CardContent>
@@ -263,7 +264,7 @@ export default function NutritionPage() {
 
             <div className="flex gap-2">
               <Button className="flex-1" onClick={handleSave} disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
                 Save meal
               </Button>
               <Button variant="outline" onClick={handleCancel}>Cancel</Button>
@@ -275,7 +276,7 @@ export default function NutritionPage() {
       {state === "saving" && (
         <Card>
           <CardContent className="p-6 text-center">
-            <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+            <Icon name={Loader2} size="lg" className="mx-auto animate-spin" />
             <p className="text-sm mt-2">Saving...</p>
           </CardContent>
         </Card>
@@ -300,18 +301,18 @@ export default function NutritionPage() {
                 <img src={log.photo_url} alt={log.meal_name ?? ""} className="h-12 w-12 rounded-lg object-cover" />
               ) : (
                 <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                  <Camera className="h-5 w-5 text-muted-foreground" />
+                  <Icon name={Camera} size="md" className="text-muted-foreground" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{log.meal_name}</p>
+                <p className="text-sm font-semibold truncate">{log.meal_name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {log.meal_type && <Badge variant="secondary" className="text-[10px] mr-1">{log.meal_type}</Badge>}
+                  {log.meal_type && <Badge variant="secondary" className="text-micro mr-1">{log.meal_type}</Badge>}
                   {format(new Date(log.logged_at), "h:mm a")}
                 </p>
               </div>
               <div className="text-right text-xs">
-                {log.calories != null && <p className="font-medium">{log.calories} cal</p>}
+                {log.calories != null && <p className="font-semibold">{log.calories} cal</p>}
                 <p className="text-muted-foreground">
                   {log.protein_g ?? 0}p / {log.carbs_g ?? 0}c / {log.fat_g ?? 0}f
                 </p>
@@ -330,9 +331,9 @@ function MacroCard({ icon, label, value, unit }: { icon: React.ReactNode; label:
       <CardContent className="p-2 text-center">
         <div className="flex items-center justify-center gap-1">
           {icon}
-          <span className="text-[10px] text-muted-foreground">{label}</span>
+          <span className="text-micro text-muted-foreground">{label}</span>
         </div>
-        <p className="text-sm font-bold">
+        <p className="text-sm font-semibold tabular">
           {Math.round(value)}{unit}
         </p>
       </CardContent>

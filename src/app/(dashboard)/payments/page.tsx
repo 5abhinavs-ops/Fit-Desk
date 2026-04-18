@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Plus } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 
 const methodLabels: Record<string, string> = {
@@ -78,15 +79,15 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Payments</h1>
+      <h1 className="text-2xl font-semibold">Payments</h1>
 
       {/* Summary */}
       {isLoading ? (
         <Skeleton className="h-14 rounded-lg" />
       ) : (
         <div>
-          <p className="text-2xl font-bold text-[#FFB347]">{formatCurrency(outstanding.total)} <span className="text-muted-foreground text-[15px] font-normal">outstanding</span></p>
-          <p className="text-muted-foreground text-[13px]">
+          <p className="text-2xl font-semibold text-[#FFB347] tabular">{formatCurrency(outstanding.total)} <span className="text-muted-foreground text-body-lg font-normal">outstanding</span></p>
+          <p className="text-muted-foreground text-body-sm">
             {outstanding.overdue} overdue · {outstanding.pending} pending
           </p>
         </div>
@@ -110,7 +111,7 @@ export default function PaymentsPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-[15px]">No payments found.</p>
+        <p className="text-muted-foreground py-12 text-center text-body-lg">No payments found.</p>
       ) : (
         <div className="space-y-2">
           {filtered.map((p) => {
@@ -135,10 +136,10 @@ export default function PaymentsPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-base font-semibold truncate">{clientName}</p>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[10px]">
+                    <Badge variant="secondary" className="text-micro">
                       {methodLabels[p.method] ?? p.method}
                     </Badge>
-                    <span className="text-muted-foreground text-[13px] truncate">
+                    <span className="text-muted-foreground text-body-sm truncate">
                       {p.status === "received" && p.received_date
                         ? `Received ${format(new Date(p.received_date + "T12:00:00"), "d MMM")}`
                         : p.due_date
@@ -148,8 +149,8 @@ export default function PaymentsPage() {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-sm font-bold">${p.amount}</p>
-                  <Badge variant="secondary" className={`text-[10px] ${statusStyles[p.status]}`}>
+                  <p className="text-sm font-semibold tabular">${p.amount}</p>
+                  <Badge variant="secondary" className={`text-micro ${statusStyles[p.status]}`}>
                     {p.status}
                   </Badge>
                 </div>
@@ -165,7 +166,7 @@ export default function PaymentsPage() {
         className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full fab-glow"
         onClick={() => setLogOpen(true)}
       >
-        <Plus className="h-6 w-6" />
+        <Icon name={Plus} size="lg" />
       </Button>
 
       {detailPayment && (

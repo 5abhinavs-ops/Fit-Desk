@@ -31,7 +31,7 @@ export function ClientCard({ client }: ClientCardProps) {
         <p className="text-base font-semibold truncate">
           {client.first_name} {client.last_name}
         </p>
-        <p className="text-muted-foreground text-[13px] truncate">{client.whatsapp_number}</p>
+        <p className="text-muted-foreground text-body-sm truncate">{client.whatsapp_number}</p>
       </div>
       <Badge variant="secondary" className={statusStyles[client.status]}>
         {client.status}

@@ -10,7 +10,8 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 function Calendar({
   className,
@@ -69,7 +70,7 @@ function Calendar({
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
-          "flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-medium",
+          "flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-semibold",
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
@@ -81,7 +82,7 @@ function Calendar({
           defaultClassNames.dropdown
         ),
         caption_label: cn(
-          "font-medium select-none",
+          "font-semibold select-none",
           captionLayout === "label"
             ? "text-sm"
             : "flex items-center gap-1 rounded-(--cell-radius) text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground",
@@ -90,7 +91,7 @@ function Calendar({
         table: "w-full border-collapse",
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn(
-          "flex-1 rounded-(--cell-radius) text-[0.8rem] font-normal text-muted-foreground select-none",
+          "flex-1 rounded-(--cell-radius) text-micro font-normal text-muted-foreground select-none",
           defaultClassNames.weekday
         ),
         week: cn("mt-2 flex w-full", defaultClassNames.week),
@@ -99,7 +100,7 @@ function Calendar({
           defaultClassNames.week_number_header
         ),
         week_number: cn(
-          "text-[0.8rem] text-muted-foreground select-none",
+          "text-micro text-muted-foreground select-none",
           defaultClassNames.week_number
         ),
         day: cn(
@@ -144,21 +145,17 @@ function Calendar({
             />
           )
         },
-        Chevron: ({ className, orientation, ...props }) => {
-          if (orientation === "left") {
-            return (
-              <ChevronLeftIcon className={cn("size-4", className)} {...props} />
-            )
-          }
-
-          if (orientation === "right") {
-            return (
-              <ChevronRightIcon className={cn("size-4", className)} {...props} />
-            )
-          }
-
+        Chevron: ({ className, orientation, size: _size, ...rest }) => {
+          const IconComponent =
+            orientation === "left"
+              ? ChevronLeftIcon
+              : orientation === "right"
+                ? ChevronRightIcon
+                : orientation === "up"
+                  ? ChevronUpIcon
+                  : ChevronDownIcon
           return (
-            <ChevronDownIcon className={cn("size-4", className)} {...props} />
+            <Icon {...rest} name={IconComponent} size="sm" className={className} />
           )
         },
         DayButton: ({ ...props }) => (

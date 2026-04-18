@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -41,7 +42,7 @@ export default function ResetPasswordPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Set new password</h1>
+          <h1 className="text-2xl font-semibold">Set new password</h1>
           <p className="text-muted-foreground mt-2 text-sm">
             Choose a new password for your account.
           </p>
@@ -73,7 +74,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
             Update password
           </Button>
         </form>

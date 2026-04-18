@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PaymentProofSheet } from "@/components/client/payment-proof-sheet"
 import { DollarSign, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import type { Payment } from "@/types/database"
 
@@ -59,8 +60,8 @@ export default function ClientPaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold flex items-center gap-2">
-        <DollarSign className="h-6 w-6 text-[#FFB347]" />
+      <h1 className="text-2xl font-semibold flex items-center gap-2">
+        <Icon name={DollarSign} size="lg" className="text-[#FFB347]" />
         Payments
       </h1>
 
@@ -75,23 +76,25 @@ export default function ClientPaymentsPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xl font-bold text-[#FFB347]">
+                    <p className="text-xl font-semibold text-[#FFB347] tabular">
                       {formatCurrency(payment.amount)}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       {payment.status === "overdue" ? (
                         <span className="badge-danger text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <AlertCircle className="h-3 w-3" />
+                          {/* 12px inside status chip */}
+                          <Icon name={AlertCircle} size="sm" className="size-3" />
                           Overdue
                         </span>
                       ) : (
                         <span className="badge-warning text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                          {/* 12px inside status chip */}
+                          <Icon name={Clock} size="sm" className="size-3" />
                           Pending
                         </span>
                       )}
                       {payment.due_date && (
-                        <span className="text-[13px] text-muted-foreground">
+                        <span className="text-body-sm text-muted-foreground">
                           Due{" "}
                           {format(new Date(payment.due_date), "d MMM yyyy")}
                         </span>
@@ -123,16 +126,17 @@ export default function ClientPaymentsPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg font-semibold">
+                    <p className="text-lg font-semibold tabular">
                       {formatCurrency(payment.amount)}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="badge-success text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3" />
+                        {/* 12px inside status chip */}
+                        <Icon name={CheckCircle} size="sm" className="size-3" />
                         Received
                       </span>
                       {payment.received_date && (
-                        <span className="text-[13px] text-muted-foreground">
+                        <span className="text-body-sm text-muted-foreground">
                           {format(
                             new Date(payment.received_date),
                             "d MMM yyyy"
@@ -141,7 +145,7 @@ export default function ClientPaymentsPage() {
                       )}
                     </div>
                   </div>
-                  <span className="text-[13px] text-muted-foreground">
+                  <span className="text-body-sm text-muted-foreground">
                     {payment.method}
                   </span>
                 </div>

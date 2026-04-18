@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 import type { PaymentMethod } from "@/types/database"
 
@@ -432,7 +433,7 @@ export function AddClientWithPackageSheet({
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>
                 {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />
                 )}
                 {showPackage ? "Add client + package" : "Add client"}
               </Button>

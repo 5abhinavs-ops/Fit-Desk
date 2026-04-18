@@ -3,6 +3,7 @@
 import { useRef, useState, useMemo } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ChevronDown } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { buildSlots } from "@/components/BookingForm"
 
 interface AvailabilityData {
@@ -138,12 +139,12 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
               }`}
             >
               <div>
-                <div className="text-[13px] font-bold">{p.label}</div>
-                <div className="text-[11px] text-muted-foreground">{p.range}</div>
+                <div className="text-body-sm font-semibold">{p.label}</div>
+                <div className="text-micro text-muted-foreground">{p.range}</div>
               </div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                  className={`rounded-full px-2 py-0.5 text-micro font-semibold ${
                     freeCount === 0
                       ? "bg-muted text-muted-foreground"
                       : "bg-[rgba(0,224,150,0.15)] text-[#00E096]"
@@ -151,8 +152,10 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
                 >
                   {freeCount} free
                 </span>
-                <ChevronDown
-                  className="h-4 w-4 text-muted-foreground transition-transform"
+                <Icon
+                  name={ChevronDown}
+                  size="sm"
+                  className="text-muted-foreground transition-transform"
                   style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
                 />
               </div>
@@ -172,10 +175,10 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
                         type="button"
                         disabled
                         aria-label={`${formatTime(slot)} — booked`}
-                        className="rounded-lg py-2 text-center text-xs font-medium bg-muted text-muted-foreground cursor-not-allowed opacity-60"
+                        className="rounded-lg py-2 text-center text-xs font-semibold bg-muted text-muted-foreground cursor-not-allowed opacity-60"
                       >
                         <div>{time}</div>
-                        <div className="text-[11px]">Booked</div>
+                        <div className="text-micro">Booked</div>
                       </button>
                     )
                   }
@@ -187,10 +190,10 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
                         type="button"
                         onClick={() => onSelectTime(slot)}
                         aria-label={`${formatTime(slot)} — selected`}
-                        className="rounded-lg py-2 text-center text-xs font-medium bg-primary text-primary-foreground border border-primary"
+                        className="rounded-lg py-2 text-center text-xs font-semibold bg-primary text-primary-foreground border border-primary"
                       >
                         <div>{time}</div>
-                        <div className="text-[11px] opacity-80">Selected</div>
+                        <div className="text-micro opacity-80">Selected</div>
                       </button>
                     )
                   }
@@ -201,10 +204,10 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
                       type="button"
                       onClick={() => onSelectTime(slot)}
                       aria-label={`Select ${formatTime(slot)}`}
-                      className="rounded-lg py-2 text-center text-xs font-medium border border-input bg-background hover:border-primary"
+                      className="rounded-lg py-2 text-center text-xs font-semibold border border-input bg-background hover:border-primary"
                     >
                       <div>{time}</div>
-                      <div className="text-[11px] text-muted-foreground">{period}</div>
+                      <div className="text-micro text-muted-foreground">{period}</div>
                     </button>
                   )
                 })}

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Loader2, Copy, Share2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import type { BookingPaymentMode } from "@/types/database"
 
 interface BookingSettingsFormProps {
@@ -100,15 +101,17 @@ export function BookingSettingsForm({
           value={slug}
           onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
         />
-        <p className="text-muted-foreground text-xs">fitdesk.app/book/{slug || "your-name"}</p>
+        <p className="text-muted-foreground text-xs">{(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/^https?:\/\//, "")}/book/{slug || "your-name"}</p>
       </div>
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={copyLink}>
-          <Copy className="mr-1 h-3 w-3" />
+          {/* 12px inside size="sm" button */}
+          <Icon name={Copy} size="sm" className="size-3 mr-1" />
           {copied ? "Copied!" : "Copy link"}
         </Button>
         <Button variant="outline" size="sm" onClick={shareLink}>
-          <Share2 className="mr-1 h-3 w-3" />
+          {/* 12px inside size="sm" button */}
+          <Icon name={Share2} size="sm" className="size-3 mr-1" />
           Share link
         </Button>
       </div>
@@ -160,7 +163,7 @@ export function BookingSettingsForm({
         <p className="text-muted-foreground text-xs">Separate multiple locations with commas</p>
       </div>
       <Button onClick={handleSave} disabled={saving}>
-        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {saving && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
         Save booking settings
       </Button>
     </div>

@@ -1,6 +1,8 @@
 import { cache } from "react"
 import type { Metadata } from "next"
 import { createServiceClient } from "@/lib/supabase/service"
+import { MapPin } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { BookingForm } from "@/components/BookingForm"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { Badge } from "@/components/ui/badge"
@@ -43,7 +45,7 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Trainer not found</h1>
+          <h1 className="text-2xl font-semibold">Trainer not found</h1>
           <p className="text-muted-foreground mt-2">
             This booking link doesn&apos;t seem to be active.
           </p>
@@ -74,14 +76,14 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
             />
           ) : (
             <div className="bg-primary text-primary-foreground mx-auto flex h-20 w-20
-              items-center justify-center rounded-full text-2xl font-bold">
+              items-center justify-center rounded-full text-2xl font-semibold">
               {initials}
             </div>
           )}
 
           {/* Name + headline + Instagram */}
           <div>
-            <h1 className="text-xl font-bold">{trainer.name}</h1>
+            <h1 className="text-xl font-semibold">{trainer.name}</h1>
             {trainer.booking_headline && (
               <p className="text-muted-foreground text-sm mt-1">{trainer.booking_headline}</p>
             )}
@@ -126,10 +128,8 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
         {trainer.training_locations && trainer.training_locations.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 justify-center">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
+              {/* 12px map-pin inline with text-xs "Training locations" heading */}
+              <Icon name={MapPin} size="sm" className="size-3 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Training locations</span>
             </div>
             <div className="flex flex-wrap justify-center gap-1">
@@ -153,7 +153,7 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
         {/* Pricing + cancellation policy */}
         <div className="space-y-1">
           {trainer.pricing_from && (
-            <p className="text-sm font-medium">
+            <p className="text-sm font-semibold">
               Sessions from <span className="text-primary">${trainer.pricing_from}</span>
             </p>
           )}
@@ -188,12 +188,12 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
         </ErrorBoundary>
 
         <a
-          href="https://fitdesk-pro.vercel.app"
+          href={process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}
           target="_blank"
           rel="noopener noreferrer"
           className="block text-center text-xs text-muted-foreground hover:text-primary transition-colors"
         >
-          Powered by <span className="font-medium">FitDesk</span>
+          Powered by <span className="font-semibold">FitDesk</span>
         </a>
       </div>
     </div>

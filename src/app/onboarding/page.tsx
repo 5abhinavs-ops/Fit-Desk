@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Loader2, ArrowLeft, Copy, Check } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { FitDeskLogo } from "@/components/shared/fitdesk-logo"
 
 export default function OnboardingPage() {
@@ -67,8 +68,11 @@ export default function OnboardingPage() {
     setSlug(value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  const baseUrlDisplay = baseUrl.replace(/^https?:\/\//, "")
+
   async function handleCopyLink() {
-    const url = `fitdesk-pro.vercel.app/book/${slug || "your-name"}`
+    const url = `${baseUrl}/book/${slug || "your-name"}`
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
@@ -85,7 +89,7 @@ export default function OnboardingPage() {
         <div className="w-full max-w-sm space-y-8 text-center">
           <FitDeskLogo size="lg" />
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Welcome to FitDesk</h1>
+            <h1 className="text-2xl font-semibold">Welcome to FitDesk</h1>
             <p className="text-muted-foreground text-sm">
               Let&apos;s set up your account in 3 quick steps.
             </p>
@@ -108,12 +112,12 @@ export default function OnboardingPage() {
             onClick={() => setStep(1)}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <Icon name={ArrowLeft} size="sm" />
             Back
           </button>
 
           <p className="text-xs text-muted-foreground">Step 1 of 2</p>
-          <h1 className="text-xl font-bold">How will clients pay you?</h1>
+          <h1 className="text-xl font-semibold">How will clients pay you?</h1>
 
           <div className="space-y-4">
             <div className="space-y-2">
@@ -162,12 +166,12 @@ export default function OnboardingPage() {
           onClick={() => setStep(2)}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <Icon name={ArrowLeft} size="sm" />
           Back
         </button>
 
         <p className="text-xs text-muted-foreground">Step 2 of 2</p>
-        <h1 className="text-xl font-bold">Your booking link</h1>
+        <h1 className="text-xl font-semibold">Your booking link</h1>
 
         <div className="space-y-4">
           <div className="space-y-2">
@@ -182,7 +186,7 @@ export default function OnboardingPage() {
 
           <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2.5">
             <p className="text-sm flex-1 truncate">
-              fitdesk-pro.vercel.app/book/<span className="font-semibold">{slug || "your-name"}</span>
+              {baseUrlDisplay}/book/<span className="font-semibold">{slug || "your-name"}</span>
             </p>
             <button
               type="button"
@@ -190,13 +194,13 @@ export default function OnboardingPage() {
               className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
               aria-label="Copy link"
             >
-              {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              {copied ? <Icon name={Check} size="sm" className="text-green-500" /> : <Icon name={Copy} size="sm" />}
             </button>
           </div>
         </div>
 
         <Button className="w-full" onClick={handleSubmit} disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
           All done — open my dashboard →
         </Button>
       </div>

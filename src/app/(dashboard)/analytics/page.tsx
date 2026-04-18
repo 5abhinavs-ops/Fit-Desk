@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { TrendingUp, AlertCircle, Users, Package, UserX, DollarSign, ChevronLeft, ChevronRight } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-SG", {
@@ -81,16 +82,16 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-3">
-        <h1 className="text-2xl font-bold">Analytics</h1>
+        <h1 className="text-2xl font-semibold">Analytics</h1>
         <div className="flex items-center gap-3">
           <button
             onClick={prevMonth}
             className="flex items-center justify-center h-8 w-8 rounded-lg border hover:bg-accent transition-colors"
             aria-label="Previous month"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <Icon name={ChevronLeft} size="sm" />
           </button>
-          <span className="text-[15px] font-medium flex-1 text-center">
+          <span className="text-body-lg font-semibold flex-1 text-center">
             {monthLabel(selectedMonth)}
           </span>
           <button
@@ -99,7 +100,7 @@ export default function AnalyticsPage() {
             className="flex items-center justify-center h-8 w-8 rounded-lg border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label="Next month"
           >
-            <ChevronRight className="h-4 w-4" />
+            <Icon name={ChevronRight} size="sm" />
           </button>
         </div>
       </div>
@@ -108,10 +109,10 @@ export default function AnalyticsPage() {
       <Card>
         <CardContent className="p-5">
           <div className="flex items-center gap-2">
-            <TrendingUp className="text-[#00E096] h-5 w-5" />
-            <span className="text-muted-foreground text-[15px]">Revenue this month</span>
+            <Icon name={TrendingUp} size="md" className="text-[#00E096]" />
+            <span className="text-muted-foreground text-body-lg">Revenue this month</span>
           </div>
-          <p className="mt-2 text-4xl font-bold text-[#00E096]">
+          <p className="mt-2 text-4xl font-semibold text-[#00E096] tabular">
             {formatCurrency(data?.monthlyRevenue ?? 0)}
           </p>
         </CardContent>
@@ -130,14 +131,14 @@ export default function AnalyticsPage() {
                 const isSelectedMonth = point.month === MONTHS[selM - 1] && point.year === selY
                 return (
                   <div key={`${point.year}-${point.month}`} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                       {point.amount > 0 ? `$${Math.round(point.amount)}` : ""}
                     </span>
                     <div
                       className={`w-full rounded-t ${isSelectedMonth ? "bg-primary" : "bg-muted-foreground/20"}`}
                       style={{ height: `${Math.max(heightPct, 2)}%` }}
                     />
-                    <span className="text-[10px] text-muted-foreground">{point.month}</span>
+                    <span className="text-micro text-muted-foreground">{point.month}</span>
                   </div>
                 )
               })}
@@ -151,20 +152,20 @@ export default function AnalyticsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <Users className="text-[#00C6D4] h-4 w-4" />
-              <span className="text-muted-foreground text-[13px]">Sessions completed</span>
+              <Icon name={Users} size="sm" className="text-[#00C6D4]" />
+              <span className="text-muted-foreground text-body-sm">Sessions completed</span>
             </div>
-            <p className="mt-2 text-3xl font-bold">{data?.sessionsCompleted ?? 0}</p>
+            <p className="mt-2 text-3xl font-semibold tabular">{data?.sessionsCompleted ?? 0}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <UserX className={`h-4 w-4 ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : "text-muted-foreground"}`} />
-              <span className="text-muted-foreground text-[13px]">No-show rate</span>
+              <Icon name={UserX} size="sm" className={(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : "text-muted-foreground"} />
+              <span className="text-muted-foreground text-body-sm">No-show rate</span>
             </div>
-            <p className={`mt-2 text-3xl font-bold ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : ""}`}>
+            <p className={`mt-2 text-3xl font-semibold tabular ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : ""}`}>
               {data?.noShowRate ?? 0}%
             </p>
           </CardContent>
@@ -175,10 +176,10 @@ export default function AnalyticsPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-[#FFB347]" />
-            <span className="text-muted-foreground text-[13px]">Outstanding payments</span>
+            <Icon name={AlertCircle} size="sm" className="text-[#FFB347]" />
+            <span className="text-muted-foreground text-body-sm">Outstanding payments</span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-[#FFB347]">
+          <p className="mt-2 text-2xl font-semibold text-[#FFB347] tabular">
             {formatCurrency(data?.outstandingTotal ?? 0)}
           </p>
         </CardContent>
@@ -188,10 +189,10 @@ export default function AnalyticsPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
-            <Package className="text-muted-foreground h-4 w-4" />
-            <span className="text-muted-foreground text-[13px]">Package renewal rate (90d)</span>
+            <Icon name={Package} size="sm" className="text-muted-foreground" />
+            <span className="text-muted-foreground text-body-sm">Package renewal rate (90d)</span>
           </div>
-          <p className="mt-2 text-2xl font-bold">
+          <p className="mt-2 text-2xl font-semibold tabular">
             {data?.packageRenewalRate !== null ? `${data?.packageRenewalRate}%` : "—"}
           </p>
         </CardContent>
@@ -201,7 +202,7 @@ export default function AnalyticsPage() {
       {data && data.clientRevenue.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-semibold flex items-center gap-1.5">
-            <DollarSign className="h-4 w-4 text-[#00E096]" />
+            <Icon name={DollarSign} size="sm" className="text-[#00E096]" />
             Revenue by client
           </h2>
           {data.clientRevenue.map((client) => {

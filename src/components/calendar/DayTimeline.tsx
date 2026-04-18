@@ -3,7 +3,8 @@
 import { useMemo, useRef, useEffect, useState } from "react"
 import { format } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Ban, Plus } from "lucide-react"
+import { Ban, Plus, RotateCcw } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import type { Booking, Client } from "@/types/database"
 
 interface DayTimelineProps {
@@ -165,17 +166,16 @@ export function DayTimeline({
       {/* Blocked day banner */}
       {isDayBlocked && (
         <div
-          className="sticky top-0 z-10 flex items-center justify-center gap-2"
+          className="sticky top-0 z-10 flex items-center justify-center gap-2 text-body-sm font-semibold"
           style={{
             height: "48px",
             background: "rgba(225,29,72,0.12)",
             border: "1px solid rgba(225,29,72,0.3)",
             color: "#e11d48",
-            fontSize: "13px",
-            fontWeight: 600,
           }}
         >
-          <Ban style={{ width: "14px", height: "14px" }} />
+          {/* 14px to match text-body-sm banner text */}
+          <Icon name={Ban} size="sm" className="size-3.5" />
           Day blocked — no new bookings available
         </div>
       )}
@@ -209,12 +209,11 @@ export function DayTimeline({
               />
               {/* Time label */}
               <span
-                className="absolute text-right"
+                className="absolute text-right text-micro"
                 style={{
                   top: "-6px",
                   left: 0,
                   width: `${TIME_COL_WIDTH - 8}px`,
-                  fontSize: "11px",
                   color: "#7A9BB5",
                   paddingRight: "8px",
                 }}
@@ -247,7 +246,8 @@ export function DayTimeline({
                 className="flex h-full w-full items-center justify-center rounded opacity-0 transition-opacity group-hover:opacity-100"
                 style={{ background: "rgba(0,198,212,0.05)" }}
               >
-                <Plus style={{ width: "14px", height: "14px", color: "rgba(0,198,212,0.4)" }} />
+                {/* 14px hover affordance in 32px half-hour slot */}
+                <Icon name={Plus} size="sm" className="size-3.5" style={{ color: "rgba(0,198,212,0.4)" }} />
               </div>
             </button>
           )
@@ -292,28 +292,33 @@ export function DayTimeline({
             >
               <div className="flex h-full flex-col justify-center text-left">
                 <p
-                  className="truncate font-bold"
-                  style={{ fontSize: "13px", color: "white", lineHeight: "1.2" }}
+                  className="truncate text-body-sm font-semibold"
+                  style={{ color: "white", lineHeight: "1.2" }}
                 >
                   {clientName}
                   {b.booking_source === "recurring" && (
-                    <span style={{ color: "#00C6D4", marginLeft: "4px", fontWeight: 400 }}>↻</span>
+                    // 12px recurring-indicator glyph inline with 13px client name
+                    <Icon
+                      name={RotateCcw}
+                      size="sm"
+                      className="size-3 inline-block align-middle ml-1"
+                      aria-label="Recurring booking"
+                      style={{ color: "#00C6D4" }}
+                    />
                   )}
                 </p>
                 {!isCompact && (
                   <p
-                    className="truncate"
-                    style={{ fontSize: "11px", color: "#7A9BB5", marginTop: "2px" }}
+                    className="truncate text-micro mt-0.5"
+                    style={{ color: "#7A9BB5" }}
                   >
                     {timeRange}
                   </p>
                 )}
                 {!isCompact && (
                   <span
-                    className="mt-1 inline-block self-start rounded-full px-1.5 py-0.5"
+                    className="mt-1 inline-block self-start rounded-full px-1.5 py-0.5 text-micro font-semibold"
                     style={{
-                      fontSize: "9px",
-                      fontWeight: 600,
                       color: borderColor,
                       background: `${borderColor}1A`,
                     }}
@@ -358,11 +363,10 @@ export function DayTimeline({
         {/* Empty day message */}
         {visibleBookings.length === 0 && !isDayBlocked && (
           <div
-            className="absolute left-0 right-0 flex items-center justify-center"
+            className="absolute left-0 right-0 flex items-center justify-center text-body-sm"
             style={{
               top: `${3 * HOUR_HEIGHT}px`,
               color: "#7A9BB5",
-              fontSize: "13px",
             }}
           >
             No sessions — tap any slot to add one

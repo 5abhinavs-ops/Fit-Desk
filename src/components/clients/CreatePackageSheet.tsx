@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 
 import { toast } from "sonner"
 import { Loader2, MessageCircle, Check } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 interface CreatePackageSheetProps {
   clientId: string
@@ -144,7 +145,7 @@ export function CreatePackageSheet({ clientId, open, onOpenChange }: CreatePacka
           </div>
 
           <Button type="submit" className="w-full" disabled={createPackage.isPending || !!newPackageId}>
-            {createPackage.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {createPackage.isPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
             Create package
           </Button>
         </form>
@@ -158,9 +159,9 @@ export function CreatePackageSheet({ clientId, open, onOpenChange }: CreatePacka
               disabled={notifySending}
             >
               {notifySending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />
               ) : (
-                <MessageCircle className="mr-2 h-4 w-4" />
+                <Icon name={MessageCircle} size="sm" className="mr-2" />
               )}
               Notify client via WhatsApp
             </Button>
@@ -173,8 +174,8 @@ export function CreatePackageSheet({ clientId, open, onOpenChange }: CreatePacka
         {notifySent && (
           <div className="pt-4 flex flex-col items-center gap-2">
             <div className="flex items-center gap-2 text-green-600">
-              <Check className="h-5 w-5" />
-              <span className="text-sm font-medium">WhatsApp sent</span>
+              <Icon name={Check} size="md" />
+              <span className="text-sm font-semibold">WhatsApp sent</span>
             </div>
             <Button variant="ghost" className="w-full" onClick={() => { setNewPackageId(null); setNotifySent(false); onOpenChange(false) }}>
               Done

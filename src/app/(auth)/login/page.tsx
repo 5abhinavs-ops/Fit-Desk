@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { FitDeskLogo } from "@/components/shared/fitdesk-logo"
 
 export default function LoginPage() {
@@ -60,7 +61,7 @@ export default function LoginPage() {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-sm space-y-6 text-center">
-          <h1 className="text-2xl font-bold">Check your email</h1>
+          <h1 className="text-2xl font-semibold">Check your email</h1>
           <p className="text-muted-foreground text-sm">
             We sent a password reset link to <strong>{email}</strong>.
             Check your inbox and click the link to reset your password.
@@ -102,7 +103,7 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={resetLoading}>
-              {resetLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {resetLoading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
               Send reset link
             </Button>
           </form>
@@ -163,7 +164,7 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
             Sign in
           </Button>
         </form>

@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { CheckCircle, XCircle, Clock, CalendarClock, Loader2, CreditCard } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 type SessionAction = "confirm" | "cancel" | "late" | "reschedule" | "payment_confirm"
 
@@ -41,8 +42,12 @@ export function SessionActions({
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [proofPreview, setProofPreview] = useState<string | null>(null)
   const proofInputRef = useRef<HTMLInputElement>(null)
+  // Stable per-mount timestamp — matches the sibling sessions page so the
+  // "Cancel free" vs "Cancel forfeit" labels and the API enforcement can't disagree.
+  // Server-side /api/bookings/[id]/cancel is the source of truth for policy.
+  const [nowMs] = useState(() => Date.now())
 
-  const hoursUntil = (new Date(sessionDateTime).getTime() - Date.now()) / (1000 * 60 * 60)
+  const hoursUntil = (new Date(sessionDateTime).getTime() - nowMs) / (1000 * 60 * 60)
   const canCancelFree = hoursUntil >= cancellationPolicyHours
 
   async function executeAction(action: SessionAction) {
@@ -129,7 +134,8 @@ export function SessionActions({
   if (completed) {
     return (
       <div className="rounded-xl border p-6 text-center space-y-2">
-        <CheckCircle className="mx-auto h-10 w-10 text-green-600" />
+        {/* 40px success glyph centered above completion message — above lg (24px) */}
+        <Icon name={CheckCircle} size="lg" className="mx-auto size-10 text-green-600" />
         <p className="text-sm">{resultMessage}</p>
       </div>
     )
@@ -143,9 +149,9 @@ export function SessionActions({
           onClick={() => setConfirmAction("confirm")}
           disabled={pending}
         >
-          <CheckCircle className="h-5 w-5 shrink-0" />
+          <Icon name={CheckCircle} size="md" className="shrink-0" />
           <div className="text-left">
-            <p className="text-sm font-medium">Confirm attendance</p>
+            <p className="text-sm font-semibold">Confirm attendance</p>
             <p className="text-xs opacity-80 font-normal">Let your trainer know you&apos;re coming</p>
           </div>
         </Button>
@@ -156,9 +162,9 @@ export function SessionActions({
           onClick={() => setConfirmAction("late")}
           disabled={pending}
         >
-          <Clock className="h-5 w-5 shrink-0" />
+          <Icon name={Clock} size="md" className="shrink-0" />
           <div className="text-left">
-            <p className="text-sm font-medium">Running late</p>
+            <p className="text-sm font-semibold">Running late</p>
             <p className="text-xs text-muted-foreground font-normal">Notify your trainer</p>
           </div>
         </Button>
@@ -169,9 +175,9 @@ export function SessionActions({
           onClick={() => setConfirmAction("reschedule")}
           disabled={pending}
         >
-          <CalendarClock className="h-5 w-5 shrink-0" />
+          <Icon name={CalendarClock} size="md" className="shrink-0" />
           <div className="text-left">
-            <p className="text-sm font-medium">Request reschedule</p>
+            <p className="text-sm font-semibold">Request reschedule</p>
             <p className="text-xs text-muted-foreground font-normal">Ask your trainer for a new time</p>
           </div>
         </Button>
@@ -182,9 +188,9 @@ export function SessionActions({
           onClick={() => setConfirmAction("cancel")}
           disabled={pending}
         >
-          <XCircle className="h-5 w-5 shrink-0" />
+          <Icon name={XCircle} size="md" className="shrink-0" />
           <div className="text-left">
-            <p className="text-sm font-medium">Cancel session</p>
+            <p className="text-sm font-semibold">Cancel session</p>
             <p className="text-xs text-muted-foreground font-normal">
               {canCancelFree
                 ? "Free cancellation — session will be restored"
@@ -200,9 +206,9 @@ export function SessionActions({
             onClick={() => setShowProofUpload(true)}
             disabled={pending}
           >
-            <CreditCard className="h-5 w-5 shrink-0" />
+            <Icon name={CreditCard} size="md" className="shrink-0" />
             <div className="text-left">
-              <p className="text-sm font-medium">I&apos;ve made payment</p>
+              <p className="text-sm font-semibold">I&apos;ve made payment</p>
               <p className="text-xs text-muted-foreground font-normal">Upload proof and notify your trainer</p>
             </div>
           </Button>
@@ -253,7 +259,8 @@ export function SessionActions({
               className="w-full border-2 border-dashed rounded-xl p-6 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary/50 transition-colors"
               onClick={() => proofInputRef.current?.click()}
             >
-              <CreditCard className="h-7 w-7" />
+              {/* 28px payment glyph in wide action tile — between lg (24) and next increment */}
+              <Icon name={CreditCard} size="lg" className="size-7" />
               <span className="text-sm">Tap to upload screenshot</span>
             </button>
           )}
@@ -276,7 +283,7 @@ export function SessionActions({
               disabled={!proofFile || pending}
               onClick={() => handleProofSubmit()}
             >
-              {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {pending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
               Submit
             </Button>
           </div>
@@ -332,7 +339,7 @@ export function SessionActions({
               onClick={() => confirmAction && executeAction(confirmAction)}
               disabled={pending}
             >
-              {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {pending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
               Confirm
             </AlertDialogAction>
           </AlertDialogFooter>

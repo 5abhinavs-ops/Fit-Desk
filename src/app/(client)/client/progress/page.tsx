@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MeasurementSheet } from "@/components/client/measurement-sheet"
 import { TrendingUp, Flame, CalendarCheck, Target, Plus } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import type { BodyMeasurement } from "@/types/database"
 
@@ -193,8 +194,8 @@ export default function ClientProgressPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold flex items-center gap-2">
-        <TrendingUp className="h-6 w-6 text-[#00E096]" />
+      <h1 className="text-2xl font-semibold flex items-center gap-2">
+        <Icon name={TrendingUp} size="lg" className="text-[#00E096]" />
         Progress
       </h1>
 
@@ -202,23 +203,23 @@ export default function ClientProgressPage() {
       <div className="grid grid-cols-3 gap-3">
         <Card>
           <CardContent className="p-3 text-center">
-            <CalendarCheck className="h-4 w-4 text-[#00C6D4] mx-auto" />
-            <p className="text-2xl font-bold mt-1">{totalSessions ?? 0}</p>
-            <p className="text-[11px] text-muted-foreground">Total</p>
+            <Icon name={CalendarCheck} size="sm" className="text-[#00C6D4] mx-auto" />
+            <p className="text-2xl font-semibold mt-1 tabular">{totalSessions ?? 0}</p>
+            <p className="text-micro text-muted-foreground">Total</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <Target className="h-4 w-4 text-[#FFB347] mx-auto" />
-            <p className="text-2xl font-bold mt-1">{monthSessions ?? 0}</p>
-            <p className="text-[11px] text-muted-foreground">This month</p>
+            <Icon name={Target} size="sm" className="text-[#FFB347] mx-auto" />
+            <p className="text-2xl font-semibold mt-1 tabular">{monthSessions ?? 0}</p>
+            <p className="text-micro text-muted-foreground">This month</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <Flame className="h-4 w-4 text-[#FF4C7A] mx-auto" />
-            <p className="text-2xl font-bold mt-1">{streak ?? 0}</p>
-            <p className="text-[11px] text-muted-foreground">Week streak</p>
+            <Icon name={Flame} size="sm" className="text-[#FF4C7A] mx-auto" />
+            <p className="text-2xl font-semibold mt-1 tabular">{streak ?? 0}</p>
+            <p className="text-micro text-muted-foreground">Week streak</p>
           </CardContent>
         </Card>
       </div>
@@ -232,7 +233,7 @@ export default function ClientProgressPage() {
         className="w-full"
         onClick={() => setMeasureOpen(true)}
       >
-        <Plus className="h-4 w-4 mr-2" />
+        <Icon name={Plus} size="sm" className="mr-2" />
         Log measurement
       </Button>
 
@@ -246,7 +247,7 @@ export default function ClientProgressPage() {
             <Card key={m.id}>
               <CardContent className="p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-semibold">
                     {format(new Date(m.measured_at), "d MMM yyyy")}
                   </span>
                   <div className="flex items-center gap-3 text-sm">
@@ -261,7 +262,7 @@ export default function ClientProgressPage() {
                   </div>
                 </div>
                 {m.notes && (
-                  <p className="text-[13px] text-muted-foreground mt-1">
+                  <p className="text-body-sm text-muted-foreground mt-1">
                     {m.notes}
                   </p>
                 )}

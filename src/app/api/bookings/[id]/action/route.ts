@@ -57,7 +57,6 @@ export async function POST(request: Request, context: RouteContext) {
   const trainer = booking.profiles as unknown as { name: string; whatsapp_number: string }
   const dt = new Date(booking.date_time)
   const dateStr = format(dt, "EEEE, d MMMM")
-  const timeStr = format(dt, "h:mm a")
 
   // Service client for session_tokens (RLS blocks normal client)
   const serviceClient = createServiceClient()

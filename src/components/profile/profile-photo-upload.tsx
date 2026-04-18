@@ -4,7 +4,8 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, Upload } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 interface ProfilePhotoUploadProps {
   profileId: string
@@ -96,14 +97,11 @@ export function ProfilePhotoUpload({ profileId, name, whatsappNumber, initialPho
           className="absolute -bottom-1 -right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
         >
           {uploadingPhoto ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
+            // 12px inside 24px avatar badge
+            <Icon name={Loader2} size="sm" className="size-3 animate-spin" />
           ) : (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
+            // 12px upload glyph inside 24px avatar badge
+            <Icon name={Upload} size="sm" className="size-3" />
           )}
         </label>
         <input

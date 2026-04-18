@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 interface CancellationPolicyFormProps {
   profileId: string
@@ -72,7 +73,7 @@ export function CancellationPolicyForm({
       {/* Booking approval toggle */}
       <div className="flex items-center justify-between rounded-lg border p-3">
         <div className="space-y-0.5">
-          <Label htmlFor="approvalToggle" className="text-sm font-medium">
+          <Label htmlFor="approvalToggle" className="text-sm font-semibold">
             Require approval for new bookings
           </Label>
           <p className="text-muted-foreground text-xs">
@@ -87,7 +88,7 @@ export function CancellationPolicyForm({
       </div>
 
       <Button onClick={handleSave} disabled={saving}>
-        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {saving && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
         Save policy settings
       </Button>
     </div>

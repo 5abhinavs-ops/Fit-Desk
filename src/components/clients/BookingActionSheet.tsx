@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner"
 import { PaymentSection } from "@/components/bookings/payment-section"
 import { Loader2, RotateCcw, Ban, UserX, CalendarClock, ChevronDown, ChevronUp } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 
 type ActionType = "restore" | "forfeit" | "no_show" | "reschedule"
@@ -185,7 +186,7 @@ export function BookingActionSheet({
             {/* Package info */}
             {sessionsRemaining !== null && (
               <div className="rounded-lg bg-muted p-3 text-sm">
-                <p className="font-medium">Package: {activePackage?.name}</p>
+                <p className="font-semibold">Package: {activePackage?.name}</p>
                 <p className="text-muted-foreground">
                   {sessionsRemaining} session{sessionsRemaining !== 1 ? "s" : ""} remaining
                 </p>
@@ -226,7 +227,7 @@ export function BookingActionSheet({
 
             {/* Session notes */}
             <div className="space-y-2">
-              <Label htmlFor="session-notes" className="text-sm font-medium">Session notes</Label>
+              <Label htmlFor="session-notes" className="text-sm font-semibold">Session notes</Label>
               <Textarea
                 id="session-notes"
                 placeholder="What did you work on this session?"
@@ -240,7 +241,8 @@ export function BookingActionSheet({
                 onClick={saveNotes}
                 disabled={notesSaving}
               >
-                {notesSaving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                {/* 12px inside size="sm" button */}
+                {notesSaving && <Icon name={Loader2} size="sm" className="mr-2 size-3 animate-spin" />}
                 Save notes
               </Button>
             </div>
@@ -256,7 +258,7 @@ export function BookingActionSheet({
                 {/* Primary action: reschedule */}
                 {(() => {
                   const config = ACTION_CONFIG.reschedule
-                  const Icon = config.icon
+                  const ActionIcon = config.icon
                   return (
                     <Button
                       variant={config.variant}
@@ -264,9 +266,9 @@ export function BookingActionSheet({
                       onClick={() => setConfirmAction("reschedule")}
                       disabled={pending}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
+                      <Icon name={ActionIcon} size="sm" className="shrink-0" />
                       <div className="text-left">
-                        <p className="text-sm font-medium">{config.label}</p>
+                        <p className="text-sm font-semibold">{config.label}</p>
                         <p className="text-xs text-muted-foreground font-normal">{config.description}</p>
                       </div>
                     </Button>
@@ -280,14 +282,17 @@ export function BookingActionSheet({
                   className="w-full text-xs"
                   onClick={() => setShowMoreActions(!showMoreActions)}
                 >
-                  {showMoreActions ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
+                  {/* 12px chevron inside size="sm" toggle */}
+                  {showMoreActions
+                    ? <Icon name={ChevronUp} size="sm" className="size-3 mr-1" />
+                    : <Icon name={ChevronDown} size="sm" className="size-3 mr-1" />}
                   {showMoreActions ? "Hide options" : "More options"}
                 </Button>
 
                 {/* Secondary actions */}
                 {showMoreActions && (["restore", "forfeit", "no_show"] as ActionType[]).map((action) => {
                   const config = ACTION_CONFIG[action]
-                  const Icon = config.icon
+                  const ActionIcon = config.icon
                   return (
                     <Button
                       key={action}
@@ -296,9 +301,9 @@ export function BookingActionSheet({
                       onClick={() => setConfirmAction(action)}
                       disabled={pending}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
+                      <Icon name={ActionIcon} size="sm" className="shrink-0" />
                       <div className="text-left">
-                        <p className="text-sm font-medium">{config.label}</p>
+                        <p className="text-sm font-semibold">{config.label}</p>
                         <p className="text-xs text-muted-foreground font-normal">{config.description}</p>
                       </div>
                     </Button>
@@ -361,7 +366,7 @@ export function BookingActionSheet({
               onClick={() => confirmAction && executeAction(confirmAction)}
               disabled={pending}
             >
-              {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {pending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
               Confirm
             </AlertDialogAction>
           </AlertDialogFooter>

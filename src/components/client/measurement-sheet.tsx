@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { toast } from "sonner"
 
 interface MeasurementSheetProps {
@@ -173,7 +174,7 @@ export function MeasurementSheet({
             onClick={handleSave}
             disabled={loading}
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
             Save
           </Button>
         </div>

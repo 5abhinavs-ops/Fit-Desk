@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 
 interface ProfileDetailsFormProps {
@@ -194,7 +195,7 @@ export function ProfileDetailsForm({
         <Input id="testimonial3" placeholder={`"Highly recommend!" — Priya R.`} value={testimonial3} onChange={(e) => setTestimonial3(e.target.value)} />
       </div>
       <Button onClick={handleSave} disabled={saving}>
-        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {saving && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
         Save profile
       </Button>
     </div>

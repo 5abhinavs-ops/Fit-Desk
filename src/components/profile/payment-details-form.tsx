@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 interface PaymentDetailsFormProps {
   profileId: string
@@ -148,7 +149,7 @@ export function PaymentDetailsForm({
       </div>
 
       <Button onClick={handleSave} disabled={saving}>
-        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {saving && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
         Save payment details
       </Button>
     </div>

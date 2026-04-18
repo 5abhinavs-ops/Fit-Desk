@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import { parseISO, addDays, format } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
 import { X } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import type { Booking, BookingStatus } from "@/types/database"
 
 interface WeekStripProps {
@@ -101,22 +102,21 @@ export function WeekStrip({
             }}
             aria-label={`${col.dayName}, ${col.dayNum}${isDayBlocked ? ", blocked" : counts ? `, ${counts.confirmed + counts.pending} sessions` : ""}`}
           >
-            {/* Day name */}
+            {/* Day name — micro scale, semibold, muted, pairs with date below */}
             <span
-              className="font-medium uppercase"
-              style={{ fontSize: "10px", color: "#7A9BB5" }}
+              className="text-micro font-semibold uppercase"
+              style={{ color: "#7A9BB5" }}
             >
               {col.dayName}
             </span>
 
-            {/* Day number */}
+            {/* Day number — display-sm scale, semibold, tight to the label above */}
             {isToday ? (
               <span
-                className="mt-0.5 flex items-center justify-center rounded-full font-bold"
+                className="mt-0.5 flex items-center justify-center rounded-full text-display-sm font-semibold"
                 style={{
                   width: "28px",
                   height: "28px",
-                  fontSize: "18px",
                   background: "#00C6D4",
                   color: "#0D1B2A",
                 }}
@@ -125,11 +125,10 @@ export function WeekStrip({
               </span>
             ) : (
               <span
-                className="mt-0.5 flex items-center justify-center font-bold"
+                className="mt-0.5 flex items-center justify-center text-display-sm font-semibold"
                 style={{
                   width: "28px",
                   height: "28px",
-                  fontSize: "18px",
                   color: isDayBlocked ? "#e11d48" : "white",
                 }}
               >
@@ -140,7 +139,8 @@ export function WeekStrip({
             {/* Status row */}
             <div className="mt-0.5 flex items-center justify-center" style={{ height: "12px" }}>
               {isDayBlocked ? (
-                <X className="text-rose-500" style={{ width: "10px", height: "10px" }} />
+                // 10px status dot in compact week strip
+                <Icon name={X} size="sm" className="size-2.5 text-rose-500" />
               ) : counts ? (
                 <div className="flex items-center gap-0.5">
                   <span
@@ -151,7 +151,7 @@ export function WeekStrip({
                       background: counts.confirmed > 0 ? "#00C6D4" : "#FFB347",
                     }}
                   />
-                  <span style={{ fontSize: "10px", color: counts.confirmed > 0 ? "#00C6D4" : "#FFB347" }}>
+                  <span className="text-micro" style={{ color: counts.confirmed > 0 ? "#00C6D4" : "#FFB347" }}>
                     {counts.confirmed + counts.pending}
                   </span>
                 </div>

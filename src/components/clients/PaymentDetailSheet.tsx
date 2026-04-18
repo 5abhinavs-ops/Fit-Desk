@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { Loader2, Clock, AlertCircle, CheckCircle } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
@@ -164,12 +165,13 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
               background: "rgba(255,179,71,0.08)",
               border: "1px solid rgba(255,179,71,0.25)",
             }}>
-              <Clock size={14} style={{ color: "#FFB347", marginTop: 2, flexShrink: 0 }} />
+              {/* 14px inline with status row text */}
+              <Icon name={Clock} size="sm" className="size-3.5 shrink-0" style={{ color: "#FFB347", marginTop: 2 }} />
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: "#FFB347" }}>
+                <p className="text-body-sm font-semibold" style={{ color: "#FFB347" }}>
                   Payment pending
                 </p>
-                <p style={{ fontSize: 12, color: "#FFB347", opacity: 0.75, marginTop: 2 }}>
+                <p className="text-micro opacity-75 mt-0.5" style={{ color: "#FFB347" }}>
                   {payment.due_date
                     ? `Due ${format(new Date(payment.due_date + "T12:00:00"), "d MMM yyyy")}`
                     : "No due date set"}
@@ -188,13 +190,14 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
                 background: "rgba(255,76,122,0.08)",
                 border: "1px solid rgba(255,76,122,0.25)",
               }}>
-                <AlertCircle size={14} style={{ color: "#FF4C7A", marginTop: 2, flexShrink: 0 }} />
+                {/* 14px inline with status row text */}
+                <Icon name={AlertCircle} size="sm" className="size-3.5 shrink-0" style={{ color: "#FF4C7A", marginTop: 2 }} />
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: "#FF4C7A" }}>
+                  <p className="text-body-sm font-semibold" style={{ color: "#FF4C7A" }}>
                     {daysOverdue} day{daysOverdue !== 1 ? "s" : ""} overdue
                   </p>
                   {payment.due_date && (
-                    <p style={{ fontSize: 12, color: "#FF4C7A", opacity: 0.75, marginTop: 2 }}>
+                    <p className="text-micro opacity-75 mt-0.5" style={{ color: "#FF4C7A" }}>
                       Was due {format(new Date(payment.due_date + "T12:00:00"), "d MMM yyyy")}
                     </p>
                   )}
@@ -209,12 +212,13 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
               background: "rgba(0,198,212,0.08)",
               border: "1px solid rgba(0,198,212,0.25)",
             }}>
-              <CheckCircle size={14} style={{ color: "#00C6D4", marginTop: 2, flexShrink: 0 }} />
+              {/* 14px inline with status row text */}
+              <Icon name={CheckCircle} size="sm" className="size-3.5 shrink-0" style={{ color: "#00C6D4", marginTop: 2 }} />
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: "#00C6D4" }}>
+                <p className="text-body-sm font-semibold" style={{ color: "#00C6D4" }}>
                   Client confirmed payment
                 </p>
-                <p style={{ fontSize: 12, color: "#00C6D4", opacity: 0.75, marginTop: 2 }}>
+                <p className="text-micro opacity-75 mt-0.5" style={{ color: "#00C6D4" }}>
                   {payment.proof_uploaded_at
                     ? `Proof uploaded ${format(new Date(payment.proof_uploaded_at), "d MMM, h:mm a")}`
                     : "Awaiting your review"}
@@ -229,13 +233,14 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
               background: "rgba(0,224,150,0.08)",
               border: "1px solid rgba(0,224,150,0.25)",
             }}>
-              <CheckCircle size={14} style={{ color: "#00E096", marginTop: 2, flexShrink: 0 }} />
+              {/* 14px inline with status row text */}
+              <Icon name={CheckCircle} size="sm" className="size-3.5 shrink-0" style={{ color: "#00E096", marginTop: 2 }} />
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: "#00E096" }}>
+                <p className="text-body-sm font-semibold" style={{ color: "#00E096" }}>
                   Payment received
                 </p>
                 {payment.received_date && (
-                  <p style={{ fontSize: 12, color: "#00E096", opacity: 0.75, marginTop: 2 }}>
+                  <p className="text-micro opacity-75 mt-0.5" style={{ color: "#00E096" }}>
                     {format(new Date(payment.received_date + "T12:00:00"), "d MMM yyyy")}
                   </p>
                 )}
@@ -277,7 +282,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
           {payment.proof_url && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Payment proof</span>
+                <span className="text-sm font-semibold">Payment proof</span>
                 {payment.proof_uploaded_at && (
                   <span className="text-xs text-muted-foreground">
                     {format(new Date(payment.proof_uploaded_at), "d MMM, h:mm a")}
@@ -286,7 +291,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
               </div>
               {proofLoading ? (
                 <div className="flex items-center justify-center h-32 rounded-lg border">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <Icon name={Loader2} size="md" className="animate-spin text-muted-foreground" />
                 </div>
               ) : proofUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -320,7 +325,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
               <div className="space-y-2 pt-3 border-t border-[rgba(255,255,255,0.08)]">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Package</span>
-                  <span className="font-medium">{pkg.name}</span>
+                  <span className="font-semibold">{pkg.name}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Sessions</span>
@@ -332,7 +337,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
                     background: barColour, transition: "width 0.3s ease",
                   }} />
                 </div>
-                <p style={{ fontSize: 12, color: barColour }}>
+                <p className="text-micro" style={{ color: barColour }}>
                   {remaining} session{remaining !== 1 ? "s" : ""} remaining
                 </p>
                 <div className="flex justify-between text-sm">
@@ -360,7 +365,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
 
               {upcoming.length > 0 && (
                 <div className="space-y-2">
-                  <p style={{ fontSize: 12 }} className="text-muted-foreground">Upcoming</p>
+                  <p className="text-micro text-muted-foreground">Upcoming</p>
                   {upcoming.map((b) => {
                     const dt = new Date(b.date_time)
                     const badgeClass =
@@ -374,14 +379,14 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
                     return (
                       <div key={b.id} className="flex items-center justify-between">
                         <div>
-                          <p style={{ fontSize: 13, color: "#fff" }}>
+                          <p className="text-body-sm" style={{ color: "#fff" }}>
                             {format(dt, "EEE d MMM")}
                           </p>
-                          <p style={{ fontSize: 12 }} className="text-muted-foreground">
+                          <p className="text-micro text-muted-foreground">
                             {format(dt, "h:mm a")}
                           </p>
                         </div>
-                        <span className={`${badgeClass} rounded-full px-2 py-0.5 text-xs font-medium`}>
+                        <span className={`${badgeClass} rounded-full px-2 py-0.5 text-xs font-semibold`}>
                           {badgeLabel}
                         </span>
                       </div>
@@ -392,7 +397,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
 
               {recent.length > 0 && (
                 <div className={`space-y-2 ${upcoming.length > 0 ? "mt-2" : ""}`}>
-                  <p style={{ fontSize: 12 }} className="text-muted-foreground">Recent</p>
+                  <p className="text-micro text-muted-foreground">Recent</p>
                   {recent.map((b) => {
                     const dt = new Date(b.date_time)
                     const badgeClass =
@@ -406,14 +411,14 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
                     return (
                       <div key={b.id} className="flex items-center justify-between">
                         <div>
-                          <p style={{ fontSize: 13, color: "#fff" }}>
+                          <p className="text-body-sm" style={{ color: "#fff" }}>
                             {format(dt, "EEE d MMM")}
                           </p>
-                          <p style={{ fontSize: 12 }} className="text-muted-foreground">
+                          <p className="text-micro text-muted-foreground">
                             {format(dt, "h:mm a")}
                           </p>
                         </div>
-                        <span className={`${badgeClass} rounded-full px-2 py-0.5 text-xs font-medium`}>
+                        <span className={`${badgeClass} rounded-full px-2 py-0.5 text-xs font-semibold`}>
                           {badgeLabel}
                         </span>
                       </div>
@@ -423,7 +428,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
               )}
 
               {upcoming.length === 0 && recent.length === 0 && (
-                <p className="text-muted-foreground" style={{ fontSize: 13 }}>
+                <p className="text-body-sm text-muted-foreground">
                   No sessions found for this client.
                 </p>
               )}
@@ -442,7 +447,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
             <div className="space-y-2">
               {payment.status === "client_confirmed" && (
                 <div className="rounded-lg border border-[rgba(0,198,212,0.3)] bg-[rgba(0,198,212,0.08)] p-3 space-y-1">
-                  <p className="text-sm font-medium text-[#00C6D4]">
+                  <p className="text-sm font-semibold text-[#00C6D4]">
                     Client has confirmed payment
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -456,7 +461,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
                 onClick={handleMarkReceived}
                 disabled={markReceived.isPending}
               >
-                {markReceived.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {markReceived.isPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
                 Mark as received
               </Button>
 
@@ -468,7 +473,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
                     onClick={handleSendReminder}
                     disabled={sendingReminder}
                   >
-                    {sendingReminder && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {sendingReminder && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
                     Send WhatsApp reminder
                   </Button>
 
@@ -480,7 +485,7 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
                       disabled={requestingProof || !!payment.proof_requested_at}
                     >
                       {requestingProof && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />
                       )}
                       {payment.proof_requested_at
                         ? `Proof requested ${format(new Date(payment.proof_requested_at), "d MMM")}`

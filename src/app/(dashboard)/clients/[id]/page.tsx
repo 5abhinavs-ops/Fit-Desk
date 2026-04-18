@@ -23,6 +23,7 @@ import { ClientPaymentsTab } from "@/components/clients/ClientPaymentsTab"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, MessageCircle, Mail, Loader2, FileText, Salad, ChevronDown, ChevronUp, Trash2, RefreshCw } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import type { ClientStatus } from "@/types/database"
 
@@ -78,11 +79,13 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   const activePackage = packages?.find((p) => p.status === "active")
 
   // Init reminder days from client data
+  /* eslint-disable react-hooks/set-state-in-effect -- syncing form state with async query result, intentional */
   useEffect(() => {
     if (client && client.payment_reminder_days !== null) {
       setReminderDays(String(client.payment_reminder_days))
     }
   }, [client])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function saveReminderDays() {
     if (!client) return
@@ -170,7 +173,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     <div className="space-y-6">
       {/* Back button */}
       <Button variant="ghost" size="sm" onClick={() => router.push("/clients")}>
-        <ArrowLeft className="mr-1 h-4 w-4" />
+        <Icon name={ArrowLeft} size="sm" className="mr-1" />
         Clients
       </Button>
 
@@ -180,7 +183,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <h1 className="text-xl font-bold">
+          <h1 className="text-xl font-semibold">
             {client.first_name} {client.last_name}
           </h1>
           <Badge
@@ -201,7 +204,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           rel="noopener noreferrer"
           className="border-input bg-background hover:bg-accent inline-flex items-center rounded-md border px-3 py-1.5 text-sm"
         >
-          <MessageCircle className="mr-2 h-4 w-4" />
+          <Icon name={MessageCircle} size="sm" className="mr-2" />
           WhatsApp
         </a>
         {client.email && (
@@ -209,7 +212,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
             href={`mailto:${client.email}`}
             className="border-input bg-background hover:bg-accent inline-flex items-center rounded-md border px-3 py-1.5 text-sm"
           >
-            <Mail className="mr-2 h-4 w-4" />
+            <Icon name={Mail} size="sm" className="mr-2" />
             Email
           </a>
         )}
@@ -266,7 +269,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                   onClick={handleMarkSession}
                   disabled={sessionsUsed >= totalSessions || logSession.isPending}
                 >
-                  {logSession.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {logSession.isPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
                   Mark session done
                 </Button>
               </CardContent>
@@ -283,7 +286,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           {recentNotes && recentNotes.length > 0 && (
             <div className="space-y-2">
               <h2 className="text-sm font-semibold flex items-center gap-1.5">
-                <FileText className="h-4 w-4" />
+                <Icon name={FileText} size="sm" />
                 Recent notes
               </h2>
               {recentNotes.map((note) => (
@@ -310,13 +313,13 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
               onClick={() => setNutritionExpanded(!nutritionExpanded)}
             >
               <div className="flex items-center gap-1.5">
-                <Salad className="h-4 w-4 text-muted-foreground" />
+                <Icon name={Salad} size="sm" className="text-muted-foreground" />
                 <span className="text-sm font-semibold">Nutrition</span>
               </div>
               {nutritionExpanded ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform" />
+                <Icon name={ChevronUp} size="sm" className="text-muted-foreground transition-transform" />
               ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+                <Icon name={ChevronDown} size="sm" className="text-muted-foreground transition-transform" />
               )}
             </button>
             {nutritionExpanded && (
@@ -333,13 +336,13 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
               onClick={() => setRecurringExpanded(!recurringExpanded)}
             >
               <div className="flex items-center gap-1.5">
-                <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                <Icon name={RefreshCw} size="sm" className="text-muted-foreground" />
                 <span className="text-sm font-semibold">Recurring sessions</span>
               </div>
               {recurringExpanded ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform" />
+                <Icon name={ChevronUp} size="sm" className="text-muted-foreground transition-transform" />
               ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+                <Icon name={ChevronDown} size="sm" className="text-muted-foreground transition-transform" />
               )}
             </button>
             {recurringExpanded && (
@@ -352,7 +355,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                         className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2"
                       >
                         <div>
-                          <p className="text-sm font-medium">
+                          <p className="text-sm font-semibold">
                             Every {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][sched.day_of_week]} at{" "}
                             {(() => {
                               const [hStr, mStr] = sched.start_time.split(":")
@@ -372,6 +375,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-rose-500"
+                          aria-label="Delete recurring schedule"
                           onClick={() =>
                             deleteRecurring.mutate(
                               { id: sched.id, clientId: id },
@@ -383,7 +387,8 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                           }
                           disabled={deleteRecurring.isPending}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          {/* 14px trash glyph in compact list row */}
+                          <Icon name={Trash2} size="sm" className="size-3.5" />
                         </Button>
                       </div>
                     ))}
@@ -505,7 +510,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                       }}
                       disabled={createRecurring.isPending}
                     >
-                      {createRecurring.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {createRecurring.isPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
                       Schedule sessions
                     </Button>
                   </div>
@@ -525,7 +530,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
           {/* Payment reminder setting */}
           <div className="rounded-lg border p-4 space-y-2">
-            <Label htmlFor="reminderDays" className="text-sm font-medium">Payment reminder frequency</Label>
+            <Label htmlFor="reminderDays" className="text-sm font-semibold">Payment reminder frequency</Label>
             <div className="flex gap-2">
               <Input
                 id="reminderDays"
@@ -544,7 +549,8 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                 onClick={saveReminderDays}
                 disabled={reminderSaving}
               >
-                {reminderSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+                {/* 12px spinner inside size="sm" Save button */}
+                {reminderSaving ? <Icon name={Loader2} size="sm" className="size-3 animate-spin" /> : "Save"}
               </Button>
             </div>
             <p className="text-muted-foreground text-xs">

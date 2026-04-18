@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CalendarDays, DollarSign, AlertTriangle, TrendingUp, Dumbbell, AlertCircle, UserCheck, UserMinus } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { PendingApprovalsCard } from "@/components/dashboard/pending-approvals-card"
 import { format } from "date-fns"
 
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   const [greeting, setGreeting] = useState("")
   const [today, setToday] = useState("")
 
+  /* eslint-disable react-hooks/set-state-in-effect -- client-only auth user + locale-dependent greeting/date derivation, intentional */
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -45,6 +47,7 @@ export default function DashboardPage() {
     setGreeting(getGreeting())
     setToday(format(new Date(), "EEEE, d MMMM yyyy"))
   }, [])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (isError) {
     return (
@@ -60,10 +63,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Greeting */}
       <div>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-semibold">
           {greeting || "Welcome"}, {trainerName.split(" ")[0] || "there"} 👋
         </h1>
-        <p className="text-muted-foreground text-[15px]">{today}</p>
+        <p className="text-muted-foreground text-body-lg">{today}</p>
       </div>
 
       {/* Pending approvals */}
@@ -88,10 +91,10 @@ export default function DashboardPage() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <CalendarDays className="text-[#00C6D4] h-4 w-4" />
-                  <span className="text-muted-foreground text-[13px]">Today&apos;s sessions</span>
+                  <Icon name={CalendarDays} size="sm" className="text-[#00C6D4]" />
+                  <span className="text-muted-foreground text-body-sm">Today&apos;s sessions</span>
                 </div>
-                <p className="mt-2 text-3xl font-bold">{data?.todayBookingsCount ?? 0}</p>
+                <p className="mt-2 text-3xl font-semibold tabular">{data?.todayBookingsCount ?? 0}</p>
               </CardContent>
             </Card>
 
@@ -102,14 +105,14 @@ export default function DashboardPage() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="text-[#FFB347] h-4 w-4" />
-                  <span className="text-muted-foreground text-[13px]">Outstanding</span>
+                  <Icon name={DollarSign} size="sm" className="text-[#FFB347]" />
+                  <span className="text-muted-foreground text-body-sm">Outstanding</span>
                 </div>
-                <p className="mt-2 text-3xl font-bold text-[#FFB347]">
+                <p className="mt-2 text-3xl font-semibold text-[#FFB347] tabular">
                   {formatCurrency(data?.outstandingPayments ?? 0)}
                 </p>
                 {(data?.pendingPaymentConfirmations ?? 0) > 0 && (
-                  <p className="mt-1 text-[13px] text-[#FFB347]">
+                  <p className="mt-1 text-body-sm text-[#FFB347]">
                     {data?.pendingPaymentConfirmations} awaiting confirmation
                   </p>
                 )}
@@ -123,10 +126,10 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="text-[#00E096] h-4 w-4" />
-                  <span className="text-muted-foreground text-[13px]">Revenue this month</span>
+                  <Icon name={TrendingUp} size="sm" className="text-[#00E096]" />
+                  <span className="text-muted-foreground text-body-sm">Revenue this month</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold text-[#00E096]">
+                <p className="mt-2 text-2xl font-semibold text-[#00E096] tabular">
                   {formatCurrency(data?.monthlyRevenue ?? 0)}
                 </p>
               </CardContent>
@@ -136,10 +139,10 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <Dumbbell className="text-[#00C6D4] h-4 w-4" />
-                  <span className="text-muted-foreground text-[13px]">Sessions this week</span>
+                  <Icon name={Dumbbell} size="sm" className="text-[#00C6D4]" />
+                  <span className="text-muted-foreground text-body-sm">Sessions this week</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold">{data?.sessionsThisWeek ?? 0}</p>
+                <p className="mt-2 text-2xl font-semibold tabular">{data?.sessionsThisWeek ?? 0}</p>
               </CardContent>
             </Card>
 
@@ -147,10 +150,10 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-[#FF4C7A]" />
-                  <span className="text-muted-foreground text-[13px]">Overdue</span>
+                  <Icon name={AlertCircle} size="sm" className="text-[#FF4C7A]" />
+                  <span className="text-muted-foreground text-body-sm">Overdue</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold text-[#FF4C7A]">
+                <p className="mt-2 text-2xl font-semibold text-[#FF4C7A] tabular">
                   {formatCurrency(data?.overdueTotal ?? 0)}
                 </p>
               </CardContent>
@@ -160,10 +163,10 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <UserCheck className={`h-4 w-4 ${(data?.attendanceRate ?? 0) >= 80 ? "text-[#00E096]" : "text-[#FF4C7A]"}`} />
-                  <span className="text-muted-foreground text-[13px]">Attendance rate</span>
+                  <Icon name={UserCheck} size="sm" className={(data?.attendanceRate ?? 0) >= 80 ? "text-[#00E096]" : "text-[#FF4C7A]"} />
+                  <span className="text-muted-foreground text-body-sm">Attendance rate</span>
                 </div>
-                <p className={`mt-2 text-2xl font-bold ${(data?.attendanceRate ?? 0) >= 80 ? "text-[#00E096]" : "text-[#FF4C7A]"}`}>
+                <p className={`mt-2 text-2xl font-semibold tabular ${(data?.attendanceRate ?? 0) >= 80 ? "text-[#00E096]" : "text-[#FF4C7A]"}`}>
                   {data?.attendanceRate !== null ? `${data?.attendanceRate}%` : "—"}
                 </p>
               </CardContent>
@@ -178,10 +181,10 @@ export default function DashboardPage() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <UserMinus className="h-4 w-4 text-[#FF4C7A]" />
-                  <span className="text-muted-foreground text-[13px]">Lapsed clients</span>
+                  <Icon name={UserMinus} size="sm" className="text-[#FF4C7A]" />
+                  <span className="text-muted-foreground text-body-sm">Lapsed clients</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold text-[#FF4C7A]">{data?.lapsedClients.length}</p>
+                <p className="mt-2 text-2xl font-semibold text-[#FF4C7A] tabular">{data?.lapsedClients.length}</p>
               </CardContent>
             </Card>
           )}
@@ -194,10 +197,10 @@ export default function DashboardPage() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="text-[#FFB347] h-4 w-4" />
-                  <span className="text-muted-foreground text-[13px]">Renew soon</span>
+                  <Icon name={AlertTriangle} size="sm" className="text-[#FFB347]" />
+                  <span className="text-muted-foreground text-body-sm">Renew soon</span>
                 </div>
-                <p className="mt-2 text-3xl font-bold text-[#FFB347]">{data.lowSessionClients.length}</p>
+                <p className="mt-2 text-3xl font-semibold text-[#FFB347] tabular">{data.lowSessionClients.length}</p>
               </CardContent>
             </Card>
           )}

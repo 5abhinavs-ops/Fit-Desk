@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 
 interface AddClientSheetProps {
@@ -170,7 +171,7 @@ export function AddClientSheet({ open, onOpenChange }: AddClientSheetProps) {
                 Cancel
               </Button>
               <Button type="submit" className="flex-1" disabled={createClient_.isPending}>
-                {createClient_.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {createClient_.isPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
                 Add client
               </Button>
             </div>

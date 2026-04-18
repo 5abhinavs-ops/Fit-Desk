@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useClientIdentity } from "@/hooks/useClientIdentity"
 import { createClient } from "@/lib/supabase/client"
@@ -14,6 +15,7 @@ import {
   MessageCircle,
   Clock,
 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import Link from "next/link"
 
@@ -30,6 +32,10 @@ export default function ClientHomePage() {
   const { data: identity, isLoading: identityLoading } = useClientIdentity()
   const supabase = createClient()
   const clientId = identity?.id
+  // Stable per-render timestamp for "hours until session" displays.
+  // useState initializer is the React-idiomatic way to capture an impure
+  // value once per mount without tripping the react-hooks/purity rule.
+  const [nowMs] = useState(() => Date.now())
 
   // Next upcoming session
   const { data: nextSession } = useQuery({
@@ -113,10 +119,10 @@ export default function ClientHomePage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-semibold">
           {greeting}, {identity.first_name}
         </h1>
-        <p className="text-muted-foreground text-[15px]">
+        <p className="text-muted-foreground text-body-lg">
           {format(new Date(), "EEEE, d MMMM")}
         </p>
       </div>
@@ -125,8 +131,8 @@ export default function ClientHomePage() {
       <Card className="card-border-cyan">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <CalendarDays className="h-4 w-4 text-[#00C6D4]" />
-            <span className="text-muted-foreground text-[13px]">
+            <Icon name={CalendarDays} size="sm" className="text-[#00C6D4]" />
+            <span className="text-muted-foreground text-body-sm">
               Next session
             </span>
           </div>
@@ -135,7 +141,7 @@ export default function ClientHomePage() {
               <p className="text-lg font-semibold">
                 {format(new Date(nextSession.date_time), "EEEE, d MMM")}
               </p>
-              <div className="flex items-center gap-3 mt-1 text-[15px]">
+              <div className="flex items-center gap-3 mt-1 text-body-lg">
                 <span>
                   {format(new Date(nextSession.date_time), "h:mm a")}
                 </span>
@@ -150,13 +156,14 @@ export default function ClientHomePage() {
               </div>
               {(() => {
                 const hoursUntil =
-                  (new Date(nextSession.date_time).getTime() - Date.now()) /
+                  (new Date(nextSession.date_time).getTime() - nowMs) /
                   (1000 * 60 * 60)
                 if (hoursUntil <= 24 && hoursUntil > 0) {
                   return (
                     <div className="mt-2 flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-[#FFB347]" />
-                      <span className="text-[13px] text-[#FFB347]">
+                      {/* 14px to match text-body-sm caption inline */}
+                      <Icon name={Clock} size="sm" className="size-3.5 text-[#FFB347]" />
+                      <span className="text-body-sm text-[#FFB347]">
                         In {Math.round(hoursUntil)} hours
                       </span>
                     </div>
@@ -186,8 +193,8 @@ export default function ClientHomePage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Package className="h-4 w-4 text-[#00E096]" />
-              <span className="text-muted-foreground text-[13px]">
+              <Icon name={Package} size="sm" className="text-[#00E096]" />
+              <span className="text-muted-foreground text-body-sm">
                 {activePackage.name}
               </span>
             </div>
@@ -207,8 +214,8 @@ export default function ClientHomePage() {
               return (
                 <div>
                   <div className="flex items-baseline justify-between">
-                    <p className="text-2xl font-bold">{remaining}</p>
-                    <span className="text-muted-foreground text-[13px]">
+                    <p className="text-2xl font-semibold tabular">{remaining}</p>
+                    <span className="text-muted-foreground text-body-sm">
                       of {activePackage.total_sessions} sessions left
                     </span>
                   </div>
@@ -222,12 +229,12 @@ export default function ClientHomePage() {
                     />
                   </div>
                   {remaining <= 2 && remaining > 0 && (
-                    <p className="mt-1.5 text-[13px] text-[#FFB347]">
+                    <p className="mt-1.5 text-body-sm text-[#FFB347]">
                       Only {remaining} session{remaining !== 1 ? "s" : ""} left
                     </p>
                   )}
                   {activePackage.expiry_date && (
-                    <p className="mt-1 text-[13px] text-muted-foreground">
+                    <p className="mt-1 text-body-sm text-muted-foreground">
                       Expires{" "}
                       {format(
                         new Date(activePackage.expiry_date),
@@ -247,16 +254,16 @@ export default function ClientHomePage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="h-4 w-4 text-[#FFB347]" />
-              <span className="text-muted-foreground text-[13px]">
+              <Icon name={AlertCircle} size="sm" className="text-[#FFB347]" />
+              <span className="text-muted-foreground text-body-sm">
                 Payment due
               </span>
             </div>
-            <p className="text-2xl font-bold text-[#FFB347]">
+            <p className="text-2xl font-semibold text-[#FFB347] tabular">
               {formatCurrency(outstandingPayment.amount)}
             </p>
             {outstandingPayment.due_date && (
-              <p className="text-[13px] text-muted-foreground mt-1">
+              <p className="text-body-sm text-muted-foreground mt-1">
                 Due{" "}
                 {format(new Date(outstandingPayment.due_date), "d MMM yyyy")}
               </p>
@@ -286,7 +293,7 @@ export default function ClientHomePage() {
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="font-semibold">{trainer.name}</p>
-              <p className="text-[13px] text-muted-foreground">Your trainer</p>
+              <p className="text-body-sm text-muted-foreground">Your trainer</p>
             </div>
             {trainer.whatsapp_number && (
               <a
@@ -295,7 +302,7 @@ export default function ClientHomePage() {
                 rel="noopener noreferrer"
               >
                 <Button variant="outline" size="sm">
-                  <MessageCircle className="h-4 w-4 mr-1" />
+                  <Icon name={MessageCircle} size="sm" className="mr-1" />
                   Chat
                 </Button>
               </a>

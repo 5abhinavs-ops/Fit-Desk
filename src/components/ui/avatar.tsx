@@ -46,7 +46,7 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        "flex size-full items-center justify-center rounded-xl bg-[rgba(0,198,212,0.14)] text-[12px] font-extrabold text-[#00C6D4] group-data-[size=sm]/avatar:text-xs",
+        "flex size-full items-center justify-center rounded-xl bg-[rgba(0,198,212,0.14)] text-micro font-semibold text-[#00C6D4] group-data-[size=sm]/avatar:text-xs",
         className
       )}
       {...props}

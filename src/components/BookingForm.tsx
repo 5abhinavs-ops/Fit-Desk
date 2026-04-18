@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Loader2, Check } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { SlotPicker } from "@/components/bookings/slot-picker"
 import { format, parseISO, isBefore, startOfDay } from "date-fns"
 import { z } from "zod"
@@ -144,9 +145,9 @@ export function BookingForm({ trainerId, trainerName }: BookingFormProps) {
     return (
       <div className="space-y-4 text-center py-8">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(0,224,150,0.15)]">
-          <Check className="h-6 w-6 text-[#00E096]" />
+          <Icon name={Check} size="lg" className="text-[#00E096]" />
         </div>
-        <h2 className="text-xl font-bold">Booking request sent!</h2>
+        <h2 className="text-xl font-semibold">Booking request sent!</h2>
         <p className="text-muted-foreground text-sm">
           {trainerName} will confirm your session via WhatsApp shortly.
         </p>
@@ -220,7 +221,8 @@ export function BookingForm({ trainerId, trainerName }: BookingFormProps) {
 
       {selectedTime && date && (
         <div className="bg-[rgba(0,224,150,0.15)] text-[#00E096] rounded-lg px-3 py-2 flex items-center gap-2">
-          <Check className="h-3.5 w-3.5 text-[#00E096] shrink-0" />
+          {/* 14px to match text-sm caption */}
+          <Icon name={Check} size="sm" className="size-3.5 text-[#00E096] shrink-0" />
           <span className="text-sm">
             {format(parseISO(date), "EEEE d MMM")} &middot; {formatTime(selectedTime)} selected
           </span>
@@ -242,7 +244,7 @@ export function BookingForm({ trainerId, trainerName }: BookingFormProps) {
         className="w-full"
         disabled={loading || !selectedTime || !date || !name || !whatsapp}
       >
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {loading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
         Request booking
       </Button>
     </form>

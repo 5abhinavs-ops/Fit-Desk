@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Clock, Check, X, Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 
 export function PendingApprovalsCard() {
@@ -45,7 +46,7 @@ export function PendingApprovalsCard() {
     <Card className="border-amber-200 bg-amber-50">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-amber-600" />
+          <Icon name={Clock} size="sm" className="text-amber-600" />
           <span className="text-sm font-semibold text-amber-800">
             Pending approval
           </span>
@@ -63,7 +64,7 @@ export function PendingApprovalsCard() {
             return (
               <div key={a.id} className="rounded-lg bg-[#1A3349] p-3 space-y-2">
                 <div>
-                  <p className="text-sm font-medium">{clientName}</p>
+                  <p className="text-sm font-semibold">{clientName}</p>
                   <p className="text-xs text-muted-foreground">
                     {format(dt, "EEE, d MMM · h:mm a")} · {a.booking.session_type}
                   </p>
@@ -76,9 +77,11 @@ export function PendingApprovalsCard() {
                     disabled={isActing}
                   >
                     {isActing ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      // 12px inside size="sm" action button
+                      <Icon name={Loader2} size="sm" className="size-3 animate-spin" />
                     ) : (
-                      <Check className="mr-1 h-3 w-3" />
+                      // 12px inside size="sm" action button
+                      <Icon name={Check} size="sm" className="size-3 mr-1" />
                     )}
                     Approve
                   </Button>
@@ -89,7 +92,8 @@ export function PendingApprovalsCard() {
                     onClick={() => handleDecision(a.booking_id, "declined")}
                     disabled={isActing}
                   >
-                    <X className="mr-1 h-3 w-3" />
+                    {/* 12px inside size="sm" action button */}
+                    <Icon name={X} size="sm" className="size-3 mr-1" />
                     Decline
                   </Button>
                 </div>

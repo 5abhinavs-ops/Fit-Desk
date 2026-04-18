@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, DollarSign } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 
 const paymentStatusStyles: Record<string, { label: string; className: string }> = {
@@ -37,8 +38,8 @@ export function PaymentSection({
     <div className="rounded-lg border p-3 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Payment</span>
+          <Icon name={DollarSign} size="sm" className="text-muted-foreground" />
+          <span className="text-sm font-semibold">Payment</span>
         </div>
         <Badge className={status.className}>{status.label}</Badge>
       </div>
@@ -72,7 +73,8 @@ export function PaymentSection({
               onClick={() => onPaymentAction("mark_paid")}
               disabled={paymentPending}
             >
-              {paymentPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Mark as paid"}
+              {/* 12px inside size="sm" button */}
+              {paymentPending ? <Icon name={Loader2} size="sm" className="size-3 animate-spin" /> : "Mark as paid"}
             </Button>
             <Button
               size="sm"

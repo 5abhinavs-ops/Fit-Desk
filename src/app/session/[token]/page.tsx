@@ -1,4 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service"
+import { Package } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import { SessionActions } from "./session-actions"
 import { WhatsAppLink } from "./whatsapp-link"
@@ -23,7 +25,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="text-center space-y-2">
-          <h1 className="text-xl font-bold">Link not found</h1>
+          <h1 className="text-xl font-semibold">Link not found</h1>
           <p className="text-muted-foreground text-sm">
             This session management link is invalid.
           </p>
@@ -39,7 +41,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="text-center space-y-2">
-          <h1 className="text-xl font-bold">This link has expired</h1>
+          <h1 className="text-xl font-semibold">This link has expired</h1>
           <p className="text-muted-foreground text-sm">
             {isUsed
               ? "This link has already been used."
@@ -65,7 +67,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="text-center space-y-2">
-          <h1 className="text-xl font-bold">Booking not found</h1>
+          <h1 className="text-xl font-semibold">Booking not found</h1>
           <p className="text-muted-foreground text-sm">
             The booking associated with this link could not be found.
           </p>
@@ -120,7 +122,7 @@ export default async function SessionManagementPage({ params }: SessionPageProps
       <div className="w-full max-w-sm space-y-6">
         {/* Header */}
         <div className="text-center space-y-1">
-          <h1 className="text-xl font-bold">Your session</h1>
+          <h1 className="text-xl font-semibold">Your session</h1>
           <p className="text-muted-foreground text-sm">with {trainer.name}</p>
         </div>
 
@@ -148,16 +150,14 @@ export default async function SessionManagementPage({ params }: SessionPageProps
           const remaining = packageData.total_sessions - packageData.sessions_used
           const progressPct = (packageData.sessions_used / packageData.total_sessions) * 100
           const expiryDate = packageData.expiry_date ? new Date(packageData.expiry_date) : null
+          // Server component: rendered once per request, stable timestamp by design.
+          // eslint-disable-next-line react-hooks/purity -- server component, not subject to client render retries
           const expiryDays = expiryDate ? Math.ceil((expiryDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null
 
           return (
             <div className="rounded-xl border p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
-                  <path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                  <line x1="12" y1="22.08" x2="12" y2="12"/>
-                </svg>
+                <Icon name={Package} size="sm" className="text-muted-foreground" />
                 <span className="text-sm font-semibold">{packageData.name}</span>
               </div>
               <p className="text-sm">
@@ -192,13 +192,13 @@ export default async function SessionManagementPage({ params }: SessionPageProps
             {(trainer.paynow_number || trainer.paynow_details) && (
               <div className="rounded-lg bg-[#1A3349] p-3 text-sm">
                 <p className="text-xs text-muted-foreground">PayNow</p>
-                <p className="font-mono font-medium">{trainer.paynow_number || trainer.paynow_details}</p>
+                <p className="font-mono font-semibold">{trainer.paynow_number || trainer.paynow_details}</p>
               </div>
             )}
             {trainer.bank_name && trainer.bank_account_number && (
               <div className="rounded-lg bg-[#1A3349] p-3 text-sm">
                 <p className="text-xs text-muted-foreground">Bank transfer</p>
-                <p className="font-medium">{trainer.bank_name}</p>
+                <p className="font-semibold">{trainer.bank_name}</p>
                 <p className="font-mono">{trainer.bank_account_number}</p>
                 {trainer.bank_account_name && (
                   <p className="text-xs text-muted-foreground">{trainer.bank_account_name}</p>

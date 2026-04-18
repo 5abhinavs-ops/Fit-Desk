@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { toast } from "sonner"
 
 export default function ClientLoginPage() {
@@ -98,8 +99,8 @@ export default function ClientLoginPage() {
         {step === 1 && (
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl font-bold">Welcome back</h1>
-              <p className="text-muted-foreground mt-1 text-[15px]">
+              <h1 className="text-2xl font-semibold">Welcome back</h1>
+              <p className="text-muted-foreground mt-1 text-body-lg">
                 Enter your WhatsApp number to sign in
               </p>
             </div>
@@ -126,7 +127,7 @@ export default function ClientLoginPage() {
               disabled={loading || whatsappNumber.length < 8}
             >
               {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />
               ) : null}
               Send code
             </Button>
@@ -136,8 +137,8 @@ export default function ClientLoginPage() {
         {step === 2 && (
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl font-bold">Check your WhatsApp</h1>
-              <p className="text-muted-foreground mt-1 text-[15px]">
+              <h1 className="text-2xl font-semibold">Check your WhatsApp</h1>
+              <p className="text-muted-foreground mt-1 text-body-lg">
                 We sent a 6-digit code to {whatsappNumber}
               </p>
             </div>
@@ -170,7 +171,7 @@ export default function ClientLoginPage() {
               disabled={loading || otp.length !== 6}
             >
               {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />
               ) : null}
               Verify
             </Button>

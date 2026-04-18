@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { useNutritionLogs } from "@/hooks/useNutritionLogs"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Camera, Flame, Beef, Wheat, Droplets } from "lucide-react"
-import { format, subDays } from "date-fns"
+import { Icon } from "@/components/ui/icon"
+import { format } from "date-fns"
 
 interface NutritionTabProps {
   clientId: string
@@ -33,12 +33,6 @@ export function NutritionTab({ clientId }: NutritionTabProps) {
     { calories: 0, protein: 0, carbs: 0, fat: 0 },
   )
 
-  // 7-day calorie summary
-  const last7days = Array.from({ length: 7 }, (_, i) => {
-    const d = subDays(new Date(todayStr), 6 - i)
-    return format(d, "yyyy-MM-dd")
-  })
-
   return (
     <div className="space-y-4">
       {/* Date picker */}
@@ -49,12 +43,12 @@ export function NutritionTab({ clientId }: NutritionTabProps) {
         max={todayStr}
       />
 
-      {/* Day summary */}
+      {/* Day summary — 12px mini-stat glyphs inline with text-micro label */}
       <div className="grid grid-cols-4 gap-2">
-        <MiniStat icon={<Flame className="h-3 w-3 text-orange-500" />} value={totals.calories} label="cal" />
-        <MiniStat icon={<Beef className="h-3 w-3 text-red-500" />} value={totals.protein} label="g prot" />
-        <MiniStat icon={<Wheat className="h-3 w-3 text-amber-500" />} value={totals.carbs} label="g carb" />
-        <MiniStat icon={<Droplets className="h-3 w-3 text-blue-500" />} value={totals.fat} label="g fat" />
+        <MiniStat icon={<Icon name={Flame} size="sm" className="size-3 text-orange-500" />} value={totals.calories} label="cal" />
+        <MiniStat icon={<Icon name={Beef} size="sm" className="size-3 text-red-500" />} value={totals.protein} label="g prot" />
+        <MiniStat icon={<Icon name={Wheat} size="sm" className="size-3 text-amber-500" />} value={totals.carbs} label="g carb" />
+        <MiniStat icon={<Icon name={Droplets} size="sm" className="size-3 text-blue-500" />} value={totals.fat} label="g fat" />
       </div>
 
       {/* Meals list */}
@@ -75,18 +69,18 @@ export function NutritionTab({ clientId }: NutritionTabProps) {
                 <img src={log.photo_url} alt={log.meal_name ?? ""} className="h-10 w-10 rounded object-cover" />
               ) : (
                 <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
-                  <Camera className="h-4 w-4 text-muted-foreground" />
+                  <Icon name={Camera} size="sm" className="text-muted-foreground" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{log.meal_name}</p>
+                <p className="text-sm font-semibold truncate">{log.meal_name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {log.meal_type && <Badge variant="secondary" className="text-[10px] mr-1">{log.meal_type}</Badge>}
+                  {log.meal_type && <Badge variant="secondary" className="text-micro mr-1">{log.meal_type}</Badge>}
                   {format(new Date(log.logged_at), "h:mm a")}
                 </p>
               </div>
               <div className="text-right text-xs shrink-0">
-                {log.calories != null && <p className="font-medium">{log.calories} cal</p>}
+                {log.calories != null && <p className="font-semibold">{log.calories} cal</p>}
                 <p className="text-muted-foreground">
                   {log.protein_g ?? 0}p · {log.carbs_g ?? 0}c · {log.fat_g ?? 0}f
                 </p>
@@ -103,8 +97,8 @@ function MiniStat({ icon, value, label }: { icon: React.ReactNode; value: number
   return (
     <div className="rounded-lg border p-2 text-center">
       <div className="flex items-center justify-center gap-1">{icon}</div>
-      <p className="text-xs font-bold">{Math.round(value)}</p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="text-xs font-semibold tabular">{Math.round(value)}</p>
+      <p className="text-micro text-muted-foreground">{label}</p>
     </div>
   )
 }

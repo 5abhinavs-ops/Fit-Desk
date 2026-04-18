@@ -62,10 +62,10 @@ export function ClientPaymentsTab({ clientId }: ClientPaymentsTabProps) {
     <div className="space-y-4">
       {/* Summary pills */}
       <div className="flex gap-2">
-        <span className="rounded-full bg-[rgba(0,224,150,0.15)] text-[#00E096] px-3 py-1 text-xs font-medium">
+        <span className="rounded-full bg-[rgba(0,224,150,0.15)] text-[#00E096] px-3 py-1 text-xs font-semibold">
           Total paid: ${totalPaid.toFixed(0)}
         </span>
-        <span className="rounded-full bg-[rgba(255,179,71,0.15)] text-[#FFB347] px-3 py-1 text-xs font-medium">
+        <span className="rounded-full bg-[rgba(255,179,71,0.15)] text-[#FFB347] px-3 py-1 text-xs font-semibold">
           Outstanding: ${outstanding.toFixed(0)}
         </span>
       </div>
@@ -86,7 +86,7 @@ export function ClientPaymentsTab({ clientId }: ClientPaymentsTabProps) {
             </div>
             <div className="text-right shrink-0">
               <p className="text-sm font-semibold">${payment.amount}</p>
-              <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[payment.status]}`}>
+              <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${statusColors[payment.status]}`}>
                 {payment.status}
               </span>
             </div>

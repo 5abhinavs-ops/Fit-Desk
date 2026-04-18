@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Camera, Loader2, CheckCircle } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { toast } from "sonner"
 
 interface PaymentProofSheetProps {
@@ -135,7 +136,8 @@ export function PaymentProofSheet({
               className="w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary/50 transition-colors"
               onClick={() => inputRef.current?.click()}
             >
-              <Camera className="h-8 w-8" />
+              {/* 32px glyph inside large dashed dropzone — above lg (24px) */}
+              <Icon name={Camera} size="lg" className="size-8" />
               <span className="text-sm">Tap to upload</span>
             </button>
           )}
@@ -146,9 +148,9 @@ export function PaymentProofSheet({
             onClick={handleSubmit}
           >
             {loading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />
             ) : (
-              <CheckCircle className="mr-2 h-4 w-4" />
+              <Icon name={CheckCircle} size="sm" className="mr-2" />
             )}
             Submit payment confirmation
           </Button>

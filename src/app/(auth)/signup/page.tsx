@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 import { FitDeskLogo } from "@/components/shared/fitdesk-logo"
 
@@ -126,7 +127,7 @@ export default function SignupPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
             Create account
           </Button>
         </form>

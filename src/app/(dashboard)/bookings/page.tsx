@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 import { Plus, ChevronLeft, ChevronRight, Copy, Loader2, Ban } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format, addDays, parseISO } from "date-fns"
 import type { Booking } from "@/types/database"
 
@@ -157,7 +158,7 @@ export default function BookingsPage() {
 
         {/* Header row */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Calendar</h1>
+          <h1 className="text-2xl font-semibold">Calendar</h1>
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -166,9 +167,9 @@ export default function BookingsPage() {
               onClick={() => setWeekOffset((o) => o - 1)}
               aria-label="Previous week"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <Icon name={ChevronLeft} size="sm" />
             </Button>
-            <span className="text-sm font-medium">{weekLabel}</span>
+            <span className="text-sm font-semibold">{weekLabel}</span>
             <Button
               variant="ghost"
               size="icon"
@@ -176,7 +177,7 @@ export default function BookingsPage() {
               onClick={() => setWeekOffset((o) => o + 1)}
               aria-label="Next week"
             >
-              <ChevronRight className="h-4 w-4" />
+              <Icon name={ChevronRight} size="sm" />
             </Button>
           </div>
         </div>
@@ -199,7 +200,8 @@ export default function BookingsPage() {
             className={`${weekOffset !== 0 ? "flex-1" : "w-full"} text-xs`}
             onClick={() => setCopyConfirmOpen(true)}
           >
-            <Copy className="mr-1 h-3 w-3" />
+            {/* 12px inside size="sm" button */}
+            <Icon name={Copy} size="sm" className="size-3 mr-1" />
             Copy week →
           </Button>
         </div>
@@ -247,14 +249,15 @@ export default function BookingsPage() {
                   border: "1px solid rgba(225,29,72,0.4)",
                 }}
               >
-                <span className="flex items-center gap-1.5" style={{ color: "#e11d48", fontSize: "13px", fontWeight: 600 }}>
-                  <Ban className="h-3.5 w-3.5" />
+                <span className="flex items-center gap-1.5 text-body-sm font-semibold" style={{ color: "#e11d48" }}>
+                  {/* 14px inline with 13px status text */}
+                  <Icon name={Ban} size="sm" className="size-3.5" />
                   Day blocked
                 </span>
                 <button
                   onClick={handleUnblockDay}
-                  style={{ color: "#e11d48", fontSize: "12px" }}
-                  className="font-medium underline"
+                  style={{ color: "#e11d48" }}
+                  className="font-semibold underline text-micro"
                 >
                   Remove
                 </button>
@@ -266,7 +269,8 @@ export default function BookingsPage() {
                 className="w-full text-xs text-rose-500 hover:text-rose-600"
                 onClick={() => setCancelDayOpen(true)}
               >
-                <Ban className="mr-1 h-3 w-3" />
+                {/* 12px inside size="sm" button */}
+                <Icon name={Ban} size="sm" className="size-3 mr-1" />
                 Cancel all & block day
               </Button>
             ) : !dayLoading ? (
@@ -276,7 +280,8 @@ export default function BookingsPage() {
                 className="w-full text-xs text-rose-500 hover:text-rose-600"
                 onClick={() => setBlockDayOpen(true)}
               >
-                <Ban className="mr-1 h-3 w-3" />
+                {/* 12px inside size="sm" button */}
+                <Icon name={Ban} size="sm" className="size-3 mr-1" />
                 Block day
               </Button>
             ) : null}
@@ -304,7 +309,7 @@ export default function BookingsPage() {
         className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full fab-glow"
         onClick={() => setCreateOpen(true)}
       >
-        <Plus className="h-6 w-6" />
+        <Icon name={Plus} size="lg" />
       </Button>
 
       {/* Action sheet */}
@@ -339,7 +344,7 @@ export default function BookingsPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={cancelDayPending}>Go back</AlertDialogCancel>
             <AlertDialogAction onClick={handleCancelDay} disabled={cancelDayPending} className="bg-rose-600 hover:bg-rose-700">
-              {cancelDayPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {cancelDayPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
               Cancel sessions
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -376,7 +381,7 @@ export default function BookingsPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={copyPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleCopyWeek} disabled={copyPending}>
-              {copyPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {copyPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
               Copy
             </AlertDialogAction>
           </AlertDialogFooter>

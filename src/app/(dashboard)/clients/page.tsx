@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search, Plus } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import type { ClientStatus } from "@/types/database"
 
 const statusFilters: Array<{ label: string; value: ClientStatus | "all" }> = [
@@ -39,13 +40,13 @@ export default function ClientsPage() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Clients</h1>
+        <h1 className="text-2xl font-semibold">Clients</h1>
         <Badge variant="secondary">{clients?.length ?? 0}</Badge>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+        <Icon name={Search} size="sm" className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
         <Input
           placeholder="Search clients..."
           className="pl-9"
@@ -80,16 +81,16 @@ export default function ClientsPage() {
         clients?.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-16 text-center">
             <div className="space-y-1">
-              <p className="text-sm font-medium">No clients yet</p>
-              <p className="text-muted-foreground text-[13px]">Add your first client to get started.</p>
+              <p className="text-sm font-semibold">No clients yet</p>
+              <p className="text-muted-foreground text-body-sm">Add your first client to get started.</p>
             </div>
             <Button onClick={() => setSheetOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Icon name={Plus} size="sm" className="mr-2" />
               Add your first client
             </Button>
           </div>
         ) : (
-          <p className="text-muted-foreground py-12 text-center text-[15px]">
+          <p className="text-muted-foreground py-12 text-center text-body-lg">
             No clients match your search.
           </p>
         )
@@ -107,7 +108,7 @@ export default function ClientsPage() {
         className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full fab-glow"
         onClick={() => setSheetOpen(true)}
       >
-        <Plus className="h-6 w-6" />
+        <Icon name={Plus} size="lg" />
       </Button>
 
       <AddClientWithPackageSheet open={sheetOpen} onOpenChange={setSheetOpen} />

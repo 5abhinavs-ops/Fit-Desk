@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, Check } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 
 const benefits = [
   "Unlimited clients",
@@ -40,7 +41,7 @@ export default function UpgradePage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Upgrade to FitDesk Pro</h1>
+          <h1 className="text-2xl font-semibold">Upgrade to FitDesk Pro</h1>
         </div>
 
         {/* Pricing toggle */}
@@ -64,12 +65,12 @@ export default function UpgradePage() {
         <Card>
           <CardContent className="p-6 text-center">
             {interval === "month" ? (
-              <p className="text-3xl font-bold">
+              <p className="text-3xl font-semibold">
                 $19<span className="text-muted-foreground text-base font-normal">/month</span>
               </p>
             ) : (
               <div>
-                <p className="text-3xl font-bold">
+                <p className="text-3xl font-semibold">
                   $190<span className="text-muted-foreground text-base font-normal">/year</span>
                 </p>
                 <p className="text-muted-foreground text-sm mt-1">Save 2 months</p>
@@ -81,14 +82,14 @@ export default function UpgradePage() {
         <ul className="space-y-2">
           {benefits.map((b) => (
             <li key={b} className="flex items-start gap-2 text-sm">
-              <Check className="text-green-600 mt-0.5 h-4 w-4 shrink-0" />
+              <Icon name={Check} size="sm" className="text-green-600 mt-0.5 shrink-0" />
               {b}
             </li>
           ))}
         </ul>
 
         <Button className="w-full" onClick={handleUpgrade} disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
           Upgrade now
         </Button>
       </div>

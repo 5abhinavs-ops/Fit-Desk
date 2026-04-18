@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import type { BookingPaymentMode } from "@/types/database"
 
@@ -316,7 +317,7 @@ export function CreateBookingSheet({ defaultDate, defaultTime, open, onOpenChang
           </div>
 
           <Button type="submit" className="w-full" disabled={createBooking.isPending}>
-            {createBooking.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {createBooking.isPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
             Book session
           </Button>
         </form>

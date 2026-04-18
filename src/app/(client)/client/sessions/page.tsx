@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { CalendarDays, Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import { format } from "date-fns"
 import { toast } from "sonner"
 import type { Booking } from "@/types/database"
@@ -42,6 +43,10 @@ export default function ClientSessionsPage() {
 
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  // Stable per-render timestamp for session-window math (cancellation policy, hours-until).
+  // useState initializer is the React-idiomatic way to capture an impure
+  // value once per mount without tripping the react-hooks/purity rule.
+  const [nowMs] = useState(() => Date.now())
 
   // Upcoming sessions
   const { data: upcoming, isLoading: upcomingLoading } = useQuery({
@@ -117,7 +122,7 @@ export default function ClientSessionsPage() {
 
   function renderBookingCard(booking: Booking, showCancel: boolean) {
     const hoursUntil =
-      (new Date(booking.date_time).getTime() - Date.now()) / (1000 * 60 * 60)
+      (new Date(booking.date_time).getTime() - nowMs) / (1000 * 60 * 60)
     const isExpanded = expandedId === booking.id
     const canCancel = showCancel && hoursUntil > 0
 
@@ -134,7 +139,7 @@ export default function ClientSessionsPage() {
               <p className="font-semibold">
                 {format(new Date(booking.date_time), "EEE, d MMM")}
               </p>
-              <div className="flex items-center gap-2 text-[13px] text-muted-foreground mt-0.5">
+              <div className="flex items-center gap-2 text-body-sm text-muted-foreground mt-0.5">
                 <span>
                   {format(new Date(booking.date_time), "h:mm a")}
                 </span>
@@ -153,7 +158,7 @@ export default function ClientSessionsPage() {
             <div className="mt-3 pt-3 border-t border-border space-y-2">
               {booking.session_notes && (
                 <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-body-sm text-muted-foreground">
                     Notes from {identity?.trainer?.name ?? "your trainer"}:
                   </p>
                   <p className="text-sm mt-1">{booking.session_notes}</p>
@@ -184,8 +189,8 @@ export default function ClientSessionsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold flex items-center gap-2">
-        <CalendarDays className="h-6 w-6 text-[#FFB347]" />
+      <h1 className="text-2xl font-semibold flex items-center gap-2">
+        <Icon name={CalendarDays} size="lg" className="text-[#FFB347]" />
         Sessions
       </h1>
 
@@ -232,7 +237,7 @@ export default function ClientSessionsPage() {
             <AlertDialogTitle>Cancel session?</AlertDialogTitle>
             <AlertDialogDescription>
               {cancelTarget &&
-              (new Date(cancelTarget.date_time).getTime() - Date.now()) /
+              (new Date(cancelTarget.date_time).getTime() - nowMs) /
                 (1000 * 60 * 60) <
                 policyHours
                 ? `This session is within the ${policyHours}-hour cancellation window. The session will be forfeited.`
@@ -251,7 +256,7 @@ export default function ClientSessionsPage() {
               disabled={cancelMutation.isPending}
             >
               {cancelMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                <Icon name={Loader2} size="sm" className="animate-spin mr-1" />
               ) : null}
               Cancel session
             </AlertDialogAction>

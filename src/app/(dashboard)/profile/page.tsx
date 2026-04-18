@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import { LogOut, ChevronDown, ChevronUp, Salad, BarChart2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import type { Profile } from "@/types/database"
 import { ProfilePhotoUpload } from "@/components/profile/profile-photo-upload"
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form"
@@ -90,12 +91,12 @@ export default function ProfilePage() {
       <div className="grid grid-cols-2 gap-3">
         <button onClick={() => router.push("/nutrition")}
           className="flex items-center gap-3 rounded-xl border p-4 hover:bg-accent transition-colors">
-          <Salad className="h-5 w-5 text-[#84CC16]" />
+          <Icon name={Salad} size="md" className="text-[#84CC16]" />
           <span className="text-sm font-semibold">Nutrition</span>
         </button>
         <button onClick={() => router.push("/analytics")}
           className="flex items-center gap-3 rounded-xl border p-4 hover:bg-accent transition-colors">
-          <BarChart2 className="h-5 w-5 text-[#8B5CF6]" />
+          <Icon name={BarChart2} size="md" className="text-[#8B5CF6]" />
           <span className="text-sm font-semibold">Analytics</span>
         </button>
       </div>
@@ -166,7 +167,10 @@ export default function ProfilePage() {
         className="text-xs"
         onClick={() => setShowAdvancedPayment(!showAdvancedPayment)}
       >
-        {showAdvancedPayment ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
+        {/* 12px chevron in size="sm" toggle */}
+        {showAdvancedPayment
+          ? <Icon name={ChevronUp} size="sm" className="size-3 mr-1" />
+          : <Icon name={ChevronDown} size="sm" className="size-3 mr-1" />}
         {showAdvancedPayment ? "Hide advanced settings" : "Show advanced payment settings"}
       </Button>
 
@@ -208,7 +212,7 @@ export default function ProfilePage() {
       <h2 className="text-lg font-semibold">Account</h2>
       <div className="space-y-3">
         <Button variant="outline" className="text-red-600 hover:text-red-700" onClick={handleSignOut}>
-          <LogOut className="mr-2 h-4 w-4" />
+          <Icon name={LogOut} size="sm" className="mr-2" />
           Sign out
         </Button>
         <p className="text-muted-foreground text-xs">v1.0.0</p>

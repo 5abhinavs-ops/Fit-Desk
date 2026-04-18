@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { Icon } from "@/components/ui/icon"
 import type { PaymentMethod } from "@/types/database"
 
 interface LogPaymentSheetProps {
@@ -149,7 +150,7 @@ export function LogPaymentSheet({ open, onOpenChange }: LogPaymentSheetProps) {
           </div>
 
           <Button type="submit" className="w-full" disabled={createPayment.isPending}>
-            {createPayment.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {createPayment.isPending && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
             Log payment
           </Button>
         </form>
