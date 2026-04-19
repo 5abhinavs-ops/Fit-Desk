@@ -2,6 +2,9 @@ import type { Metadata } from "next"
 import { TopNav } from "@/components/landing/top-nav"
 import { Hero } from "@/components/landing/hero"
 import { Features } from "@/components/landing/features"
+import { PricingSection } from "@/components/landing/pricing-section"
+import { TestimonialPlaceholder } from "@/components/landing/testimonial-placeholder"
+import { BeforeAfterStrip } from "@/components/landing/before-after-strip"
 import { BottomCta } from "@/components/landing/bottom-cta"
 import { Footer } from "@/components/landing/footer"
 
@@ -23,6 +26,9 @@ export default function WelcomePage() {
       <main className="flex-1">
         <Hero />
         <Features />
+        <PricingSection />
+        <TestimonialPlaceholder />
+        <BeforeAfterStrip />
         <BottomCta />
       </main>
       <Footer />
