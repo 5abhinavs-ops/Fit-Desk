@@ -14,6 +14,14 @@ interface DashboardStats {
     package_name: string;
   }>;
   monthlyRevenue: number;
+  /** Sum of received payments in the previous calendar month (SGT). */
+  priorMonthRevenue: number;
+  /**
+   * When true, show MoM trend vs last month. Requires prior-month received
+   * revenue so we never imply a comparison without a real baseline (and we
+   * never show 0 vs 0).
+   */
+  showRevenueMomTrend: boolean;
   sessionsThisWeek: number;
   overdueTotal: number;
   attendanceRate: number | null;
@@ -47,12 +55,19 @@ export function useDashboard() {
       weekEnd.setHours(23, 59, 59, 999);
 
       const monthStr = today.slice(0, 7); // YYYY-MM
+      const [yStr, mStr] = monthStr.split("-");
+      const y = Number(yStr);
+      const m = Number(mStr);
+      const prevMonthStr =
+        m === 1
+          ? `${y - 1}-12`
+          : `${y}-${String(m - 1).padStart(2, "0")}`;
 
       // Fetch all dashboard data in parallel
       const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
       const [bookingsResult, paymentsResult, packagesResult, pendingConfirmResult,
-             revenueResult, weekSessionsResult, overdueResult, attendanceResult, lapsedResult] =
+             revenueResult, priorMonthRevenueResult, weekSessionsResult, overdueResult, attendanceResult, lapsedResult] =
         await Promise.all([
           supabase
             .from("bookings")
@@ -86,6 +101,14 @@ export function useDashboard() {
             .eq("status", "received")
             .gte("received_date", `${monthStr}-01`)
             .lte("received_date", `${monthStr}-31`),
+
+          // Prior month revenue (same query shape for MoM trend)
+          supabase
+            .from("payments")
+            .select("amount")
+            .eq("status", "received")
+            .gte("received_date", `${prevMonthStr}-01`)
+            .lte("received_date", `${prevMonthStr}-31`),
 
           // Sessions this week
           supabase
@@ -129,7 +152,10 @@ export function useDashboard() {
       );
 
       const lowSessionClients = (packagesResult.data ?? [])
-        .filter((pkg) => pkg.total_sessions - pkg.sessions_used <= 2)
+        .filter((pkg) => {
+          const remaining = pkg.total_sessions - pkg.sessions_used;
+          return remaining >= 1 && remaining <= 2;
+        })
         .map((pkg) => {
           const client = pkg.clients as unknown as { first_name: string; last_name: string } | null;
           return {
@@ -146,6 +172,13 @@ export function useDashboard() {
         (sum, p) => sum + p.amount,
         0
       );
+
+      const priorMonthRevenue = (priorMonthRevenueResult.data ?? []).reduce(
+        (sum, p) => sum + p.amount,
+        0
+      );
+
+      const showRevenueMomTrend = priorMonthRevenue > 0;
 
       const overdueTotal = (overdueResult.data ?? []).reduce(
         (sum, p) => sum + p.amount,
@@ -175,6 +208,8 @@ export function useDashboard() {
         pendingPaymentConfirmations: pendingConfirmResult.count ?? 0,
         lowSessionClients,
         monthlyRevenue,
+        priorMonthRevenue,
+        showRevenueMomTrend,
         sessionsThisWeek: weekSessionsResult.count ?? 0,
         overdueTotal,
         attendanceRate,

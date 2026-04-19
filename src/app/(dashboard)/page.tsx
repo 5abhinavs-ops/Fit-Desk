@@ -1,18 +1,43 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useDashboard } from "@/hooks/useDashboard"
+import { useTodayBookings } from "@/hooks/useBookings"
+import { useClients } from "@/hooks/useClients"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { CalendarDays, DollarSign, AlertTriangle, TrendingUp, Dumbbell, AlertCircle, UserCheck, UserMinus } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowUp,
+  Calendar,
+  CalendarDays,
+  DollarSign,
+  AlertTriangle,
+  TrendingUp,
+  Dumbbell,
+  AlertCircle,
+  UserCheck,
+  UserMinus,
+} from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { EmptyState } from "@/components/ui/empty-state"
 import { PendingApprovalsCard } from "@/components/dashboard/pending-approvals-card"
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist"
+import { FirstClientCTA } from "@/components/dashboard/first-client-cta"
 import { handleKeyboardActivation } from "@/lib/a11y"
-import { format } from "date-fns"
+import { isDashboardEmpty } from "@/lib/dashboard-empty"
+import { format, parseISO } from "date-fns"
+import type { Booking, BookingStatus } from "@/types/database"
+
+const DASHBOARD_TODAY_BOOKING_STATUSES: BookingStatus[] = [
+  "confirmed",
+  "pending",
+  "upcoming",
+]
 
 function getGreeting(): string {
   const hour = new Date().getHours()
@@ -33,6 +58,8 @@ function formatCurrency(amount: number): string {
 export default function DashboardPage() {
   const router = useRouter()
   const { data, isLoading, isError } = useDashboard()
+  const { data: todayBookings, isLoading: todayBookingsLoading } = useTodayBookings()
+  const { data: clients } = useClients()
   const [trainerName, setTrainerName] = useState("")
   const [greeting, setGreeting] = useState("")
   const [today, setToday] = useState("")
@@ -49,6 +76,22 @@ export default function DashboardPage() {
     setToday(format(new Date(), "EEEE, d MMMM yyyy"))
   }, [])
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const todaySessions = useMemo(() => {
+    const list = todayBookings ?? []
+    return list
+      .filter((b) => DASHBOARD_TODAY_BOOKING_STATUSES.includes(b.status))
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(a.date_time).getTime() - new Date(b.date_time).getTime(),
+      )
+  }, [todayBookings])
+
+  function getClientName(clientId: string): string {
+    const c = clients?.find((cl) => cl.id === clientId)
+    return c ? `${c.first_name} ${c.last_name}` : "Unknown"
+  }
 
   if (isError) {
     return (
@@ -73,6 +116,9 @@ export default function DashboardPage() {
       {/* Pending approvals */}
       <PendingApprovalsCard />
 
+      {/* Phase G onboarding checklist — renders null once completed */}
+      <OnboardingChecklist />
+
       {/* Stat cards */}
       {isLoading ? (
         <>
@@ -82,12 +128,14 @@ export default function DashboardPage() {
           </div>
           <Skeleton className="h-24 rounded-xl" />
         </>
+      ) : isDashboardEmpty(data) ? (
+        <FirstClientCTA />
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3">
             {/* Today's sessions */}
             <Card
-              className="cursor-pointer transition-colors hover:bg-accent"
+              className="col-span-2 cursor-pointer transition-colors hover:bg-accent"
               onClick={() => router.push("/bookings")}
             >
               <CardContent className="p-4">
@@ -95,7 +143,55 @@ export default function DashboardPage() {
                   <Icon name={CalendarDays} size="sm" className="text-[#00C6D4]" />
                   <span className="text-muted-foreground text-body-sm">Today&apos;s sessions</span>
                 </div>
-                <p className="mt-2 text-3xl font-semibold tabular">{data?.todayBookingsCount ?? 0}</p>
+                {todayBookingsLoading ? (
+                  <div className="mt-3 space-y-2">
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                  </div>
+                ) : todaySessions.length === 0 ? (
+                  <div onClick={(e) => e.stopPropagation()} className="mt-1">
+                    <EmptyState
+                      icon={Calendar}
+                      title="No sessions today"
+                      body="Your schedule is clear."
+                      headingLevel="h3"
+                      className="py-4"
+                    />
+                  </div>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {todaySessions.map((booking: Booking) => {
+                      const goClient = () =>
+                        router.push(`/clients/${booking.client_id}`)
+                      return (
+                        <li
+                          key={booking.id}
+                          role="button"
+                          tabIndex={0}
+                          className="hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C6D4] flex cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            goClient()
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              goClient()
+                            }
+                          }}
+                        >
+                          <span className="min-w-0 flex-1 truncate font-medium">
+                            {getClientName(booking.client_id)}
+                          </span>
+                          <span className="text-muted-foreground shrink-0 text-body-sm tabular">
+                            {format(parseISO(booking.date_time), "h:mm a")}
+                          </span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
               </CardContent>
             </Card>
 
@@ -133,6 +229,38 @@ export default function DashboardPage() {
                 <p className="mt-2 text-2xl font-semibold text-[#00E096] tabular">
                   {formatCurrency(data?.monthlyRevenue ?? 0)}
                 </p>
+                {data?.showRevenueMomTrend === true && (
+                  <p className="text-muted-foreground mt-1 flex flex-wrap items-center gap-1 text-xs">
+                    {(() => {
+                      const cur = data.monthlyRevenue
+                      const prev = data.priorMonthRevenue
+                      const diff = cur - prev
+                      if (diff > 0) {
+                        return (
+                          <>
+                            <ArrowUp
+                              className="h-3.5 w-3.5 shrink-0 text-[#00E096]"
+                              aria-hidden
+                            />
+                            <span>vs last month</span>
+                          </>
+                        )
+                      }
+                      if (diff < 0) {
+                        return (
+                          <>
+                            <ArrowDown
+                              className="h-3.5 w-3.5 shrink-0 text-[#FF4C7A]"
+                              aria-hidden
+                            />
+                            <span>vs last month</span>
+                          </>
+                        )
+                      }
+                      return <span>vs last month</span>
+                    })()}
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -194,7 +322,9 @@ export default function DashboardPage() {
           {data && data.lowSessionClients.length > 0 && (
             <Card
               className="cursor-pointer transition-colors hover:bg-accent"
-              onClick={() => router.push("/clients")}
+              onClick={() =>
+                router.push(`/clients/${data.lowSessionClients[0]!.client_id}`)
+              }
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">

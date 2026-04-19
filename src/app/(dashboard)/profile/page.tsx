@@ -177,7 +177,7 @@ export default function ProfilePage() {
       <Separator />
 
       {/* Section 5 — Availability */}
-      <h2 className="text-lg font-semibold">Availability</h2>
+      <h2 id="availability" className="scroll-mt-4 text-lg font-semibold">Availability</h2>
       <AvailabilitySettings />
 
       <Separator />
