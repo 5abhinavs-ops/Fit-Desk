@@ -48,7 +48,28 @@ export function ProfilePhotoUpload({
 
     setUploadingPhoto(true)
     const supabase = createClient()
-    const path = `${profileId}/avatar.${safeExt}`
+
+    // Derive the storage path + update target from the AUTHENTICATED user id,
+    // not the `profileId` prop. The prop is under parent-component control and
+    // could be spoofed via direct component re-render; the auth user id is
+    // server-verified. This closes the storage-path-injection vector flagged
+    // by security-reviewer in the Phase H-M consolidated audit.
+    const { data: authUser } = await supabase.auth.getUser()
+    const authenticatedId = authUser?.user?.id
+    if (!authenticatedId) {
+      toast.error("Please sign in again to upload a photo")
+      setUploadingPhoto(false)
+      return
+    }
+    // Defence-in-depth: if the parent passed a different profileId than the
+    // authenticated user, refuse to upload. We always use the auth id anyway,
+    // but surfacing the mismatch catches integration bugs early.
+    if (profileId !== authenticatedId) {
+      toast.error("Can only upload photos to your own profile")
+      setUploadingPhoto(false)
+      return
+    }
+    const path = `${authenticatedId}/avatar.${safeExt}`
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
@@ -66,7 +87,7 @@ export function ProfilePhotoUpload({
     const { error: updateError } = await supabase
       .from("profiles")
       .update({ photo_url: publicUrl })
-      .eq("id", profileId)
+      .eq("id", authenticatedId)
 
     if (updateError) {
       toast.error("Failed to save photo")

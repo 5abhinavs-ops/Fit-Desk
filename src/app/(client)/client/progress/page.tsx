@@ -124,6 +124,20 @@ export default function ClientProgressPage() {
     enabled: !!clientId,
   })
 
+  // Hooks must be called on every render — the early-return below would
+  // otherwise skip this one on the loading path and violate Rules of Hooks.
+  const weightChartData = useMemo(() => {
+    const withWeight = (measurements ?? []).filter((m) => m.weight_kg != null)
+    const sorted = [...withWeight].sort(
+      (a, b) =>
+        new Date(a.measured_at).getTime() - new Date(b.measured_at).getTime(),
+    )
+    return sorted.map((m) => ({
+      label: format(new Date(m.measured_at), "d MMM"),
+      weight: m.weight_kg as number,
+    }))
+  }, [measurements])
+
   if (identityLoading) {
     return (
       <div className="space-y-4">
@@ -137,18 +151,6 @@ export default function ClientProgressPage() {
       </div>
     )
   }
-
-  const weightChartData = useMemo(() => {
-    const withWeight = (measurements ?? []).filter((m) => m.weight_kg != null)
-    const sorted = [...withWeight].sort(
-      (a, b) =>
-        new Date(a.measured_at).getTime() - new Date(b.measured_at).getTime(),
-    )
-    return sorted.map((m) => ({
-      label: format(new Date(m.measured_at), "d MMM"),
-      weight: m.weight_kg as number,
-    }))
-  }, [measurements])
 
   const showWeightChart = weightChartData.length >= 2
   const showWeightChartEmpty =
