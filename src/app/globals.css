@@ -171,6 +171,11 @@
   .fab-glow {
     background: #00E096;
     box-shadow: 0 4px 20px rgba(0,224,150,0.4);
+    transition: background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+  }
+  .fab-glow:hover {
+    background: #00F0A6;
+    box-shadow: 0 6px 28px rgba(0,224,150,0.55);
   }
 
   .card-accent-top { position: relative; overflow: hidden; }

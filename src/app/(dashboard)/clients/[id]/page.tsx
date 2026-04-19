@@ -186,13 +186,19 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           <h1 className="text-xl font-semibold">
             {client.first_name} {client.last_name}
           </h1>
-          <Badge
-            variant="secondary"
-            className={`mt-1 cursor-pointer ${statusStyles[client.status]}`}
+          <button
+            type="button"
             onClick={toggleStatus}
+            className="mt-1 inline-block rounded-full hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[rgba(0,198,212,0.4)] focus-visible:outline-none transition-opacity"
+            aria-label={`Change status — currently ${client.status}. Click to cycle.`}
           >
-            {client.status}
-          </Badge>
+            <Badge
+              variant="secondary"
+              className={statusStyles[client.status]}
+            >
+              {client.status}
+            </Badge>
+          </button>
         </div>
       </div>
 
@@ -202,7 +208,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           href={`https://wa.me/${client.whatsapp_number.replace(/\D/g, "")}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="border-input bg-background hover:bg-accent inline-flex items-center rounded-md border px-3 py-1.5 text-sm"
+          className="border-input bg-background hover:bg-accent hover:border-[rgba(0,198,212,0.4)] focus-visible:ring-2 focus-visible:ring-[rgba(0,198,212,0.4)] focus-visible:outline-none inline-flex items-center rounded-md border px-3 py-1.5 text-sm transition-colors"
         >
           <Icon name={MessageCircle} size="sm" className="mr-2" />
           WhatsApp
@@ -210,7 +216,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
         {client.email && (
           <a
             href={`mailto:${client.email}`}
-            className="border-input bg-background hover:bg-accent inline-flex items-center rounded-md border px-3 py-1.5 text-sm"
+            className="border-input bg-background hover:bg-accent hover:border-[rgba(0,198,212,0.4)] focus-visible:ring-2 focus-visible:ring-[rgba(0,198,212,0.4)] focus-visible:outline-none inline-flex items-center rounded-md border px-3 py-1.5 text-sm transition-colors"
           >
             <Icon name={Mail} size="sm" className="mr-2" />
             Email
@@ -309,8 +315,9 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           {/* Nutrition — collapsible */}
           <div className="rounded-lg border p-3">
             <button
-              className="flex items-center justify-between w-full"
+              className="flex items-center justify-between w-full focus-visible:ring-2 focus-visible:ring-[rgba(0,198,212,0.4)] focus-visible:outline-none rounded transition-colors"
               onClick={() => setNutritionExpanded(!nutritionExpanded)}
+              aria-expanded={nutritionExpanded}
             >
               <div className="flex items-center gap-1.5">
                 <Icon name={Salad} size="sm" className="text-muted-foreground" />
@@ -332,8 +339,9 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           {/* Recurring sessions — collapsible */}
           <div className="rounded-lg border p-3">
             <button
-              className="flex items-center justify-between w-full"
+              className="flex items-center justify-between w-full focus-visible:ring-2 focus-visible:ring-[rgba(0,198,212,0.4)] focus-visible:outline-none rounded transition-colors"
               onClick={() => setRecurringExpanded(!recurringExpanded)}
+              aria-expanded={recurringExpanded}
             >
               <div className="flex items-center gap-1.5">
                 <Icon name={RefreshCw} size="sm" className="text-muted-foreground" />

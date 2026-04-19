@@ -257,7 +257,7 @@ export default function BookingsPage() {
                 <button
                   onClick={handleUnblockDay}
                   style={{ color: "#e11d48" }}
-                  className="font-semibold underline text-micro"
+                  className="font-semibold underline text-micro hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[rgba(225,29,72,0.4)] focus-visible:outline-none rounded transition-opacity"
                 >
                   Remove
                 </button>

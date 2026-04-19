@@ -42,10 +42,12 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  desktopBehavior = "modal",
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  desktopBehavior?: "modal" | "keep-sheet"
 }) {
   return (
     <SheetPortal>
@@ -53,8 +55,9 @@ function SheetContent({
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}
+        data-desktop-behavior={desktopBehavior}
         className={cn(
-          "fixed z-50 flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-ending-style:translate-x-[-2.5rem] data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-ending-style:translate-x-[2.5rem] data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-ending-style:translate-y-[-2.5rem] data-[side=top]:data-starting-style:translate-y-[-2.5rem] data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
+          "fixed z-50 flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-ending-style:translate-x-[-2.5rem] data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-ending-style:translate-x-[2.5rem] data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-ending-style:translate-y-[-2.5rem] data-[side=top]:data-starting-style:translate-y-[-2.5rem] data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm md:data-[desktop-behavior=modal]:data-[side=bottom]:inset-x-auto md:data-[desktop-behavior=modal]:data-[side=bottom]:bottom-auto md:data-[desktop-behavior=modal]:data-[side=bottom]:top-1/2 md:data-[desktop-behavior=modal]:data-[side=bottom]:left-1/2 md:data-[desktop-behavior=modal]:data-[side=bottom]:-translate-x-1/2 md:data-[desktop-behavior=modal]:data-[side=bottom]:-translate-y-1/2 md:data-[desktop-behavior=modal]:data-[side=bottom]:w-[calc(100%-2rem)] md:data-[desktop-behavior=modal]:data-[side=bottom]:max-w-md md:data-[desktop-behavior=modal]:data-[side=bottom]:max-h-[85vh] md:data-[desktop-behavior=modal]:data-[side=bottom]:rounded-2xl md:data-[desktop-behavior=modal]:data-[side=bottom]:border md:data-[desktop-behavior=modal]:data-[side=bottom]:data-starting-style:-translate-y-[calc(50%+0.5rem)] md:data-[desktop-behavior=modal]:data-[side=bottom]:data-ending-style:-translate-y-[calc(50%+0.5rem)] md:data-[desktop-behavior=modal]:data-[side=bottom]:data-starting-style:scale-95 md:data-[desktop-behavior=modal]:data-[side=bottom]:data-ending-style:scale-95",
           className
         )}
         {...props}

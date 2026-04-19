@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import type { Client } from "@/types/database"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { handleKeyboardActivation } from "@/lib/a11y"
 
 interface ClientCardProps {
   client: Client
@@ -18,11 +19,15 @@ const statusStyles: Record<string, string> = {
 export function ClientCard({ client }: ClientCardProps) {
   const router = useRouter()
   const initials = `${client.first_name[0] ?? ""}${client.last_name[0] ?? ""}`.toUpperCase()
+  const navigate = () => router.push(`/clients/${client.id}`)
 
   return (
     <div
-      className="hover:bg-accent flex cursor-pointer items-center gap-3 border-b px-1 py-3 transition-colors"
-      onClick={() => router.push(`/clients/${client.id}`)}
+      role="button"
+      tabIndex={0}
+      className="hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C6D4] rounded-md flex cursor-pointer items-center gap-3 border-b px-1 py-3 transition-colors"
+      onClick={navigate}
+      onKeyDown={handleKeyboardActivation(navigate)}
     >
       <Avatar className="h-10 w-10">
         <AvatarFallback className="text-xs">{initials}</AvatarFallback>

@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CalendarDays, DollarSign, AlertTriangle, TrendingUp, Dumbbell, AlertCircle, UserCheck, UserMinus } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
 import { PendingApprovalsCard } from "@/components/dashboard/pending-approvals-card"
+import { handleKeyboardActivation } from "@/lib/a11y"
 import { format } from "date-fns"
 
 function getGreeting(): string {
@@ -225,11 +226,15 @@ export default function DashboardPage() {
               .toUpperCase()
               .slice(0, 2)
 
+            const navigate = () => router.push(`/clients/${client.client_id}`)
             return (
               <div
                 key={client.client_id}
-                className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-                onClick={() => router.push(`/clients/${client.client_id}`)}
+                role="button"
+                tabIndex={0}
+                className="hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C6D4] flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
+                onClick={navigate}
+                onKeyDown={handleKeyboardActivation(navigate)}
               >
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
@@ -258,11 +263,15 @@ export default function DashboardPage() {
               .toUpperCase()
               .slice(0, 2)
 
+            const navigate = () => router.push(`/clients/${client.client_id}`)
             return (
               <div
                 key={client.client_id}
-                className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-                onClick={() => router.push(`/clients/${client.client_id}`)}
+                role="button"
+                tabIndex={0}
+                className="hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C6D4] flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
+                onClick={navigate}
+                onKeyDown={handleKeyboardActivation(navigate)}
               >
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>

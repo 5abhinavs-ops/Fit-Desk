@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { TrendingUp, AlertCircle, Users, Package, UserX, DollarSign, ChevronLeft, ChevronRight } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { handleKeyboardActivation } from "@/lib/a11y"
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-SG", {
@@ -213,11 +214,15 @@ export default function AnalyticsPage() {
               .toUpperCase()
               .slice(0, 2)
 
+            const navigate = () => router.push(`/clients/${client.client_id}`)
             return (
               <div
                 key={client.client_id}
-                className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-                onClick={() => router.push(`/clients/${client.client_id}`)}
+                role="button"
+                tabIndex={0}
+                className="hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C6D4] flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
+                onClick={navigate}
+                onKeyDown={handleKeyboardActivation(navigate)}
               >
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
@@ -255,11 +260,15 @@ export default function AnalyticsPage() {
               .toUpperCase()
               .slice(0, 2)
 
+            const navigate = () => router.push(`/clients/${client.client_id}`)
             return (
               <div
                 key={client.client_id}
-                className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-                onClick={() => router.push(`/clients/${client.client_id}`)}
+                role="button"
+                tabIndex={0}
+                className="hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C6D4] flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
+                onClick={navigate}
+                onKeyDown={handleKeyboardActivation(navigate)}
               >
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>

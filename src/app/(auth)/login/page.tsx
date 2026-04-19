@@ -99,6 +99,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoFocus
               />
             </div>
 
@@ -111,7 +112,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setForgotMode(false)}
-            className="text-muted-foreground w-full text-center text-sm hover:text-foreground transition-colors"
+            className="text-muted-foreground w-full text-center text-sm hover:text-foreground focus-visible:ring-2 focus-visible:ring-[rgba(0,198,212,0.4)] focus-visible:outline-none rounded transition-colors"
           >
             Back to sign in
           </button>
@@ -139,6 +140,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoFocus
             />
           </div>
 
@@ -148,7 +150,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setForgotMode(true)}
-                className="text-muted-foreground text-xs hover:text-foreground transition-colors"
+                className="text-muted-foreground text-xs hover:text-foreground focus-visible:ring-2 focus-visible:ring-[rgba(0,198,212,0.4)] focus-visible:outline-none rounded transition-colors"
               >
                 Forgot password?
               </button>

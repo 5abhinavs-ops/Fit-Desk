@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Plus } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { handleKeyboardActivation } from "@/lib/a11y"
 import { format } from "date-fns"
 
 const methodLabels: Record<string, string> = {
@@ -122,13 +123,17 @@ export default function PaymentsPage() {
               ? `${p.clients.first_name[0] ?? ""}${p.clients.last_name[0] ?? ""}`.toUpperCase()
               : "?"
 
+            const openDetail = () => setDetailPayment(p)
             return (
               <div
                 key={p.id}
-                className={`hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
+                role="button"
+                tabIndex={0}
+                className={`hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C6D4] flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
                   p.status === "overdue" ? "border-l-4 border-l-[#FF4C7A]" : ""
                 }`}
-                onClick={() => setDetailPayment(p)}
+                onClick={openDetail}
+                onKeyDown={handleKeyboardActivation(openDetail)}
               >
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>

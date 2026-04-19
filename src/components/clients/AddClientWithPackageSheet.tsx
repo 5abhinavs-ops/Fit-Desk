@@ -242,6 +242,7 @@ export function AddClientWithPackageSheet({
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
+                  autoFocus
                 />
               </div>
               <div className="space-y-2">
