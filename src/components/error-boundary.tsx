@@ -22,6 +22,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true }
   }
 
+  componentDidCatch(error: Error, info: { componentStack?: string | null }): void {
+    // Phase M — log render errors so Stripe checkout / payment proof flows
+    // and other error-boundary-wrapped surfaces leave a trace rather than
+    // silently rendering the fallback. Vercel captures server-side console
+    // output; browser console is surfaced in DevTools.
+    console.error(
+      "[ErrorBoundary] render error",
+      error,
+      info.componentStack ?? ""
+    )
+  }
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {

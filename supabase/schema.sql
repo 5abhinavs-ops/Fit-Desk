@@ -579,3 +579,32 @@ CREATE POLICY "Trainers manage own recurring schedules"
 ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS bookings_booking_source_check;
 ALTER TABLE public.bookings ADD CONSTRAINT bookings_booking_source_check
   CHECK (booking_source IN ('trainer', 'client_link', 'recurring'));
+
+-- Migration: Phase L — WhatsApp automation log + opt-out flag
+CREATE TABLE IF NOT EXISTS public.whatsapp_logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  client_id uuid REFERENCES public.clients(id) ON DELETE SET NULL,
+  template_name text NOT NULL,
+  sent_at timestamptz NOT NULL DEFAULT now(),
+  status text NOT NULL CHECK (status IN ('sent', 'suppressed_opt_out', 'failed'))
+);
+CREATE INDEX IF NOT EXISTS idx_whatsapp_logs_trainer_sent
+  ON public.whatsapp_logs (trainer_id, sent_at DESC);
+ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Trainers read own whatsapp logs"
+  ON public.whatsapp_logs FOR SELECT
+  USING (trainer_id = (SELECT auth.uid()));
+
+ALTER TABLE public.clients
+  ADD COLUMN IF NOT EXISTS whatsapp_opted_out boolean NOT NULL DEFAULT false;
+
+-- Migration: Phase M — statement-scoped auth.uid() for nutrition_logs RLS
+DROP POLICY IF EXISTS "PTs can insert logs for their clients" ON public.nutrition_logs;
+CREATE POLICY "PTs can insert logs for their clients"
+  ON public.nutrition_logs FOR INSERT
+  WITH CHECK (trainer_id = (SELECT auth.uid()));
+DROP POLICY IF EXISTS "PTs can view logs for their clients" ON public.nutrition_logs;
+CREATE POLICY "PTs can view logs for their clients"
+  ON public.nutrition_logs FOR SELECT
+  USING (trainer_id = (SELECT auth.uid()));

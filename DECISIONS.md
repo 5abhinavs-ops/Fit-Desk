@@ -71,4 +71,66 @@ This file logs every non-obvious decision made during the autonomous back-to-bac
 
 ## Phase M — Hardening
 
-_(Populated after Phase L commits.)_
+### M.1 — Composite index on nutrition_logs
+
+**D-M1**: The composite index `(trainer_id, logged_at DESC)` already exists — it was added by migration `20260409_nutrition_logs_index_and_rls_cleanup.sql`. Phase M creates a new migration file that re-asserts the index with `CREATE INDEX IF NOT EXISTS` (idempotent no-op) AND adds Phase M's own audit comments + any missed supporting indexes.
+**Why**: User spec asks for "a new migration file" even though the index already exists. I treat the migration file as a defensive belt-and-braces re-assertion plus a documented audit trail, not a destructive rewrite.
+
+### M.2 — RLS policy audit on nutrition_logs
+
+**D-M2**: Current active policies on `nutrition_logs` (per `schema.sql`):
+- `"PTs can insert logs for their clients"` — INSERT with check `trainer_id = auth.uid()`
+- `"PTs can view logs for their clients"` — SELECT with `trainer_id = auth.uid()`
+  
+Dead client-auth policies (`"Clients can insert their own logs"` and `"Clients can view their own logs"`) were already dropped by `20260409`. No additional dead policies to remove. The migration records this audit finding in comments.
+**Why**: Auditable paper trail. Future engineers see Phase M checked and found nothing further to drop.
+
+**D-M3**: Add explicit `UPDATE` and `DELETE` policies scoped to `trainer_id = auth.uid()`. Currently, without explicit policies, PT writes for UPDATE/DELETE are DENIED by RLS (fail-closed default) — but the nutrition app surface needs PT-level edit and delete. Add policies only if the UI actually needs them. Check the hooks before adding.
+**Why**: RLS must match actual UI needs. Over-permissive is a security risk; under-permissive breaks features.
+
+### M.3 — Error boundary audit
+
+**D-M4**: The existing `src/components/error-boundary.tsx` ALREADY wraps all dashboard routes via `(dashboard)/layout.tsx` and all client routes via `(client)/layout.tsx`. Also wraps `book/[slug]/page.tsx` explicitly. The dashboard routes listed in scope (/, /clients, /clients/[id], /bookings, /payments, /profile) are covered automatically by the group layout.
+**Why**: No per-route wrapping needed — the layout pattern gives blanket coverage.
+
+**D-M5**: `/upgrade` and `/upgrade/success` are NOT under the `(dashboard)` group — they live at `src/app/upgrade/page.tsx`. User spec explicitly lists `/upgrade` as needing an error boundary. Add a wrapper.
+**Why**: Spec compliance + genuine value — Stripe redirect failures should show a graceful fallback rather than a blank error page.
+
+### M.4 — Skeleton coverage
+
+**D-M6**: Most `Loader2` usages in the codebase are in action buttons (submit, save, cancel) — these are CORRECT uses of a spinner for action feedback, not page loading. I do NOT replace these.
+**Why**: Buttons with unknown action duration benefit from a spinner; skeletons are only right when the resulting layout is predictable.
+
+**D-M7**: Page-level loaders on AI-dependent pages (`/nutrition` dashboard + client, nutrition image upload) stay as spinners. Document as skeleton-debt because AI inference response shape is inherently unpredictable.
+**Why**: A shaped skeleton implies a known resulting layout; AI output length and structure aren't deterministic.
+
+**D-M8**: Create `docs/skeleton-debt.md` listing each spinner usage, classified as either "action-button (correct)", "page-load shapeable (replace if layout known)", or "inherently unshapeable (AI / variable response)".
+**Why**: Phase M deliverable per user spec.
+
+### M.5 — Vercel Analytics
+
+**D-M9**: Add `@vercel/analytics` as a dependency even though project rule is "no new deps". User explicitly requested this package.
+**Why**: Explicit user override of the no-new-deps rule for this one package.
+
+**D-M10**: Use `npm install` (not `pnpm add`) because the project uses npm (per `package-lock.json` present, no `pnpm-lock.yaml`).
+**Why**: Package-manager hygiene — mixing managers creates lockfile drift.
+
+**D-M11**: Render `<Analytics />` inside `<body>`, AFTER `<Toaster />`, so it doesn't interfere with focus order or landmark semantics.
+**Why**: Analytics script is non-interactive; tree position doesn't affect behavior, but after interactive content is cleaner.
+
+### M.6 — Commit strategy
+
+**D-M12**: Phase M commit excludes Cursor's WIP files (same rule as Phase L). Stage only migration + docs + layout.tsx + any error-boundary additions.
+**Why**: User directive — Cursor's WIP is not ours to land.
+
+### M.7 — Post-review follow-ups
+
+**D-M13**: Wrap `auth.uid()` in `(SELECT auth.uid())` in all RLS policies touched by Phases L + M. database-reviewer flagged this as MEDIUM performance debt: bare function calls get re-evaluated per row, the subquery form caches once per statement. Applied to both nutrition_logs policies and the whatsapp_logs SELECT policy within the Phase M migration.
+**Why**: Supabase-recommended RLS performance pattern. Row-scanning dashboard queries would otherwise re-evaluate `auth.uid()` N times per row scan.
+
+**D-M14**: Sync `schema.sql` with Phase L additions (whatsapp_logs table, whatsapp_opted_out column) and the Phase M policy optimisation. Without the sync, a fresh-env bootstrap from `schema.sql` alone would diverge from one built by replaying all migrations.
+**Why**: Canonical fresh-env definition must mirror the migration chain. database-reviewer flagged the drift as LOW; fixing it closes the loop.
+
+**D-M15**: Add `componentDidCatch` to the existing `ErrorBoundary` class component, logging `error + componentStack` via `console.error`. code-reviewer flagged the silent-swallow as MEDIUM for a revenue-critical path (/upgrade). Hardening phase is the right time to fix it.
+**Why**: Server-side Vercel captures `console.error`; client-side DevTools surface it. Every future error boundary wrapper benefits, not just `/upgrade`.
+
