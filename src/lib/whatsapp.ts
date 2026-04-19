@@ -1,3 +1,6 @@
+import { createServiceClient } from "@/lib/supabase/service"
+import { isOptOutError } from "@/lib/whatsapp-optout"
+
 interface WhatsAppConfig {
   phoneNumberId: string
   accessToken: string
@@ -28,7 +31,7 @@ export function assertWhatsAppConfig(): WhatsAppConfig {
   return config
 }
 
-interface TemplateParam {
+export interface TemplateParam {
   name: string
   value: string
 }
@@ -38,6 +41,76 @@ interface SendTemplateOptions {
   templateName: string
   parameters: TemplateParam[]
   languageCode?: string
+  // Phase L — supply both to enable per-client opt-out suppression and
+  // audit logging in whatsapp_logs. Omit for test fixtures or contexts
+  // that don't have trainer/client identity (e.g. future inbound webhooks).
+  trainerId?: string
+  clientId?: string
+}
+
+export type SendTemplateResult =
+  | { success: true }
+  | { success: false; error?: string; reason?: "opted_out" | "api_error" | "config_missing" }
+
+// Log a send attempt. Fire-and-forget — logging infra must not take down
+// the messaging pipeline. Requires trainerId; clientId is optional for
+// PT-facing messages (e.g. new_booking_request).
+async function logSend(
+  trainerId: string,
+  clientId: string | null,
+  templateName: string,
+  status: "sent" | "suppressed_opt_out" | "failed"
+): Promise<void> {
+  try {
+    const supabase = createServiceClient()
+    await supabase.from("whatsapp_logs").insert({
+      trainer_id: trainerId,
+      client_id: clientId,
+      template_name: templateName,
+      status,
+    })
+  } catch (err) {
+    console.error("whatsapp_logs insert failed", err)
+  }
+}
+
+async function isClientOptedOut(clientId: string): Promise<boolean> {
+  try {
+    const supabase = createServiceClient()
+    const { data } = await supabase
+      .from("clients")
+      .select("whatsapp_opted_out")
+      .eq("id", clientId)
+      .single()
+    return data?.whatsapp_opted_out === true
+  } catch {
+    // If the lookup fails, do NOT suppress — err on the side of attempting
+    // the send so legitimate messages aren't dropped by a transient DB
+    // blip. A real opt-out will be re-detected on the send response.
+    return false
+  }
+}
+
+async function markClientOptedOut(
+  clientId: string,
+  trainerId?: string
+): Promise<void> {
+  try {
+    const supabase = createServiceClient()
+    // Defense-in-depth: scope the write to (clientId, trainerId) whenever
+    // trainerId is known, so a future caller that passes an externally-
+    // supplied clientId can't flip flags on another trainer's client.
+    let query = supabase
+      .from("clients")
+      .update({ whatsapp_opted_out: true })
+      .eq("id", clientId)
+    if (trainerId) {
+      query = query.eq("trainer_id", trainerId)
+    }
+    await query
+  } catch (err) {
+    console.error("clients.whatsapp_opted_out update failed", err)
+  }
 }
 
 export async function sendTemplateMessage({
@@ -45,10 +118,22 @@ export async function sendTemplateMessage({
   templateName,
   parameters,
   languageCode = "en_US",
-}: SendTemplateOptions): Promise<{ success: boolean; error?: string }> {
+  trainerId,
+  clientId,
+}: SendTemplateOptions): Promise<SendTemplateResult> {
   const config = readConfig()
   if (!config) {
-    return { success: false, error: MISSING_CONFIG_MESSAGE }
+    return { success: false, error: MISSING_CONFIG_MESSAGE, reason: "config_missing" }
+  }
+
+  // Suppress sends to opted-out clients BEFORE hitting the Meta API.
+  // clientId alone is enough to suppress — logging happens only when
+  // trainerId is also present (log attribution rows require trainer_id).
+  if (clientId && (await isClientOptedOut(clientId))) {
+    if (trainerId) {
+      await logSend(trainerId, clientId, templateName, "suppressed_opt_out")
+    }
+    return { success: false, reason: "opted_out" }
   }
 
   // Normalise number — strip whatsapp: prefix, leading +/0, ensure clean digits
@@ -96,17 +181,39 @@ export async function sendTemplateMessage({
     )
 
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}))
+      const errorPayload = await res.json().catch(() => ({}))
+
+      // Detect opt-out signals from Meta and persist the flag on the
+      // client row so future sends are suppressed before the API hop.
+      if (clientId && isOptOutError(errorPayload)) {
+        await markClientOptedOut(clientId, trainerId)
+        if (trainerId) {
+          await logSend(trainerId, clientId, templateName, "suppressed_opt_out")
+        }
+        return { success: false, reason: "opted_out" }
+      }
+
+      if (trainerId) {
+        await logSend(trainerId, clientId ?? null, templateName, "failed")
+      }
       return {
         success: false,
-        error: `WhatsApp API error ${res.status}: ${JSON.stringify(error)}`,
+        reason: "api_error",
+        error: `WhatsApp API error ${res.status}: ${JSON.stringify(errorPayload)}`,
       }
     }
 
+    if (trainerId) {
+      await logSend(trainerId, clientId ?? null, templateName, "sent")
+    }
     return { success: true }
   } catch (error) {
+    if (trainerId) {
+      await logSend(trainerId, clientId ?? null, templateName, "failed")
+    }
     return {
       success: false,
+      reason: "api_error",
       error: error instanceof Error ? error.message : "WhatsApp send failed",
     }
   }

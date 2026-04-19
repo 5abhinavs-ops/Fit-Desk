@@ -122,7 +122,17 @@ export interface Client {
   payment_reminder_days: number | null;
   last_reactivation_alert_sent: string | null;
   auth_user_id: string | null;
+  whatsapp_opted_out: boolean;
   created_at: string;
+}
+
+export interface WhatsappLog {
+  id: string;
+  trainer_id: string;
+  client_id: string | null;
+  template_name: string;
+  sent_at: string;
+  status: "sent" | "suppressed_opt_out" | "failed";
 }
 
 export interface Package {

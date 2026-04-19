@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { usePayments, type PaymentWithClient } from "@/hooks/usePayments"
 import { PaymentDetailSheet } from "@/components/clients/PaymentDetailSheet"
 import { LogPaymentSheet } from "@/components/clients/LogPaymentSheet"
+import { RecentAutomations } from "@/components/payments/recent-automations"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -164,6 +165,9 @@ export default function PaymentsPage() {
           })}
         </div>
       )}
+
+      {/* Phase L — Recent automations (collapsible, native <details>) */}
+      <RecentAutomations />
 
       {/* FAB */}
       <Button

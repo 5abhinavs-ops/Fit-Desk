@@ -4,6 +4,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { sendTemplateMessage } from "@/lib/whatsapp"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import { buildBookingConfirmationParams } from "@/lib/booking-confirmation-params"
 
 const BookingRequestSchema = z.object({
   trainer_id: z.string().uuid(),
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
   // Verify trainer_id corresponds to a real profile
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, name, whatsapp_number, default_booking_payment_mode, default_session_mins, booking_approval_required")
+    .select("id, name, whatsapp_number, default_booking_payment_mode, default_session_mins, booking_approval_required, training_locations")
     .eq("id", trainer_id)
     .single()
 
@@ -108,8 +109,9 @@ export async function POST(request: Request) {
       status: "pending",
     })
 
-    // Notify PT via WhatsApp
-    await sendTemplateMessage({
+    // Notify PT via WhatsApp. Failures are logged server-side via
+    // whatsapp_logs (status=failed) — do not block the booking response.
+    const ptNotify = await sendTemplateMessage({
       whatsappNumber: profile.whatsapp_number,
       templateName: "booking_pending_approval",
       parameters: [
@@ -118,7 +120,15 @@ export async function POST(request: Request) {
         { name: "date", value: preferred_date },
         { name: "time", value: preferred_time },
       ],
+      trainerId: trainer_id,
+      clientId,
     })
+    if (!ptNotify.success) {
+      console.warn(
+        "booking_pending_approval notify failed",
+        "reason" in ptNotify ? ptNotify.reason : undefined
+      )
+    }
 
     return NextResponse.json({
       success: true,
@@ -128,19 +138,38 @@ export async function POST(request: Request) {
     })
   }
 
-  // Notify PT of new auto-approved booking
+  // Notify PT of new auto-approved booking. Warm parameter set: date
+  // rendered as "Tuesday 22 April", location surfaced when set, closing
+  // emoji appended. Template name unchanged — PT updates the Meta template
+  // body to consume the richer parameters. See DECISIONS.md D-L14/D-L15.
   try {
-    await sendTemplateMessage({
+    const locations = Array.isArray(profile.training_locations)
+      ? (profile.training_locations as unknown[]).filter(
+          (v): v is string => typeof v === "string"
+        )
+      : []
+    const firstLocation = locations[0] ?? null
+
+    const result = await sendTemplateMessage({
       whatsappNumber: profile.whatsapp_number,
       templateName: "new_booking_request",
-      parameters: [
-        { name: "trainer_name", value: profile.name },
-        { name: "client_name", value: client_name },
-        { name: "date", value: preferred_date },
-        { name: "time", value: preferred_time },
-        { name: "session_type", value: session_type },
-      ],
+      parameters: buildBookingConfirmationParams({
+        trainerName: profile.name,
+        clientName: client_name,
+        dateIso: dateTime,
+        time: preferred_time,
+        sessionType: session_type,
+        location: firstLocation,
+      }),
+      trainerId: trainer_id,
+      clientId,
     })
+    if (!result.success) {
+      console.warn(
+        "new_booking_request notify failed",
+        "reason" in result ? result.reason : undefined
+      )
+    }
   } catch {
     // Notification failure must not block the booking response
   }

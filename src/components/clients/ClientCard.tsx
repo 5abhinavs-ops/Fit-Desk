@@ -38,9 +38,20 @@ export function ClientCard({ client }: ClientCardProps) {
         </p>
         <p className="text-muted-foreground text-body-sm truncate">{client.whatsapp_number}</p>
       </div>
-      <Badge variant="secondary" className={statusStyles[client.status]}>
-        {client.status}
-      </Badge>
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <Badge variant="secondary" className={statusStyles[client.status]}>
+          {client.status}
+        </Badge>
+        {client.whatsapp_opted_out && (
+          <Badge
+            variant="secondary"
+            className="badge-warning text-micro"
+            aria-label="WhatsApp reminders are paused for this client"
+          >
+            Reminders paused
+          </Badge>
+        )}
+      </div>
     </div>
   )
 }
