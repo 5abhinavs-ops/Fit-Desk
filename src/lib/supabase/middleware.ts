@@ -43,9 +43,19 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/upgrade") ||
     request.nextUrl.pathname.startsWith("/reset-password") ||
     request.nextUrl.pathname.startsWith("/auth/callback") ||
-    request.nextUrl.pathname.startsWith("/client/login");
+    request.nextUrl.pathname.startsWith("/client/login") ||
+    request.nextUrl.pathname === "/welcome";
 
   const isClientRoute = request.nextUrl.pathname.startsWith("/client");
+
+  // Unauthenticated visitor to "/" → landing page. Must run before the
+  // generic unauth-redirect to /login so a cold visit lands on marketing,
+  // not the login form.
+  if (!user && request.nextUrl.pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/welcome";
+    return NextResponse.redirect(url);
+  }
 
   // Unauthenticated: redirect to appropriate login
   if (!user && !isPublicRoute) {
@@ -56,6 +66,13 @@ export async function updateSession(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/signup")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
+
+  // Authenticated PT hitting the marketing page goes straight to the dashboard.
+  if (user && request.nextUrl.pathname === "/welcome") {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
