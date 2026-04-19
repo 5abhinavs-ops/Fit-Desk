@@ -80,6 +80,7 @@ export function AddClientSheet({ open, onOpenChange }: AddClientSheetProps) {
         emergency_contact_name: null,
         emergency_contact_phone: null,
         status: "active",
+        whatsapp_opted_out: false,
       },
       {
         onSuccess: () => {

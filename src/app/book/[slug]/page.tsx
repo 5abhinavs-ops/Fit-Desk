@@ -83,6 +83,11 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
   // If this ever overflows in production, revisit with a +N overflow chip.
   const badges = trainer.specialisations.slice(0, 4)
 
+  const bookingLocationSummary =
+    trainer.training_locations && trainer.training_locations.length > 0
+      ? trainer.training_locations.join(" · ")
+      : null
+
   return (
     <div className="flex min-h-screen items-start justify-center p-4 pt-8">
       <div className="w-full max-w-sm space-y-6">
@@ -174,7 +179,11 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Book a session</h2>
           <ErrorBoundary>
-            <BookingForm trainerId={trainer.id} trainerName={trainer.name} />
+            <BookingForm
+              trainerId={trainer.id}
+              trainerName={trainer.name}
+              locationSummary={bookingLocationSummary}
+            />
           </ErrorBoundary>
         </div>
 

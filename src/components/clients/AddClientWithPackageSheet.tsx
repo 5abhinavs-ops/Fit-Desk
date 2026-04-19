@@ -147,6 +147,7 @@ export function AddClientWithPackageSheet({
         emergency_contact_name: null,
         emergency_contact_phone: null,
         status: "active",
+        whatsapp_opted_out: false,
       })
 
       // Step 2: Create package (if toggled on and filled)

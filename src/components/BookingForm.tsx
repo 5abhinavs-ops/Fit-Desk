@@ -18,6 +18,8 @@ import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 interface BookingFormProps {
   trainerId: string
   trainerName: string
+  /** First-line location hint on confirmation (e.g. joined training locations). */
+  locationSummary?: string | null
 }
 
 interface AvailabilityData {
@@ -50,7 +52,11 @@ function formatTime(t: string): string {
   return `${h12}:${mStr} ${ampm}`
 }
 
-export function BookingForm({ trainerId, trainerName }: BookingFormProps) {
+export function BookingForm({
+  trainerId,
+  trainerName,
+  locationSummary,
+}: BookingFormProps) {
   const [name, setName] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
   const [sessionType, setSessionType] = useState<BookingSessionType>("1-on-1")
@@ -143,14 +149,30 @@ export function BookingForm({ trainerId, trainerName }: BookingFormProps) {
 
   if (success) {
     return (
-      <div className="space-y-4 text-center py-8">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(0,224,150,0.15)]">
-          <Icon name={Check} size="lg" className="text-[#00E096]" />
+      <div className="space-y-5 rounded-xl bg-[rgba(0,224,150,0.12)] px-4 py-8 text-center">
+        <div className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(0,224,150,0.2)]">
+          <div
+            className="pc-checkmark-in flex items-center justify-center"
+            style={{ transformOrigin: "center" }}
+          >
+            <Icon name={Check} size="lg" className="text-[#00E096]" />
+          </div>
         </div>
-        <h2 className="text-xl font-semibold">Booking request sent!</h2>
-        <p className="text-muted-foreground text-sm">
-          {trainerName} will confirm your session via WhatsApp shortly.
-        </p>
+        <div className="space-y-2">
+          <p className="text-xl font-semibold">{trainerName}</p>
+          <p className="text-body-sm text-foreground">
+            Your session request has been sent to {trainerName}.
+          </p>
+          <p className="text-muted-foreground text-sm">
+            You&apos;ll receive a WhatsApp confirmation shortly.
+          </p>
+          {locationSummary && locationSummary.trim().length > 0 ? (
+            <p className="text-body-sm text-muted-foreground pt-1">
+              <span aria-hidden>📍 </span>
+              {locationSummary.trim()}
+            </p>
+          ) : null}
+        </div>
       </div>
     )
   }

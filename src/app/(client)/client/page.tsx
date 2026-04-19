@@ -18,9 +18,14 @@ import {
 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
 import { EmptyState } from "@/components/ui/empty-state"
-import { AnimatedNumber } from "@/components/ui/animated-number"
 import { format } from "date-fns"
 import Link from "next/link"
+import {
+  differenceInCalendarDaysSingapore,
+  formatGreetingLabelSingapore,
+  formatTimeSingapore,
+  formatWeekdayLongSingapore,
+} from "@/lib/singapore-time"
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-SG", {
@@ -41,7 +46,7 @@ export default function ClientHomePage() {
   const [nowMs] = useState(() => Date.now())
 
   // Next upcoming session
-  const { data: nextSession } = useQuery({
+  const { data: nextSession, isLoading: nextSessionLoading } = useQuery({
     queryKey: ["client-next-session", clientId],
     queryFn: async () => {
       const { data } = await supabase
@@ -113,22 +118,85 @@ export default function ClientHomePage() {
   }
 
   const trainer = identity.trainer
-  const greeting = new Date().getHours() < 12
-    ? "Good morning"
-    : new Date().getHours() < 17
-      ? "Good afternoon"
-      : "Good evening"
+  const now = new Date()
+  const greetingLabel = formatGreetingLabelSingapore(now)
+  const firstName = identity.first_name
+  const slug = trainer.booking_slug?.trim()
+
+  const daysUntilNext =
+    nextSession?.date_time != null
+      ? differenceInCalendarDaysSingapore(now, new Date(nextSession.date_time))
+      : null
+
+  const sessionWeekday = nextSession?.date_time
+    ? formatWeekdayLongSingapore(nextSession.date_time)
+    : ""
+  const sessionTime = nextSession?.date_time
+    ? formatTimeSingapore(nextSession.date_time)
+    : ""
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          {greeting}, {identity.first_name}
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold leading-snug">
+          {nextSessionLoading ? (
+            <>
+              {greetingLabel}, {firstName}
+            </>
+          ) : nextSession?.date_time ? (
+            <>
+              {greetingLabel}, {firstName} — your next session with{" "}
+              {trainer.name} is {sessionWeekday} at {sessionTime}.
+            </>
+          ) : (
+            <>
+              {greetingLabel}, {firstName} — book your next session when
+              you&apos;re ready
+              {slug ? (
+                <>
+                  .{" "}
+                  <Link
+                    href={`/book/${slug}`}
+                    className="text-primary font-medium underline-offset-4 hover:underline"
+                  >
+                    Book a session
+                  </Link>
+                </>
+              ) : (
+                "."
+              )}
+            </>
+          )}
         </h1>
-        <p className="text-muted-foreground text-body-lg">
-          {format(new Date(), "EEEE, d MMMM")}
-        </p>
+        {nextSessionLoading ? (
+          <Skeleton className="h-5 w-full max-w-md" />
+        ) : null}
       </div>
+
+      {/* Countdown — only when an upcoming session exists */}
+      {!nextSessionLoading && nextSession?.date_time && daysUntilNext != null ? (
+        <Card className="border-[rgba(0,198,212,0.2)] bg-muted/30">
+          <CardContent className="p-4">
+            {daysUntilNext < 0 ? (
+              <p className="text-body-lg font-medium">
+                Your next session is coming up — {sessionWeekday} at {sessionTime}.
+              </p>
+            ) : daysUntilNext === 0 ? (
+              <p className="text-body-lg font-medium">
+                Your session is today at {sessionTime}. 💪
+              </p>
+            ) : daysUntilNext === 1 ? (
+              <p className="text-body-lg font-medium">
+                Your session is tomorrow at {sessionTime}.
+              </p>
+            ) : (
+              <p className="text-body-lg font-medium">
+                {daysUntilNext} days until your next session
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Next session */}
       <Card className="card-border-cyan">
@@ -223,15 +291,13 @@ export default function ClientHomePage() {
               const pctWidth = `${Math.min(pct, 100)}%`
               return (
                 <div>
-                  <div className="flex items-baseline justify-between">
-                    <AnimatedNumber
-                      value={remaining}
-                      className="text-2xl font-semibold tabular"
-                    />
-                    <span className="text-muted-foreground text-body-sm">
-                      of {activePackage.total_sessions} sessions left
-                    </span>
-                  </div>
+                  <p className="text-2xl font-semibold tabular">
+                    {remaining}{" "}
+                    {remaining === 1 ? "session" : "sessions"} remaining
+                  </p>
+                  <p className="text-muted-foreground text-body-sm mt-0.5">
+                    {activePackage.name} · {activePackage.total_sessions} total
+                  </p>
                   <div className="mt-2 h-2 rounded-full bg-muted">
                     <div
                       className="progress-bar-animated h-2 rounded-full"

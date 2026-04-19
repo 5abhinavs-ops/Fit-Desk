@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useClientIdentity } from "@/hooks/useClientIdentity"
 import { createClient } from "@/lib/supabase/client"
@@ -13,6 +13,13 @@ import { Icon } from "@/components/ui/icon"
 import { EmptyState } from "@/components/ui/empty-state"
 import { format } from "date-fns"
 import type { BodyMeasurement } from "@/types/database"
+import {
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts"
 
 export default function ClientProgressPage() {
   const { data: identity, isLoading: identityLoading } = useClientIdentity()
@@ -131,67 +138,21 @@ export default function ClientProgressPage() {
     )
   }
 
-  // Weight trend SVG
-  const weightReadings = (measurements ?? [])
-    .filter((m) => m.weight_kg != null)
-    .slice(0, 10)
-    .reverse()
-
-  function renderWeightChart() {
-    if (weightReadings.length < 2) return null
-
-    const weights = weightReadings.map((m) => m.weight_kg!)
-    const minW = Math.min(...weights)
-    const maxW = Math.max(...weights)
-    const range = maxW - minW || 1
-    const padding = 10
-
-    const points = weightReadings.map((m, i) => {
-      const x =
-        padding +
-        (i / (weightReadings.length - 1)) * (300 - 2 * padding)
-      const y =
-        padding +
-        (1 - (m.weight_kg! - minW) / range) * (100 - 2 * padding)
-      return { x, y, weight: m.weight_kg! }
-    })
-
-    const polyline = points.map((p) => `${p.x},${p.y}`).join(" ")
-
-    return (
-      <Card>
-        <CardContent className="p-4">
-          <p className="text-xs text-muted-foreground mb-2">Weight trend</p>
-          <svg viewBox="0 0 300 100" className="w-full h-24">
-            <polyline
-              fill="none"
-              stroke="#00E096"
-              strokeWidth="2"
-              points={polyline}
-            />
-            {points.map((p, i) => (
-              <circle
-                key={i}
-                cx={p.x}
-                cy={p.y}
-                r="3"
-                fill="#00E096"
-              />
-            ))}
-            {/* Latest value label */}
-            <text
-              x={points[points.length - 1].x + 5}
-              y={points[points.length - 1].y - 5}
-              fill="#00E096"
-              fontSize="10"
-            >
-              {points[points.length - 1].weight}kg
-            </text>
-          </svg>
-        </CardContent>
-      </Card>
+  const weightChartData = useMemo(() => {
+    const withWeight = (measurements ?? []).filter((m) => m.weight_kg != null)
+    const sorted = [...withWeight].sort(
+      (a, b) =>
+        new Date(a.measured_at).getTime() - new Date(b.measured_at).getTime(),
     )
-  }
+    return sorted.map((m) => ({
+      label: format(new Date(m.measured_at), "d MMM"),
+      weight: m.weight_kg as number,
+    }))
+  }, [measurements])
+
+  const showWeightChart = weightChartData.length >= 2
+  const showWeightChartEmpty =
+    (measurements ?? []).length > 0 && weightChartData.length < 2
 
   return (
     <div className="space-y-6">
@@ -225,8 +186,58 @@ export default function ClientProgressPage() {
         </Card>
       </div>
 
-      {/* Weight chart */}
-      {renderWeightChart()}
+      {/* Weight-over-time chart */}
+      {showWeightChart ? (
+        <Card className="overflow-hidden border-[rgba(0,224,150,0.15)]">
+          <CardContent className="space-y-2 p-4">
+            <p className="text-micro font-semibold uppercase tracking-wider text-[#00e096]">
+              Weight (kg)
+            </p>
+            <div className="h-52 w-full rounded-lg bg-[#0a1628] px-1 py-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={weightChartData}
+                  margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
+                >
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    dataKey="weight"
+                    width={40}
+                    tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                    domain={["auto", "auto"]}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="weight"
+                    stroke="#00e096"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: "#00e096", strokeWidth: 0 }}
+                    activeDot={{ r: 5, fill: "#00e096" }}
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      ) : showWeightChartEmpty ? (
+        <Card>
+          <CardContent className="p-4">
+            <EmptyState
+              icon={TrendingUp}
+              title="Your progress will appear here"
+              body="Your PT will log your measurements after each check-in."
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Measurements: hero empty state when none, list + small button otherwise */}
       {(measurements ?? []).length === 0 ? (
