@@ -30,6 +30,8 @@ import {
 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
 import { EmptyState } from "@/components/ui/empty-state"
+import { ShimmerOverlay } from "@/components/ui/shimmer-overlay"
+import { AnimatedNumber } from "@/components/ui/animated-number"
 import { format } from "date-fns"
 import type { MealType } from "@/types/database"
 
@@ -92,6 +94,9 @@ export default function ClientNutritionPage() {
   const isSaving = state === "saving"
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
+  // Incremented on every successful scan so the macro-reveal row can use a
+  // guaranteed-unique key (ai_raw_response can collide across scans or be null).
+  const [scanId, setScanId] = useState(0)
   const [mealType, setMealType] = useState<MealType>("lunch")
   const [editName, setEditName] = useState("")
   const [editCalories, setEditCalories] = useState("")
@@ -138,6 +143,7 @@ export default function ClientNutritionPage() {
       setEditProtein(data.protein_g != null ? String(data.protein_g) : "")
       setEditCarbs(data.carbs_g != null ? String(data.carbs_g) : "")
       setEditFat(data.fat_g != null ? String(data.fat_g) : "")
+      setScanId((id) => id + 1)
       setState("editing")
     } catch {
       toast.error("Failed to analyse image")
@@ -268,12 +274,15 @@ export default function ClientNutritionPage() {
         <Card>
           <CardContent className="p-6 text-center space-y-3">
             {previewUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={previewUrl}
-                alt="Meal"
-                className="mx-auto h-40 w-40 rounded-lg object-cover"
-              />
+              <div className="relative mx-auto h-40 w-40 overflow-hidden rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrl}
+                  alt="Meal"
+                  className="h-40 w-40 object-cover"
+                />
+                <ShimmerOverlay className="absolute inset-0 pointer-events-none" />
+              </div>
             )}
             <div className="flex items-center justify-center gap-2">
               <Icon name={Loader2} size="md" className="animate-spin" />
@@ -300,6 +309,54 @@ export default function ClientNutritionPage() {
                 AI confidence: {analysis.confidence}
               </Badge>
             )}
+
+            {/* Staggered macro reveal — keyed on scanId so a new scan remounts
+                the row and retriggers the 0 → final tween. Re-renders within
+                the same scan (typing in inputs below) keep the key stable and
+                do not replay the animation. aria-label holds a stable summary
+                of final values so a screen reader announces one sentence once
+                on mount, regardless of the tween's changing textContent. */}
+            <div
+              key={`scan-${scanId}`}
+              role="status"
+              aria-label={
+                analysis
+                  ? `Scan complete: ${Math.round(analysis.calories ?? 0)} calories, ${Math.round(analysis.protein_g ?? 0)}g protein, ${Math.round(analysis.carbs_g ?? 0)}g carbs, ${Math.round(analysis.fat_g ?? 0)}g fat`
+                  : undefined
+              }
+              className="grid grid-cols-4 gap-2"
+            >
+              {[
+                { icon: Flame, label: "Cal", value: analysis?.calories ?? 0, unit: "" },
+                { icon: Beef, label: "Protein", value: analysis?.protein_g ?? 0, unit: "g" },
+                { icon: Wheat, label: "Carbs", value: analysis?.carbs_g ?? 0, unit: "g" },
+                { icon: Droplets, label: "Fat", value: analysis?.fat_g ?? 0, unit: "g" },
+              ].map((macro, i) => {
+                const rounded = Math.round(macro.value)
+                return (
+                  <div
+                    key={macro.label}
+                    className="macro-fade-in"
+                    style={{ animationDelay: `${i * 100}ms` }}
+                  >
+                    <div className="rounded-lg border p-2 text-center">
+                      <Icon
+                        name={macro.icon}
+                        size="sm"
+                        className="mx-auto text-muted-foreground"
+                      />
+                      <div className="text-body-sm font-semibold tabular">
+                        <AnimatedNumber from={0} value={rounded} />
+                        {macro.unit}
+                      </div>
+                      <div className="text-micro text-muted-foreground">
+                        {macro.label}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
 
             <div className="space-y-2">
               <Label>Meal name</Label>

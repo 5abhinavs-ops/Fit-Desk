@@ -262,4 +262,69 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /* ---------------------------------------------------------------------- */
+  /* Phase C animations — CSS-only, no JS animation lib                      */
+  /* ---------------------------------------------------------------------- */
+
+  /* Checkmark spring scale-in for the payment status card on pending →
+     client_confirmed. cubic-bezier approximates a mild spring overshoot. */
+  @keyframes pc-checkmark-in {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+  .pc-checkmark-in {
+    animation: pc-checkmark-in 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Expanding ring pulse — overlays the checkmark once. */
+  @keyframes pc-ring-pulse {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(1.5); opacity: 0; }
+  }
+  .pc-ring-pulse {
+    animation: pc-ring-pulse 600ms ease-out forwards;
+  }
+
+  /* Shimmer sweep — the nutrition analysing state overlay. Moves the inner
+     gradient strip from -100% to 100% of its container on infinite loop. */
+  @keyframes shimmer-sweep {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(100%); }
+  }
+  .shimmer-sweep {
+    animation: shimmer-sweep 1.2s linear infinite;
+  }
+
+  /* Staggered fade-in for the nutrition macro reveal row. Callers pass a
+     per-child animation-delay inline (0ms, 100ms, 200ms, 300ms). `both`
+     fill-mode keeps opacity at 0 until the delay elapses. */
+  @keyframes macro-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .macro-fade-in {
+    animation: macro-fade-in 300ms ease-out both;
+  }
+
+  /* Progress bar width transition for the package-balance card. */
+  .progress-bar-animated {
+    transition: width 400ms ease-out;
+  }
+
+  /* Reduced-motion: suppress all the above. The elements stay in their final
+     rendered state (opacity/scale 1, no transition). Note: the expanding ring
+     is ALSO JS-gated (see payment-status-card.tsx) so it does not mount at all
+     under reduced-motion — the class suppression here is belt-and-braces. */
+  @media (prefers-reduced-motion: reduce) {
+    .pc-checkmark-in,
+    .pc-ring-pulse,
+    .shimmer-sweep,
+    .macro-fade-in {
+      animation: none;
+    }
+    .progress-bar-animated {
+      transition: none;
+    }
+  }
 }

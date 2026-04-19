@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
 import { EmptyState } from "@/components/ui/empty-state"
+import { AnimatedNumber } from "@/components/ui/animated-number"
 import { format } from "date-fns"
 import Link from "next/link"
 
@@ -219,21 +220,22 @@ export default function ClientHomePage() {
                     ? "#FFB347"
                     : "#FF4C7A"
 
+              const pctWidth = `${Math.min(pct, 100)}%`
               return (
                 <div>
                   <div className="flex items-baseline justify-between">
-                    <p className="text-2xl font-semibold tabular">{remaining}</p>
+                    <AnimatedNumber
+                      value={remaining}
+                      className="text-2xl font-semibold tabular"
+                    />
                     <span className="text-muted-foreground text-body-sm">
                       of {activePackage.total_sessions} sessions left
                     </span>
                   </div>
                   <div className="mt-2 h-2 rounded-full bg-muted">
                     <div
-                      className="h-2 rounded-full transition-all"
-                      style={{
-                        width: `${Math.min(pct, 100)}%`,
-                        background: barColor,
-                      }}
+                      className="progress-bar-animated h-2 rounded-full"
+                      style={{ width: pctWidth, background: barColor }}
                     />
                   </div>
                   {remaining <= 2 && remaining > 0 && (

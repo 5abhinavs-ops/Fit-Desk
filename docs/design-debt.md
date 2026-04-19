@@ -57,3 +57,17 @@ Caught during Phase A.6 Op 5 code-review gate.
 Caught during Phase A.6 Op 5 typescript-reviewer gate.
 
 ---
+
+## 2026-04-19 — Client payments view hides `client_confirmed` state
+
+**File:** `src/app/(client)/client/payments/page.tsx`
+
+**Issue:** Client-side payment filter excludes `client_confirmed`, so payments awaiting PT review disappear from the client's list entirely. Client experience: "I uploaded proof, where did my payment go?"
+
+**Correct behavior:** add an "Awaiting review" bucket that shows `client_confirmed` payments with appropriate copy. Possibly merge into Pending tab with a sub-state indicator.
+
+**Scope:** small UX fix, out of Phase C scope (Phase C is animation-only). Candidate for Phase D (public booking redesign may touch adjacent client surfaces) or a dedicated client-UX cleanup.
+
+Caught during Phase C C2 scoping — surfaced when planner-proposed chip extraction revealed the client-side filter asymmetry.
+
+---

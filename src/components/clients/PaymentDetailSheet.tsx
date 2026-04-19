@@ -6,8 +6,9 @@ import { useMarkPaymentReceived } from "@/hooks/usePayments"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { Loader2, Clock, AlertCircle, CheckCircle } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { PaymentStatusCard } from "@/components/ui/payment-status-card"
 import { format } from "date-fns"
 import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
@@ -157,96 +158,13 @@ export function PaymentDetailSheet({ payment, open, onOpenChange }: PaymentDetai
           <SheetTitle>{clientName}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 pt-4 overflow-y-auto">
-          {/* Payment status card */}
-          {payment.status === "pending" && (
-            <div style={{
-              borderRadius: 10, padding: "10px 12px", display: "flex",
-              alignItems: "flex-start", gap: 10,
-              background: "rgba(255,179,71,0.08)",
-              border: "1px solid rgba(255,179,71,0.25)",
-            }}>
-              {/* 14px inline with status row text */}
-              <Icon name={Clock} size="sm" className="size-3.5 shrink-0" style={{ color: "#FFB347", marginTop: 2 }} />
-              <div>
-                <p className="text-body-sm font-semibold" style={{ color: "#FFB347" }}>
-                  Payment pending
-                </p>
-                <p className="text-micro opacity-75 mt-0.5" style={{ color: "#FFB347" }}>
-                  {payment.due_date
-                    ? `Due ${format(new Date(payment.due_date + "T12:00:00"), "d MMM yyyy")}`
-                    : "No due date set"}
-                </p>
-              </div>
-            </div>
-          )}
-          {payment.status === "overdue" && (() => {
-            const daysOverdue = payment.due_date
-              ? Math.floor((Date.now() - new Date(payment.due_date + "T12:00:00").getTime()) / (1000 * 60 * 60 * 24))
-              : 0
-            return (
-              <div style={{
-                borderRadius: 10, padding: "10px 12px", display: "flex",
-                alignItems: "flex-start", gap: 10,
-                background: "rgba(255,76,122,0.08)",
-                border: "1px solid rgba(255,76,122,0.25)",
-              }}>
-                {/* 14px inline with status row text */}
-                <Icon name={AlertCircle} size="sm" className="size-3.5 shrink-0" style={{ color: "#FF4C7A", marginTop: 2 }} />
-                <div>
-                  <p className="text-body-sm font-semibold" style={{ color: "#FF4C7A" }}>
-                    {daysOverdue} day{daysOverdue !== 1 ? "s" : ""} overdue
-                  </p>
-                  {payment.due_date && (
-                    <p className="text-micro opacity-75 mt-0.5" style={{ color: "#FF4C7A" }}>
-                      Was due {format(new Date(payment.due_date + "T12:00:00"), "d MMM yyyy")}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )
-          })()}
-          {payment.status === "client_confirmed" && (
-            <div style={{
-              borderRadius: 10, padding: "10px 12px", display: "flex",
-              alignItems: "flex-start", gap: 10,
-              background: "rgba(0,198,212,0.08)",
-              border: "1px solid rgba(0,198,212,0.25)",
-            }}>
-              {/* 14px inline with status row text */}
-              <Icon name={CheckCircle} size="sm" className="size-3.5 shrink-0" style={{ color: "#00C6D4", marginTop: 2 }} />
-              <div>
-                <p className="text-body-sm font-semibold" style={{ color: "#00C6D4" }}>
-                  Client confirmed payment
-                </p>
-                <p className="text-micro opacity-75 mt-0.5" style={{ color: "#00C6D4" }}>
-                  {payment.proof_uploaded_at
-                    ? `Proof uploaded ${format(new Date(payment.proof_uploaded_at), "d MMM, h:mm a")}`
-                    : "Awaiting your review"}
-                </p>
-              </div>
-            </div>
-          )}
-          {payment.status === "received" && (
-            <div style={{
-              borderRadius: 10, padding: "10px 12px", display: "flex",
-              alignItems: "flex-start", gap: 10,
-              background: "rgba(0,224,150,0.08)",
-              border: "1px solid rgba(0,224,150,0.25)",
-            }}>
-              {/* 14px inline with status row text */}
-              <Icon name={CheckCircle} size="sm" className="size-3.5 shrink-0" style={{ color: "#00E096", marginTop: 2 }} />
-              <div>
-                <p className="text-body-sm font-semibold" style={{ color: "#00E096" }}>
-                  Payment received
-                </p>
-                {payment.received_date && (
-                  <p className="text-micro opacity-75 mt-0.5" style={{ color: "#00E096" }}>
-                    {format(new Date(payment.received_date + "T12:00:00"), "d MMM yyyy")}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Payment status card — animates on pending → client_confirmed. */}
+          <PaymentStatusCard
+            status={payment.status}
+            dueDate={payment.due_date}
+            receivedDate={payment.received_date}
+            proofUploadedAt={payment.proof_uploaded_at}
+          />
 
           {/* Existing payment details */}
           <div className="space-y-2 text-sm">
