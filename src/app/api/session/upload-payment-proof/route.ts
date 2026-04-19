@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { sendTemplateMessage } from "@/lib/whatsapp"
+import { isAllowedImageBuffer } from "@/lib/file-validation"
 
 export async function POST(request: Request) {
   const formData = await request.formData()
@@ -77,6 +78,15 @@ export async function POST(request: Request) {
   // Upload file to storage
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
+
+  // Validate actual file contents — browser-supplied file.type is spoofable
+  if (!isAllowedImageBuffer(buffer)) {
+    return NextResponse.json(
+      { error: "Invalid file type. Upload a JPEG, PNG, WEBP, or GIF image." },
+      { status: 400 }
+    )
+  }
+
   const storagePath = `${booking.trainer_id}/${booking.client_id}/${payment?.id ?? bookingId}/${Date.now()}.jpg`
 
   const { error: uploadError } = await supabase.storage
