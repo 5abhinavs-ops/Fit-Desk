@@ -12,6 +12,9 @@ import { Loader2 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
 import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
 
+const TESTIMONIAL_PLACEHOLDER =
+  "Paste a WhatsApp message a client sent you, or ask them: 'Can you send me one sentence about training with me?'"
+
 interface ProfileDetailsFormProps {
   profileId: string
   initialName: string
@@ -103,11 +106,11 @@ export function ProfileDetailsForm({
         <Label htmlFor="profileWa">WhatsApp number</Label>
         <Input id="profileWa" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} onBlur={(e) => setWhatsappNumber(formatWhatsappNumber(e.target.value))} />
       </div>
-      <div className="space-y-2">
+      <div id="profile-field-bio" className="scroll-mt-24 space-y-2">
         <Label htmlFor="profileBio">Bio</Label>
         <Textarea id="profileBio" value={bio} onChange={(e) => setBio(e.target.value)} />
       </div>
-      <div className="space-y-2">
+      <div id="profile-field-specialisations" className="scroll-mt-24 space-y-2">
         <Label htmlFor="profileSpecs">Specialisations</Label>
         <Input
           id="profileSpecs"
@@ -170,7 +173,7 @@ export function ProfileDetailsForm({
           onChange={(e) => setWhyTrainWithMe(e.target.value)}
         />
       </div>
-      <div className="space-y-2">
+      <div id="profile-field-pricing" className="scroll-mt-24 space-y-2">
         <Label htmlFor="pricingFrom">Pricing from (SGD)</Label>
         <Input
           id="pricingFrom"
@@ -182,17 +185,35 @@ export function ProfileDetailsForm({
           onChange={(e) => setPricingFrom(e.target.value)}
         />
       </div>
-      <div className="space-y-2">
+      <div id="profile-field-testimonial-1" className="scroll-mt-24 space-y-2">
         <Label htmlFor="testimonial1">Testimonial 1</Label>
-        <Input id="testimonial1" placeholder={`"Lost 8kg in 3 months. Life changing!" — Sarah T.`} value={testimonial1} onChange={(e) => setTestimonial1(e.target.value)} />
+        <Textarea
+          id="testimonial1"
+          placeholder={TESTIMONIAL_PLACEHOLDER}
+          className="min-h-[88px] resize-y"
+          value={testimonial1}
+          onChange={(e) => setTestimonial1(e.target.value)}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="testimonial2">Testimonial 2</Label>
-        <Input id="testimonial2" placeholder={`"Best PT in Singapore." — Marcus L.`} value={testimonial2} onChange={(e) => setTestimonial2(e.target.value)} />
+        <Textarea
+          id="testimonial2"
+          placeholder={TESTIMONIAL_PLACEHOLDER}
+          className="min-h-[88px] resize-y"
+          value={testimonial2}
+          onChange={(e) => setTestimonial2(e.target.value)}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="testimonial3">Testimonial 3</Label>
-        <Input id="testimonial3" placeholder={`"Highly recommend!" — Priya R.`} value={testimonial3} onChange={(e) => setTestimonial3(e.target.value)} />
+        <Textarea
+          id="testimonial3"
+          placeholder={TESTIMONIAL_PLACEHOLDER}
+          className="min-h-[88px] resize-y"
+          value={testimonial3}
+          onChange={(e) => setTestimonial3(e.target.value)}
+        />
       </div>
       <Button onClick={handleSave} disabled={saving}>
         {saving && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}

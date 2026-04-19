@@ -1,17 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
 import { LogOut, ChevronDown, ChevronUp, Salad, BarChart2 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
 import type { Profile } from "@/types/database"
+import {
+  getBookingPageCompleteness,
+  type BookingPageCompletenessItem,
+} from "@/lib/profile-booking-page-completeness"
 import { ProfilePhotoUpload } from "@/components/profile/profile-photo-upload"
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form"
 import { BookingSettingsForm } from "@/components/profile/booking-settings-form"
@@ -57,6 +63,28 @@ export default function ProfilePage() {
     router.push("/login")
   }
 
+  const bookingCompleteness = useMemo(
+    () => (profile ? getBookingPageCompleteness(profile) : null),
+    [profile],
+  )
+
+  function scrollToCompletenessField(item: BookingPageCompletenessItem) {
+    const anchor = document.getElementById(item.scrollTargetId)
+    anchor?.scrollIntoView({ behavior: "smooth", block: "center" })
+    window.setTimeout(() => {
+      if (item.action === "openPhotoPicker") {
+        document.getElementById("profile-photo-input")?.click()
+        return
+      }
+      const focusId = item.focusElementId ?? item.scrollTargetId
+      const focusEl = document.getElementById(focusId) as
+        | HTMLInputElement
+        | HTMLTextAreaElement
+        | null
+      focusEl?.focus()
+    }, 380)
+  }
+
   async function handleManageSubscription() {
     try {
       const res = await fetch("/api/portal", { method: "POST" })
@@ -85,8 +113,59 @@ export default function ProfilePage() {
     return <p className="text-muted-foreground">Profile not found</p>
   }
 
+  const bookingSlug = profile.booking_slug?.trim() ?? ""
+  const showBookingPreview = bookingSlug.length > 0
+
   return (
     <div className="space-y-6 pb-8">
+      {bookingCompleteness ? (
+        <Card>
+          <CardContent className="space-y-4 p-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                Your booking page is {bookingCompleteness.percent}% complete.
+              </p>
+              <Progress value={bookingCompleteness.percent} className="h-2" />
+            </div>
+            {bookingCompleteness.missing.length > 0 ? (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {bookingCompleteness.missing.map((item) => (
+                  <li
+                    key={item.key}
+                    className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm"
+                  >
+                    <span className="text-muted-foreground">{item.label}</span>
+                    <button
+                      type="button"
+                      className="shrink-0 font-medium text-primary underline-offset-4 hover:underline"
+                      onClick={() => scrollToCompletenessField(item)}
+                    >
+                      Add
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground text-xs">All booking page essentials are filled in.</p>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h1 className="text-xl font-semibold tracking-tight">Your profile</h1>
+        {showBookingPreview ? (
+          <a
+            href={`/book/${bookingSlug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "shrink-0")}
+          >
+            Preview your booking page →
+          </a>
+        ) : null}
+      </div>
+
       {/* Quick links — Nutrition & Analytics */}
       <div className="grid grid-cols-2 gap-3">
         <button onClick={() => router.push("/nutrition")}
@@ -102,12 +181,14 @@ export default function ProfilePage() {
       </div>
 
       {/* Section 1 — Trainer profile */}
-      <h2 className="text-lg font-semibold">Your profile</h2>
       <ProfilePhotoUpload
         profileId={profile.id}
         name={profile.name}
         whatsappNumber={profile.whatsapp_number}
         initialPhotoUrl={profile.photo_url}
+        onPhotoUrlChange={(url) =>
+          setProfile((prev) => (prev ? { ...prev, photo_url: url } : prev))
+        }
       />
       <ProfileDetailsForm
         profileId={profile.id}

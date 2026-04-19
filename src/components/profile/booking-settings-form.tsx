@@ -152,7 +152,7 @@ export function BookingSettingsForm({
         />
         <p className="text-muted-foreground text-xs">Shown in all payment reminder messages</p>
       </div>
-      <div className="space-y-2">
+      <div id="profile-field-training-locations" className="scroll-mt-24 space-y-2">
         <Label htmlFor="locations">Training locations</Label>
         <Input
           id="locations"
