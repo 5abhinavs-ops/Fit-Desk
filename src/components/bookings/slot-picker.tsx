@@ -2,8 +2,9 @@
 
 import { useRef, useState, useMemo } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ChevronDown } from "lucide-react"
+import { Calendar, CalendarX, ChevronDown } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
+import { EmptyState } from "@/components/ui/empty-state"
 import { buildSlots } from "@/components/BookingForm"
 
 interface AvailabilityData {
@@ -13,7 +14,7 @@ interface AvailabilityData {
 
 type Period = "morning" | "afternoon" | "evening"
 
-interface SlotPickerProps {
+export interface SlotPickerProps {
   date: string
   availabilityData: AvailabilityData | null
   availabilityLoading: boolean
@@ -97,23 +98,51 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
 
   if (!date) {
     return (
-      <p className="text-muted-foreground text-sm text-center py-4">
-        Select a date above to see available times
-      </p>
+      <EmptyState
+        icon={Calendar}
+        title="Pick a date"
+        body="Choose a day above to see available times."
+        headingLevel="h3"
+      />
     )
   }
 
   if (availabilityLoading) {
+    // Skeleton rows foreshadow the final accordion shape so there's no
+    // layout jump when availability resolves. Each row mirrors the padded
+    // row with a label/range stack on the left and a "N free" pill on the
+    // right — the chevron is omitted because it's an interaction affordance
+    // and its absence during load is honest.
     return (
       <div className="space-y-2">
-        <Skeleton className="h-12 rounded-lg" />
-        <Skeleton className="h-12 rounded-lg" />
-        <Skeleton className="h-12 rounded-lg" />
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between rounded-lg border border-input px-3 py-2.5"
+          >
+            <div className="space-y-1">
+              <Skeleton className="h-3.5 w-16" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+            <Skeleton className="h-5 w-12 rounded-full" />
+          </div>
+        ))}
       </div>
     )
   }
 
   if (!availabilityData) return null
+
+  if (availabilityData.availableSlots.length === 0) {
+    return (
+      <EmptyState
+        icon={CalendarX}
+        title="No slots on this date"
+        body="Try another day — most trainers add slots a few days ahead."
+        headingLevel="h3"
+      />
+    )
+  }
 
   return (
     <div className="space-y-2">
@@ -190,7 +219,7 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
                         type="button"
                         onClick={() => onSelectTime(slot)}
                         aria-label={`${formatTime(slot)} — selected`}
-                        className="rounded-lg py-2 text-center text-xs font-semibold bg-primary text-primary-foreground border border-primary"
+                        className="rounded-lg py-2 text-center text-xs font-semibold bg-primary text-primary-foreground border border-primary transition-transform duration-75 active:scale-95 motion-reduce:active:scale-100 motion-reduce:transition-none"
                       >
                         <div>{time}</div>
                         <div className="text-micro opacity-80">Selected</div>
@@ -204,7 +233,7 @@ export function SlotPicker({ date, availabilityData, availabilityLoading, select
                       type="button"
                       onClick={() => onSelectTime(slot)}
                       aria-label={`Select ${formatTime(slot)}`}
-                      className="rounded-lg py-2 text-center text-xs font-semibold border border-input bg-background hover:border-primary"
+                      className="rounded-lg py-2 text-center text-xs font-semibold border border-input bg-background hover:border-primary transition-transform duration-75 active:scale-95 motion-reduce:active:scale-100 motion-reduce:transition-none"
                     >
                       <div>{time}</div>
                       <div className="text-micro text-muted-foreground">{period}</div>

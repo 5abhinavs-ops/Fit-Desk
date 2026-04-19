@@ -37,6 +37,10 @@ export interface EmptyStateProps {
   body?: string
   action?: EmptyStateAction
   className?: string
+  // Overrides the title element when the EmptyState renders nested under an
+  // existing h2 (e.g. inside a form with its own section heading). Default
+  // "h2" preserves the page-zone landmark semantics for all other callers.
+  headingLevel?: "h2" | "h3"
 }
 
 // External hrefs come from app data (e.g. trainer.whatsapp_number → wa.me URL).
@@ -81,7 +85,11 @@ export function EmptyState({
   body,
   action,
   className,
+  headingLevel = "h2",
 }: EmptyStateProps): ReactElement {
+  // Dynamic heading element: h2 for page-zone emptiness (default), h3 when
+  // nested under an existing h2 to preserve WCAG 1.3.1 heading hierarchy.
+  const Heading = headingLevel
   return (
     <div
       className={cn(
@@ -90,9 +98,7 @@ export function EmptyState({
       )}
     >
       <Icon name={icon} size="lg" className="text-muted-foreground" />
-      {/* h2: empty states are page-zone headings; screen readers rely on
-          heading semantics for landmark navigation. */}
-      <h2 className="text-display-sm font-semibold">{title}</h2>
+      <Heading className="text-display-sm font-semibold">{title}</Heading>
       {body !== undefined && (
         <p className="text-body-sm text-muted-foreground max-w-xs">{body}</p>
       )}

@@ -246,4 +246,22 @@ describe("<EmptyState>", () => {
     expect(rootClass).toContain("justify-center")
     expect(rootClass).toContain("text-center")
   })
+
+  // 11 ----------------------------------------------------------------------
+  // headingLevel prop — default h2, overridable to h3 for nested contexts.
+  it("renders title as h2 by default and h3 when headingLevel='h3'", () => {
+    const defaultEl = EmptyState({ icon: CalendarPlus, title: "Default" })
+    const h2Nodes = findAll(defaultEl, (n) => n.type === "h2")
+    expect(h2Nodes.length).toBeGreaterThan(0)
+    expect(findAll(defaultEl, (n) => n.type === "h3")).toHaveLength(0)
+
+    const h3El = EmptyState({
+      icon: CalendarPlus,
+      title: "Nested",
+      headingLevel: "h3",
+    })
+    const h3Nodes = findAll(h3El, (n) => n.type === "h3")
+    expect(h3Nodes.length).toBeGreaterThan(0)
+    expect(findAll(h3El, (n) => n.type === "h2")).toHaveLength(0)
+  })
 })

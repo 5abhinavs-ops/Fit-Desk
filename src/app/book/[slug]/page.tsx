@@ -62,37 +62,61 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
     .toUpperCase()
     .slice(0, 2) || "?"
 
+  const firstName = trainer.name.split(" ").filter(Boolean)[0] ?? trainer.name
+
+  const testimonials = [
+    trainer.testimonial_1,
+    trainer.testimonial_2,
+    trainer.testimonial_3,
+  ].filter((t): t is string => !!t && t.trim().length > 0)
+
+  const hasPrice = !!trainer.pricing_from
+  const hasCancellationPolicy = trainer.cancellation_policy_hours > 0
+  const showPriceStrip = hasPrice || hasCancellationPolicy
+
+  const hasTrustBlock =
+    !!trainer.bio ||
+    !!trainer.why_train_with_me ||
+    testimonials.length > 0
+
+  // Cap specialisations at 4 visible badges; real seeded data has ≤4 today.
+  // If this ever overflows in production, revisit with a +N overflow chip.
+  const badges = trainer.specialisations.slice(0, 4)
+
   return (
     <div className="flex min-h-screen items-start justify-center p-4 pt-8">
       <div className="w-full max-w-sm space-y-6">
-        {/* Trainer header */}
+        {/* ================================================================ */}
+        {/* BLOCK A — Trainer anchor (above-the-fold)                        */}
+        {/* ================================================================ */}
         <div className="text-center space-y-3">
-          {/* Photo or initials */}
           {trainer.photo_url && trainer.photo_url.startsWith("https://") ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={trainer.photo_url}
               alt={trainer.name}
-              className="mx-auto h-20 w-20 rounded-full object-cover border-2 border-border"
+              className="mx-auto h-24 w-24 rounded-full object-cover border-2 border-border"
             />
           ) : (
-            <div className="bg-primary text-primary-foreground mx-auto flex h-20 w-20
+            <div className="bg-primary text-primary-foreground mx-auto flex h-24 w-24
               items-center justify-center rounded-full text-2xl font-semibold">
               {initials}
             </div>
           )}
 
-          {/* Name + headline + Instagram */}
           <div>
-            <h1 className="text-xl font-semibold">{trainer.name}</h1>
+            <h1 className="text-2xl font-semibold">{trainer.name}</h1>
             {trainer.booking_headline && (
-              <p className="text-muted-foreground text-sm mt-1">{trainer.booking_headline}</p>
+              <p className="text-muted-foreground text-body-sm mt-1">
+                {trainer.booking_headline}
+              </p>
             )}
             {trainer.instagram_url && trainer.instagram_url.startsWith("https://") && (
               <a
                 href={trainer.instagram_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 mt-1 text-xs
+                className="inline-flex items-center gap-1.5 mt-1 text-micro
                   text-muted-foreground hover:text-primary transition-colors"
                 aria-label={`${trainer.name} on Instagram`}
               >
@@ -107,91 +131,92 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
             )}
           </div>
 
-          {/* Bio */}
-          {trainer.bio && (
-            <p className="text-muted-foreground text-sm">{trainer.bio}</p>
+          {/* Price strip — graceful collapse per approved ruling 3. */}
+          {showPriceStrip && (
+            <p className="text-body-sm">
+              {hasPrice && (
+                <span className="font-semibold">From ${trainer.pricing_from}</span>
+              )}
+              {hasPrice && hasCancellationPolicy && (
+                <span className="text-muted-foreground"> · </span>
+              )}
+              {hasCancellationPolicy && (
+                <span className="text-muted-foreground">
+                  {trainer.cancellation_policy_hours}h cancellation
+                </span>
+              )}
+            </p>
           )}
 
-          {/* Specialisation badges */}
-          {trainer.specialisations && trainer.specialisations.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-1">
-              {trainer.specialisations.map((s: string) => (
-                <Badge key={s} variant="secondary" className="text-xs">
+          {/* Quick badges — specialisations, capped at 4. */}
+          {badges.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {badges.map((s: string) => (
+                <Badge key={s} variant="secondary" className="text-micro">
                   {s}
                 </Badge>
               ))}
             </div>
           )}
-        </div>
 
-        {/* Training locations */}
-        {trainer.training_locations && trainer.training_locations.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-1.5 justify-center">
-              {/* 12px map-pin inline with text-xs "Training locations" heading */}
-              <Icon name={MapPin} size="sm" className="size-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Training locations</span>
+          {/* Locations — one-line inline with MapPin. */}
+          {trainer.training_locations && trainer.training_locations.length > 0 && (
+            <div className="flex items-center justify-center gap-1.5 text-body-sm text-muted-foreground">
+              <Icon name={MapPin} size="sm" className="size-3.5" />
+              <span>{trainer.training_locations.join(" · ")}</span>
             </div>
-            <div className="flex flex-wrap justify-center gap-1">
-              {trainer.training_locations.map((loc: string) => (
-                <Badge key={loc} variant="outline" className="text-xs">{loc}</Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Why train with me */}
-        {trainer.why_train_with_me && (
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold">Why train with me</h2>
-            <p className="text-muted-foreground text-sm whitespace-pre-line">
-              {trainer.why_train_with_me}
-            </p>
-          </div>
-        )}
-
-        {/* Pricing + cancellation policy */}
-        <div className="space-y-1">
-          {trainer.pricing_from && (
-            <p className="text-sm font-semibold">
-              Sessions from <span className="text-primary">${trainer.pricing_from}</span>
-            </p>
-          )}
-          {trainer.cancellation_policy_hours > 0 && (
-            <p className="text-muted-foreground text-xs">
-              {trainer.cancellation_policy_hours} hours cancellation notice required
-            </p>
           )}
         </div>
 
-        {/* Testimonials */}
-        {(() => {
-          const testimonials = [trainer.testimonial_1, trainer.testimonial_2, trainer.testimonial_3]
-            .filter((t): t is string => !!t && t.trim().length > 0)
-          if (testimonials.length === 0) return null
-          return (
-            <div className="space-y-3">
-              <p className="text-sm font-semibold text-center">What clients say</p>
-              {testimonials.map((t, i) => (
-                <div key={i} className="rounded-xl border bg-muted p-4">
-                  <span className="text-3xl text-muted-foreground font-serif leading-none">&ldquo;</span>
-                  <p className="text-sm italic mt-1">{t}</p>
-                </div>
-              ))}
-            </div>
-          )
-        })()}
+        {/* ================================================================ */}
+        {/* BLOCK B — Form with anchor heading                                */}
+        {/* ================================================================ */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Book a session</h2>
+          <ErrorBoundary>
+            <BookingForm trainerId={trainer.id} trainerName={trainer.name} />
+          </ErrorBoundary>
+        </div>
 
-        {/* Booking form */}
-        <ErrorBoundary>
-          <BookingForm trainerId={trainer.id} trainerName={trainer.name} />
-        </ErrorBoundary>
+        {/* ================================================================ */}
+        {/* BLOCK C — Below-the-fold trust (collapses when all fields empty) */}
+        {/* ================================================================ */}
+        {hasTrustBlock && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">
+              Why train with {firstName}
+            </h2>
+
+            {trainer.bio && (
+              <p className="text-body-sm text-muted-foreground whitespace-pre-line">
+                {trainer.bio}
+              </p>
+            )}
+
+            {trainer.why_train_with_me && (
+              <p className="text-body-sm text-muted-foreground whitespace-pre-line">
+                {trainer.why_train_with_me}
+              </p>
+            )}
+
+            {testimonials.length > 0 && (
+              <div className="space-y-3">
+                {testimonials.map((t, i) => (
+                  <div key={i} className="rounded-xl border bg-muted p-4">
+                    <span className="text-3xl text-muted-foreground font-serif leading-none">&ldquo;</span>
+                    <p className="text-body-sm italic mt-1">{t}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <a
           href={process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}
           target="_blank"
           rel="noopener noreferrer"
-          className="block text-center text-xs text-muted-foreground hover:text-primary transition-colors"
+          className="block text-center text-micro text-muted-foreground hover:text-primary transition-colors"
         >
           Powered by <span className="font-semibold">FitDesk</span>
         </a>
