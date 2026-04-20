@@ -221,14 +221,25 @@ export default async function PublicBookingPage({ params }: BookingPageProps) {
           </div>
         )}
 
-        <a
-          href={process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block text-center text-micro text-muted-foreground hover:text-primary transition-colors"
-        >
-          Powered by <span className="font-semibold">FitDesk</span>
-        </a>
+        <div className="space-y-1 text-center">
+          <a
+            href={process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-micro text-muted-foreground hover:text-primary transition-colors"
+          >
+            Powered by <span className="font-semibold">FitDesk</span>
+          </a>
+          <p className="text-micro text-muted-foreground">
+            Need help?{" "}
+            <a
+              href="mailto:support@fitdesk.pro"
+              className="underline-offset-4 hover:underline hover:text-primary"
+            >
+              support@fitdesk.pro
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   )
