@@ -1,209 +1,600 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Loader2, ArrowLeft, Copy, Check } from "lucide-react"
+import {
+  Check,
+  Copy,
+  Loader2,
+  PartyPopper,
+  Share2,
+  Sparkles,
+  Users,
+} from "lucide-react"
 import { Icon } from "@/components/ui/icon"
 import { FitDeskLogo } from "@/components/shared/fitdesk-logo"
+import { formatWhatsappNumber } from "@/lib/formatWhatsapp"
+import { isValidE164Phone } from "@/lib/phone-validate"
+import { buildDemoClientPayload } from "@/lib/onboarding-demo-seed"
+import {
+  PACKAGE_PRESETS,
+  buildPackagePayload,
+  formatPresetLabel,
+  type PackagePreset,
+} from "@/lib/package-presets"
+import { buildWhatsappShareUrl } from "@/lib/whatsapp-share"
+import { cn } from "@/lib/utils"
+
+type Step = 1 | 2 | 3
+
+interface SessionState {
+  userId: string
+  slug: string
+}
+
+interface NewClient {
+  id: string
+  first_name: string
+}
+
+const TOTAL_STEPS = 3
+
+function ProgressHeader({ step }: { step: Step }) {
+  const completedBefore = step - 1
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <FitDeskLogo size="sm" />
+        <p className="text-micro text-muted-foreground">
+          {completedBefore} of {TOTAL_STEPS} steps complete
+        </p>
+      </div>
+      <div className="flex items-center gap-2" aria-hidden>
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className={cn(
+              "h-1 flex-1 rounded-full transition-colors",
+              i < step
+                ? "bg-[color:var(--fd-cyan)]"
+                : i === step
+                  ? "bg-[color:var(--fd-cyan)]/50"
+                  : "bg-[color:var(--fd-border)]",
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [step, setStep] = useState(1)
-  const [paynowDetails, setPaynowDetails] = useState("")
-  const [defaultPaymentMode, setDefaultPaymentMode] = useState("pay_later")
-  const [slug, setSlug] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [session, setSession] = useState<SessionState | null>(null)
+  const [step, setStep] = useState<Step>(1)
+  const [client, setClient] = useState<NewClient | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) {
         router.push("/login")
         return
       }
-      const name = (user.user_metadata?.name as string) || ""
-      const slugified = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
-      setSlug(slugified)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("booking_slug")
+        .eq("id", user.id)
+        .single()
+
+      setSession({
+        userId: user.id,
+        slug:
+          typeof profile?.booking_slug === "string" && profile.booking_slug.length > 0
+            ? profile.booking_slug
+            : user.id.slice(0, 8),
+      })
     })
   }, [router])
 
-  async function handleSubmit() {
-    setLoading(true)
+  if (!session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Icon name={Loader2} size="lg" className="animate-spin text-[color:var(--fd-cyan)]" />
+      </div>
+    )
+  }
 
+  return (
+    <div className="flex min-h-screen flex-col items-center p-4">
+      <div className="w-full max-w-sm space-y-6 py-6">
+        <ProgressHeader step={step} />
+
+        {step === 1 && (
+          <Step1AddClient
+            userId={session.userId}
+            onComplete={(newClient) => {
+              setClient(newClient)
+              setStep(2)
+            }}
+          />
+        )}
+
+        {step === 2 && client && (
+          <Step2CreatePackage
+            userId={session.userId}
+            client={client}
+            onComplete={() => setStep(3)}
+          />
+        )}
+
+        {step === 3 && (
+          <Step3ShareLink
+            slug={session.slug}
+            onDone={() => router.push("/")}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Step 1 — Add your first client
+// ---------------------------------------------------------------------------
+
+function Step1AddClient({
+  userId,
+  onComplete,
+}: {
+  userId: string
+  onComplete: (client: NewClient) => void
+}) {
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [whatsapp, setWhatsapp] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [loadingDemo, setLoadingDemo] = useState(false)
+
+  const canSubmit =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    whatsapp.trim().length > 0
+
+  async function insertClient(
+    payload: Record<string, unknown>,
+  ): Promise<NewClient | null> {
+    // Re-resolve the session at insert time — pinning userId at mount would
+    // silently mismatch RLS if the session rotates to a different account
+    // (shared device, multi-tab, or token refresh edge cases).
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      toast.error("Not authenticated")
-      setLoading(false)
-      return
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user || user.id !== userId) {
+      toast.error("Your session changed — please sign in again.")
+      return null
     }
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        paynow_details: paynowDetails || null,
-        default_booking_payment_mode: defaultPaymentMode,
-        booking_slug: slug,
-      })
-      .eq("id", user.id)
+    const row = { ...payload, trainer_id: user.id } as Record<string, unknown>
+    const { data, error } = await supabase
+      .from("clients")
+      .insert(row)
+      .select("id, first_name")
+      .single()
 
     if (error) {
-      toast.error(error.message)
-      setLoading(false)
+      toast.error(error.message || "Could not add client")
+      return null
+    }
+    return { id: data.id as string, first_name: data.first_name as string }
+  }
+
+  async function handleAddReal(e: React.FormEvent) {
+    e.preventDefault()
+    if (!canSubmit || submitting) return
+    const normalised = formatWhatsappNumber(whatsapp)
+    if (!isValidE164Phone(normalised)) {
+      toast.error("Enter a valid WhatsApp number with country code, e.g. +65 9123 4567")
+      return
+    }
+    setSubmitting(true)
+    const created = await insertClient({
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      whatsapp_number: normalised,
+      email: null,
+      goals: null,
+      injuries_medical: null,
+      photo_url: null,
+      emergency_contact_name: null,
+      emergency_contact_phone: null,
+      status: "active",
+      whatsapp_opted_out: false,
+    })
+    setSubmitting(false)
+    if (created) {
+      toast.success(`${created.first_name} added`)
+      onComplete(created)
+    }
+  }
+
+  async function handleAddDemo() {
+    if (loadingDemo) return
+    setLoadingDemo(true)
+    const created = await insertClient({ ...buildDemoClientPayload() })
+    setLoadingDemo(false)
+    if (created) {
+      toast.success("Demo client added — you can delete them later")
+      onComplete(created)
+    }
+  }
+
+  return (
+    <section className="space-y-6">
+      <header className="space-y-2">
+        <div className="flex items-center gap-2 text-[color:var(--fd-cyan)]">
+          <Icon name={Users} size="sm" />
+          <p className="text-micro font-semibold uppercase tracking-wider">Step 1</p>
+        </div>
+        <h1 className="text-2xl font-semibold">Add your first client</h1>
+        <p className="text-sm text-muted-foreground">
+          Takes 30 seconds. You can edit details later.
+        </p>
+      </header>
+
+      <form onSubmit={handleAddReal} className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="first-name">First name</Label>
+            <Input
+              id="first-name"
+              autoComplete="off"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="last-name">Last name</Label>
+            <Input
+              id="last-name"
+              autoComplete="off"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="whatsapp">WhatsApp number</Label>
+          <Input
+            id="whatsapp"
+            type="tel"
+            inputMode="tel"
+            placeholder="+65 9123 4567"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            onBlur={(e) => setWhatsapp(formatWhatsappNumber(e.target.value))}
+          />
+        </div>
+
+        <Button type="submit" className="w-full" disabled={!canSubmit || submitting}>
+          {submitting && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
+          Add real client
+        </Button>
+      </form>
+
+      <div className="flex items-center gap-3 text-micro text-muted-foreground">
+        <span className="h-px flex-1 bg-[color:var(--fd-border)]" />
+        <span>or</span>
+        <span className="h-px flex-1 bg-[color:var(--fd-border)]" />
+      </div>
+
+      <button
+        type="button"
+        onClick={handleAddDemo}
+        disabled={loadingDemo}
+        className="group flex w-full items-start gap-3 rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-surface-hi)] p-4 text-left transition-colors hover:bg-[color:var(--fd-surface-hi)]/80 disabled:opacity-60"
+      >
+        <div className="mt-0.5 rounded-lg bg-[color:var(--fd-cyan)]/10 p-2 text-[color:var(--fd-cyan)]">
+          <Icon name={Sparkles} size="sm" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold">Try with a demo client</p>
+          <p className="text-micro text-muted-foreground">
+            Creates a placeholder so you can explore packages + the booking page
+            right away.
+          </p>
+        </div>
+        {loadingDemo && <Icon name={Loader2} size="sm" className="animate-spin" />}
+      </button>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Step 2 — Create a package
+// ---------------------------------------------------------------------------
+
+function Step2CreatePackage({
+  userId,
+  client,
+  onComplete,
+}: {
+  userId: string
+  client: NewClient
+  onComplete: () => void
+}) {
+  const [selected, setSelected] = useState<PackagePreset>(PACKAGE_PRESETS[0])
+  const [customOpen, setCustomOpen] = useState(false)
+  const [customSessions, setCustomSessions] = useState("12")
+  const [customPrice, setCustomPrice] = useState("900")
+  const [submitting, setSubmitting] = useState(false)
+
+  async function handleCreate() {
+    if (submitting) return
+    const sessions = customOpen ? Number(customSessions) : selected.sessions
+    const price = customOpen ? Number(customPrice) : selected.price
+
+    if (customOpen) {
+      if (!Number.isFinite(sessions) || sessions < 1) {
+        toast.error("Enter a session count of 1 or more")
+        return
+      }
+      if (!Number.isFinite(price) || price < 0) {
+        toast.error("Enter a price of 0 or more")
+        return
+      }
+    }
+
+    setSubmitting(true)
+    let payload
+    try {
+      payload = buildPackagePayload({
+        clientId: client.id,
+        firstName: client.first_name,
+        sessions,
+        price,
+      })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Invalid package")
+      setSubmitting(false)
       return
     }
 
-    router.push("/")
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user || user.id !== userId) {
+      setSubmitting(false)
+      toast.error("Your session changed — please sign in again.")
+      return
+    }
+
+    const { error } = await supabase.from("packages").insert({
+      ...payload,
+      trainer_id: user.id,
+      sessions_used: 0,
+      amount_paid: 0,
+      payment_status: "unpaid",
+      status: "active",
+    })
+
+    setSubmitting(false)
+    if (error) {
+      toast.error(error.message || "Could not create package")
+      return
+    }
+    toast.success("Package created")
+    onComplete()
   }
 
-  function handleSlugChange(value: string) {
-    setSlug(value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
-  }
+  return (
+    <section className="space-y-6">
+      <header className="space-y-2">
+        <div className="flex items-center gap-2 text-[color:var(--fd-cyan)]">
+          <Icon name={Sparkles} size="sm" />
+          <p className="text-micro font-semibold uppercase tracking-wider">Step 2</p>
+        </div>
+        <h1 className="text-2xl font-semibold">
+          Create a package for {client.first_name}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Pick a preset or customise. You can change this anytime.
+        </p>
+      </header>
 
+      <div className="space-y-3" role="radiogroup" aria-label="Package preset">
+        {PACKAGE_PRESETS.map((preset) => {
+          const active = !customOpen && selected.sessions === preset.sessions
+          return (
+            <button
+              key={preset.sessions}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => {
+                setSelected(preset)
+                setCustomOpen(false)
+              }}
+              className={cn(
+                "flex w-full items-center justify-between rounded-xl border p-4 text-left transition-colors",
+                active
+                  ? "border-[color:var(--fd-cyan)] bg-[color:var(--fd-cyan)]/10"
+                  : "border-[color:var(--fd-border)] bg-[color:var(--fd-surface-hi)] hover:bg-[color:var(--fd-surface-hi)]/80",
+              )}
+            >
+              <div>
+                <p className="text-sm font-semibold">{preset.label}</p>
+                <p className="text-micro text-muted-foreground">
+                  {formatPresetLabel(preset)}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  "flex h-5 w-5 items-center justify-center rounded-full border",
+                  active
+                    ? "border-[color:var(--fd-cyan)] bg-[color:var(--fd-cyan)] text-[color:var(--background)]"
+                    : "border-[color:var(--fd-border)]",
+                )}
+              >
+                {active && <Icon name={Check} size="sm" className="size-3" />}
+              </div>
+            </button>
+          )
+        })}
+
+        <button
+          type="button"
+          onClick={() => setCustomOpen((v) => !v)}
+          className={cn(
+            "flex w-full items-center justify-between rounded-xl border p-4 text-left transition-colors",
+            customOpen
+              ? "border-[color:var(--fd-cyan)] bg-[color:var(--fd-cyan)]/10"
+              : "border-[color:var(--fd-border)] bg-[color:var(--fd-surface-hi)] hover:bg-[color:var(--fd-surface-hi)]/80",
+          )}
+        >
+          <div>
+            <p className="text-sm font-semibold">Custom</p>
+            <p className="text-micro text-muted-foreground">
+              Set your own sessions + price
+            </p>
+          </div>
+          <div
+            className={cn(
+              "flex h-5 w-5 items-center justify-center rounded-full border",
+              customOpen
+                ? "border-[color:var(--fd-cyan)] bg-[color:var(--fd-cyan)] text-[color:var(--background)]"
+                : "border-[color:var(--fd-border)]",
+            )}
+          >
+            {customOpen && <Icon name={Check} size="sm" className="size-3" />}
+          </div>
+        </button>
+
+        {customOpen && (
+          <div className="grid grid-cols-2 gap-3 rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-surface)] p-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="custom-sessions">Sessions</Label>
+              <Input
+                id="custom-sessions"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                value={customSessions}
+                onChange={(e) => setCustomSessions(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="custom-price">Price ($)</Label>
+              <Input
+                id="custom-price"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                value={customPrice}
+                onChange={(e) => setCustomPrice(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Button onClick={handleCreate} disabled={submitting} className="w-full">
+        {submitting && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
+        Create package
+      </Button>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Step 3 — Share booking page
+// ---------------------------------------------------------------------------
+
+function Step3ShareLink({
+  slug,
+  onDone,
+}: {
+  slug: string
+  onDone: () => void
+}) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  const baseUrlDisplay = baseUrl.replace(/^https?:\/\//, "")
+  const url = useMemo(() => `${baseUrl.replace(/\/$/, "")}/book/${slug}`, [baseUrl, slug])
+  const [copied, setCopied] = useState(false)
 
-  async function handleCopyLink() {
-    const url = `${baseUrl}/book/${slug || "your-name"}`
+  const waShare = buildWhatsappShareUrl(
+    url,
+    "Hey! Book your training sessions with me here:",
+  )
+
+  async function handleCopy() {
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+      toast.success("Link copied")
     } catch {
-      toast.error("Failed to copy")
+      toast.error("Copy failed — tap to select and copy manually")
     }
   }
 
-  // Step 1 — Welcome
-  if (step === 1) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-sm space-y-8 text-center">
-          <FitDeskLogo size="lg" />
-          <div className="space-y-2">
-            <h1 className="text-2xl font-semibold">Welcome to FitDesk</h1>
-            <p className="text-muted-foreground text-sm">
-              Let&apos;s set up your account in 3 quick steps.
-            </p>
-          </div>
-          <Button className="w-full" onClick={() => setStep(2)}>
-            Get started →
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // Step 2 — Payment setup
-  if (step === 2) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-sm space-y-6">
-          <button
-            type="button"
-            onClick={() => setStep(1)}
-            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Icon name={ArrowLeft} size="sm" />
-            Back
-          </button>
-
-          <p className="text-xs text-muted-foreground">Step 1 of 2</p>
-          <h1 className="text-xl font-semibold">How will clients pay you?</h1>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="paynow">PayNow number</Label>
-              <Input
-                id="paynow"
-                type="text"
-                placeholder="9123 4567 or T12ABC123D"
-                value={paynowDetails}
-                onChange={(e) => setPaynowDetails(e.target.value)}
-              />
-              <p className="text-muted-foreground text-xs">
-                Used in payment reminder messages to clients
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Default payment mode</Label>
-              <Select value={defaultPaymentMode} onValueChange={(v) => setDefaultPaymentMode(v ?? "pay_later")}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pay_later">Pay later — cash, PayNow or bank transfer</SelectItem>
-                  <SelectItem value="pay_now">Pay now — Stripe card payment at booking</SelectItem>
-                  <SelectItem value="from_package">From session package</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <Button className="w-full" onClick={() => setStep(3)}>
-            Next →
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // Step 3 — Booking link
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
+    <section className="space-y-6">
+      <header className="space-y-2">
+        <div className="flex items-center gap-2 text-[color:var(--fd-cyan)]">
+          <Icon name={Share2} size="sm" />
+          <p className="text-micro font-semibold uppercase tracking-wider">Step 3</p>
+        </div>
+        <h1 className="text-2xl font-semibold">Share your booking page</h1>
+        <p className="text-sm text-muted-foreground">
+          Drop this link into your WhatsApp status or a PT group. Clients can
+          self-book from their phone.
+        </p>
+      </header>
+
+      <div className="rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-surface-hi)] p-4 space-y-3">
+        <p className="break-all text-sm font-mono text-white/90">{url}</p>
         <button
           type="button"
-          onClick={() => setStep(2)}
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          onClick={handleCopy}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--fd-border)] bg-[color:var(--fd-surface)] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--fd-surface)]/80"
         >
-          <Icon name={ArrowLeft} size="sm" />
-          Back
+          <Icon name={copied ? Check : Copy} size="sm" />
+          {copied ? "Copied!" : "Copy link"}
         </button>
-
-        <p className="text-xs text-muted-foreground">Step 2 of 2</p>
-        <h1 className="text-xl font-semibold">Your booking link</h1>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="slug">Booking link slug</Label>
-            <Input
-              id="slug"
-              type="text"
-              value={slug}
-              onChange={(e) => handleSlugChange(e.target.value)}
-            />
-          </div>
-
-          <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2.5">
-            <p className="text-sm flex-1 truncate">
-              {baseUrlDisplay}/book/<span className="font-semibold">{slug || "your-name"}</span>
-            </p>
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-              aria-label="Copy link"
-            >
-              {copied ? <Icon name={Check} size="sm" className="text-green-500" /> : <Icon name={Copy} size="sm" />}
-            </button>
-          </div>
-        </div>
-
-        <Button className="w-full" onClick={handleSubmit} disabled={loading}>
-          {loading && <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />}
-          All done — open my dashboard →
-        </Button>
       </div>
-    </div>
+
+      <a
+        href={waShare}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-gradient flex h-11 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors"
+      >
+        <Icon name={Share2} size="sm" />
+        Send to WhatsApp
+      </a>
+
+      <Button
+        variant="ghost"
+        onClick={onDone}
+        className="w-full"
+      >
+        Skip for now
+      </Button>
+
+      <button
+        type="button"
+        onClick={onDone}
+        className="flex w-full items-center justify-center gap-2 text-sm text-[color:var(--fd-cyan)] hover:underline"
+      >
+        <Icon name={PartyPopper} size="sm" />
+        All done — open my dashboard
+      </button>
+    </section>
   )
 }
