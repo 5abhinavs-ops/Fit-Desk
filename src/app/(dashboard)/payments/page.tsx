@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { usePayments, type PaymentWithClient } from "@/hooks/usePayments"
+import { usePaymentConfidence } from "@/hooks/usePaymentConfidence"
 import { PaymentDetailSheet } from "@/components/clients/PaymentDetailSheet"
 import { LogPaymentSheet } from "@/components/clients/LogPaymentSheet"
 import { RecentAutomations } from "@/components/payments/recent-automations"
@@ -10,7 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Plus } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { AlertCircle, CheckCircle2, Clock, Plus } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
 import { handleKeyboardActivation } from "@/lib/a11y"
 import { format } from "date-fns"
@@ -40,6 +42,7 @@ function formatCurrency(amount: number): string {
 
 export default function PaymentsPage() {
   const { data: payments, isLoading } = usePayments()
+  const { data: confidence, isLoading: confidenceLoading } = usePaymentConfidence()
   const [tab, setTab] = useState("all")
   const [detailPayment, setDetailPayment] = useState<PaymentWithClient | null>(null)
   const [logOpen, setLogOpen] = useState(false)
@@ -58,17 +61,6 @@ export default function PaymentsPage() {
     })
   }, [payments, tab])
 
-  const outstanding = useMemo(() => {
-    if (!payments) return { total: 0, overdue: 0, pending: 0 }
-    const pending = payments.filter((p) => p.status === "pending")
-    const overdue = payments.filter((p) => p.status === "overdue")
-    return {
-      total: [...pending, ...overdue].reduce((s, p) => s + p.amount, 0),
-      overdue: overdue.length,
-      pending: pending.length,
-    }
-  }, [payments])
-
   const tabCounts = useMemo(() => {
     if (!payments) return { all: 0, overdue: 0, pending: 0, received: 0 }
     return {
@@ -84,15 +76,50 @@ export default function PaymentsPage() {
       <h1 className="text-2xl font-semibold">Payments</h1>
 
       {/* Summary */}
-      {isLoading ? (
-        <Skeleton className="h-14 rounded-lg" />
+      {confidenceLoading ? (
+        <Skeleton className="h-24 rounded-xl" />
       ) : (
-        <div>
-          <p className="text-2xl font-semibold text-[#FFB347] tabular">{formatCurrency(outstanding.total)} <span className="text-muted-foreground text-body-lg font-normal">outstanding</span></p>
-          <p className="text-muted-foreground text-body-sm">
-            {outstanding.overdue} overdue · {outstanding.pending} pending
-          </p>
-        </div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs font-medium">Confirmed</p>
+                    <p className="mt-1 text-2xl font-semibold tabular text-[#00e096]">
+                      {formatCurrency(confidence?.confirmed ?? 0)}
+                    </p>
+                  </div>
+                  <CheckCircle2 className="h-5 w-5 text-[#00e096]" aria-hidden />
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs font-medium">Client confirmed</p>
+                    <p className="mt-1 text-2xl font-semibold tabular text-amber-500">
+                      {formatCurrency(confidence?.clientConfirmed ?? 0)}
+                    </p>
+                  </div>
+                  <Clock className="h-5 w-5 text-amber-500" aria-hidden />
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs font-medium">Due</p>
+                    <p className="mt-1 text-2xl font-semibold tabular text-muted-foreground">
+                      {formatCurrency(confidence?.due ?? 0)}
+                    </p>
+                  </div>
+                  <AlertCircle className="h-5 w-5 text-muted-foreground" aria-hidden />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Tabs */}

@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 
 interface DashboardStats {
   todayBookingsCount: number;
-  outstandingPayments: number;
   pendingPaymentConfirmations: number;
   lowSessionClients: Array<{
     client_id: string;
@@ -66,8 +65,8 @@ export function useDashboard() {
       // Fetch all dashboard data in parallel
       const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
-      const [bookingsResult, paymentsResult, packagesResult, pendingConfirmResult,
-             revenueResult, priorMonthRevenueResult, weekSessionsResult, overdueResult, attendanceResult, lapsedResult] =
+      const [bookingsResult, packagesResult, pendingConfirmResult, revenueResult,
+             priorMonthRevenueResult, weekSessionsResult, overdueResult, attendanceResult, lapsedResult] =
         await Promise.all([
           supabase
             .from("bookings")
@@ -75,13 +74,6 @@ export function useDashboard() {
             .gte("date_time", `${today}T00:00:00+08:00`)
             .lte("date_time", `${today}T23:59:59+08:00`)
             .in("status", ["confirmed", "pending", "upcoming"]),
-
-          supabase
-            .from("payments")
-            .select("amount")
-            .in("status", ["pending", "overdue"])
-            .order("created_at", { ascending: false })
-            .limit(200),
 
           supabase
             .from("packages")
@@ -143,13 +135,7 @@ export function useDashboard() {
         ]);
 
       if (bookingsResult.error) throw bookingsResult.error;
-      if (paymentsResult.error) throw paymentsResult.error;
       if (packagesResult.error) throw packagesResult.error;
-
-      const outstandingPayments = (paymentsResult.data ?? []).reduce(
-        (sum, p) => sum + p.amount,
-        0
-      );
 
       const lowSessionClients = (packagesResult.data ?? [])
         .filter((pkg) => {
@@ -204,7 +190,6 @@ export function useDashboard() {
 
       return {
         todayBookingsCount: bookingsResult.count ?? 0,
-        outstandingPayments,
         pendingPaymentConfirmations: pendingConfirmResult.count ?? 0,
         lowSessionClients,
         monthlyRevenue,

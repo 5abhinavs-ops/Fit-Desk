@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useDashboard } from "@/hooks/useDashboard"
+import { usePaymentConfidence } from "@/hooks/usePaymentConfidence"
 import { useTodayBookings } from "@/hooks/useBookings"
 import { useClients } from "@/hooks/useClients"
 import { Card, CardContent } from "@/components/ui/card"
@@ -58,6 +59,7 @@ function formatCurrency(amount: number): string {
 export default function DashboardPage() {
   const router = useRouter()
   const { data, isLoading, isError } = useDashboard()
+  const { data: confidence } = usePaymentConfidence()
   const { data: todayBookings, isLoading: todayBookingsLoading } = useTodayBookings()
   const { data: clients } = useClients()
   const [trainerName, setTrainerName] = useState("")
@@ -205,14 +207,20 @@ export default function DashboardPage() {
                   <Icon name={DollarSign} size="sm" className="text-[#FFB347]" />
                   <span className="text-muted-foreground text-body-sm">Outstanding</span>
                 </div>
-                <p className="mt-2 text-3xl font-semibold text-[#FFB347] tabular">
-                  {formatCurrency(data?.outstandingPayments ?? 0)}
+                <p className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-body-sm tabular">
+                  <span className="text-[#00e096]">
+                    Confirmed: {formatCurrency(confidence?.confirmed ?? 0)}
+                  </span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-amber-500">
+                    Client confirmed:{" "}
+                    {formatCurrency(confidence?.clientConfirmed ?? 0)}
+                  </span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground">
+                    Due: {formatCurrency(confidence?.due ?? 0)}
+                  </span>
                 </p>
-                {(data?.pendingPaymentConfirmations ?? 0) > 0 && (
-                  <p className="mt-1 text-body-sm text-[#FFB347]">
-                    {data?.pendingPaymentConfirmations} awaiting confirmation
-                  </p>
-                )}
               </CardContent>
             </Card>
           </div>

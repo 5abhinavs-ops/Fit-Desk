@@ -4,7 +4,6 @@ import { isDashboardEmpty, type DashboardEmptyInput } from "../dashboard-empty"
 function makeData(overrides: Partial<DashboardEmptyInput> = {}): DashboardEmptyInput {
   return {
     todayBookingsCount: 0,
-    outstandingPayments: 0,
     pendingPaymentConfirmations: 0,
     monthlyRevenue: 0,
     sessionsThisWeek: 0,
@@ -36,10 +35,6 @@ describe("isDashboardEmpty", () => {
 
   it("returns false when today has any bookings", () => {
     expect(isDashboardEmpty(makeData({ todayBookingsCount: 1 }))).toBe(false)
-  })
-
-  it("returns false when outstandingPayments > 0", () => {
-    expect(isDashboardEmpty(makeData({ outstandingPayments: 100 }))).toBe(false)
   })
 
   it("returns false when monthlyRevenue > 0", () => {

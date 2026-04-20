@@ -1,6 +1,5 @@
 export interface DashboardEmptyInput {
   todayBookingsCount: number
-  outstandingPayments: number
   pendingPaymentConfirmations: number
   monthlyRevenue: number
   sessionsThisWeek: number
@@ -19,7 +18,6 @@ export function isDashboardEmpty(
   if (data == null) return false
   return (
     data.todayBookingsCount === 0 &&
-    data.outstandingPayments === 0 &&
     data.pendingPaymentConfirmations === 0 &&
     data.monthlyRevenue === 0 &&
     data.sessionsThisWeek === 0 &&
