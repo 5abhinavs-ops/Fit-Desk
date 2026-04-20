@@ -2,8 +2,34 @@ import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { sendTemplateMessage } from "@/lib/whatsapp"
 import { isAllowedImageBuffer } from "@/lib/file-validation"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+
+// Two-tier rate limit:
+//  - Pre-validation: IP-based broad limit so fake tokens can't fan out buckets.
+//  - Post-validation: token-id-based fine limit to stop a valid token being
+//    abused. Attacker-controlled `token` string is never used as the RL key.
+const IP_WINDOW_MS = 60_000
+const IP_MAX_REQUESTS = 20
+const UPLOAD_RATE_LIMIT_WINDOW_MS = 60_000
+const UPLOAD_RATE_LIMIT_MAX = 3
 
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request)
+  const ipRl = checkRateLimit(
+    `upload-payment-proof-ip:${clientIp}`,
+    IP_MAX_REQUESTS,
+    IP_WINDOW_MS,
+  )
+  if (!ipRl.allowed) {
+    return NextResponse.json(
+      { error: "Too many uploads from this network." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(ipRl.retryAfterSeconds) },
+      },
+    )
+  }
+
   const formData = await request.formData()
   const file = formData.get("file") as File | null
   const token = formData.get("token") as string | null
@@ -48,6 +74,23 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Invalid or expired session link" },
       { status: 403 }
+    )
+  }
+
+  // Per-token fine rate limit — only applied after token is validated so
+  // attackers cannot fan out across fabricated token strings.
+  const tokenRl = checkRateLimit(
+    `upload-payment-proof-token:${sessionToken.id}`,
+    UPLOAD_RATE_LIMIT_MAX,
+    UPLOAD_RATE_LIMIT_WINDOW_MS,
+  )
+  if (!tokenRl.allowed) {
+    return NextResponse.json(
+      { error: "Too many uploads. Please wait a minute and try again." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(tokenRl.retryAfterSeconds) },
+      },
     )
   }
 

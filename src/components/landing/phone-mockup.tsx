@@ -30,7 +30,7 @@ export function PhoneMockup(): ReactElement {
   return (
     <div
       aria-hidden
-      className="relative mx-auto w-full max-w-[280px] sm:max-w-[300px] md:max-w-[320px] aspect-[9/19] rounded-[2.5rem] border-8 border-[rgba(255,255,255,0.06)] bg-[#0D1B2A] shadow-2xl shadow-[rgba(0,198,212,0.2)]"
+      className="relative mx-auto w-full max-w-[280px] sm:max-w-[300px] md:max-w-[320px] aspect-[9/19] rounded-[2.5rem] border-8 border-[rgba(255,255,255,0.06)] bg-background shadow-2xl shadow-[rgba(0,198,212,0.2)]"
     >
       {/* Inner screen */}
       <div className="absolute inset-0 rounded-[2rem] overflow-hidden flex flex-col">
@@ -66,11 +66,11 @@ export function PhoneMockup(): ReactElement {
                 name={Calendar}
                 size="sm"
                 className="size-3.5"
-                style={{ color: "#00C6D4" }}
+                style={{ color: "var(--fd-cyan)" }}
               />
               <span
                 className="text-micro font-semibold uppercase tracking-wider"
-                style={{ color: "#00C6D4" }}
+                style={{ color: "var(--fd-cyan)" }}
               >
                 Today
               </span>
@@ -104,18 +104,18 @@ export function PhoneMockup(): ReactElement {
                 name={DollarSign}
                 size="sm"
                 className="size-3.5"
-                style={{ color: "#FFB347" }}
+                style={{ color: "var(--fd-amber)" }}
               />
               <span
                 className="text-micro font-semibold uppercase tracking-wider"
-                style={{ color: "#FFB347" }}
+                style={{ color: "var(--fd-amber)" }}
               >
                 Outstanding
               </span>
             </div>
             <p
               className="text-body-lg font-semibold tabular"
-              style={{ color: "#FFB347" }}
+              style={{ color: "var(--fd-amber)" }}
             >
               $240
             </p>
@@ -136,7 +136,7 @@ export function PhoneMockup(): ReactElement {
                 name={item.icon}
                 size="sm"
                 className={item.active ? "" : "text-muted-foreground"}
-                style={item.active ? { color: "#00C6D4" } : undefined}
+                style={item.active ? { color: "var(--fd-cyan)" } : undefined}
               />
               {/*
                 text-[9px] is a documented exception. text-micro (12px)
@@ -146,7 +146,7 @@ export function PhoneMockup(): ReactElement {
               */}
               <span
                 className={`text-[9px] font-medium ${item.active ? "" : "text-muted-foreground"}`}
-                style={item.active ? { color: "#00C6D4" } : undefined}
+                style={item.active ? { color: "var(--fd-cyan)" } : undefined}
               >
                 {item.label}
               </span>

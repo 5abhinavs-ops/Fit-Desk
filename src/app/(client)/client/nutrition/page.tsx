@@ -161,7 +161,7 @@ export default function ClientNutritionPage() {
 
     setState("saving")
     try {
-      const res = await fetch("/api/nutrition/log", {
+      const res = await fetch("/api/client/nutrition/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

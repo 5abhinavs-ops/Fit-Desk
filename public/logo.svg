@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="48" viewBox="0 0 180 48" role="img" aria-label="FitDesk">
+  <defs>
+    <linearGradient id="fd-bolt" x1="24" y1="8" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#0891B2"/>
+    </linearGradient>
+    <pattern id="fd-dots" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.7" fill="#22D3EE"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="4" width="40" height="40" rx="10" fill="#0C121E"/>
+  <rect x="0" y="4" width="40" height="40" rx="10" fill="url(#fd-dots)" opacity="0.18"/>
+  <path d="M26 10 L10 28 H20 L14 38 L32 22 H22 L26 10 Z" fill="url(#fd-bolt)"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Arial, sans-serif" font-weight="800" font-size="22" letter-spacing="-0.7">
+    <text x="50" y="32" fill="#FFFFFF">Fit</text>
+    <text x="90" y="32" fill="#22D3EE">Desk</text>
+  </g>
+</svg>

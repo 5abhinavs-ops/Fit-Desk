@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
+import { checkRateLimit } from "@/lib/rate-limit"
 import Anthropic from "@anthropic-ai/sdk"
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+
+// AI vision calls are expensive and slow — 1 per 10s per authenticated user.
+const AI_RATE_LIMIT_WINDOW_MS = 10_000
+const AI_RATE_LIMIT_MAX = 1
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -12,6 +17,21 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const rl = checkRateLimit(
+    `nutrition-analyse:${user.id}`,
+    AI_RATE_LIMIT_MAX,
+    AI_RATE_LIMIT_WINDOW_MS,
+  )
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Wait a few seconds and try again." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSeconds) },
+      },
+    )
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY

@@ -40,28 +40,28 @@ function getTheme(status: PaymentStatus): StatusTheme {
   switch (status) {
     case "pending":
       return {
-        color: "#FFB347",
+        color: "var(--fd-amber)",
         background: "rgba(255,179,71,0.08)",
         border: "rgba(255,179,71,0.25)",
         icon: Clock,
       }
     case "overdue":
       return {
-        color: "#FF4C7A",
+        color: "var(--fd-pink)",
         background: "rgba(255,76,122,0.08)",
         border: "rgba(255,76,122,0.25)",
         icon: AlertCircle,
       }
     case "client_confirmed":
       return {
-        color: "#00C6D4",
+        color: "var(--fd-cyan)",
         background: "rgba(0,198,212,0.08)",
         border: "rgba(0,198,212,0.25)",
         icon: CheckCircle,
       }
     case "received":
       return {
-        color: "#00E096",
+        color: "var(--fd-green)",
         background: "rgba(0,224,150,0.08)",
         border: "rgba(0,224,150,0.25)",
         icon: CheckCircle,

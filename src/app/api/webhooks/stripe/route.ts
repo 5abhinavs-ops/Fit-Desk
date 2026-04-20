@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server"
+import * as Sentry from "@sentry/nextjs"
 import { stripe } from "@/lib/stripe"
 import { createServiceClient } from "@/lib/supabase/service"
 import { authoriseCheckoutCompletion } from "@/lib/stripe-webhook-verify"
+import {
+  buildPaymentFailedLogPayload,
+  buildPaymentFailedWhatsappParams,
+} from "@/lib/stripe-payment-failed"
+import { sendTemplateMessage } from "@/lib/whatsapp"
 import Stripe from "stripe"
+
+const PAYMENT_FAILED_TEMPLATE = "pt_payment_failed"
 
 export async function POST(request: Request) {
   const body = await request.text()
@@ -99,6 +107,61 @@ export async function POST(request: Request) {
           "[stripe-webhook] subscription.updated: plan sync failed",
           { customerId, plan, error: error?.message, rowsAffected: count },
         )
+      }
+      break
+    }
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice
+      const customerId = typeof invoice.customer === "string" ? invoice.customer : null
+      if (!customerId) break
+
+      const payload = buildPaymentFailedLogPayload({
+        customerId,
+        invoiceId: invoice.id ?? "",
+        subscriptionId:
+          typeof (invoice as Stripe.Invoice & { subscription?: string | null }).subscription === "string"
+            ? ((invoice as Stripe.Invoice & { subscription?: string | null }).subscription as string)
+            : null,
+        amountDueCents: invoice.amount_due,
+        currency: invoice.currency,
+        attemptCount: invoice.attempt_count,
+        hostedInvoiceUrl: invoice.hosted_invoice_url,
+      })
+
+      // Strip hosted_invoice_url before forwarding to Sentry — that URL is a
+      // one-click payable invoice link and must not land in telemetry.
+      const sentryExtra: Record<string, unknown> = { ...payload }
+      delete sentryExtra.hostedInvoiceUrl
+      Sentry.captureMessage("stripe.invoice.payment_failed", {
+        level: "warning",
+        extra: sentryExtra,
+      })
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, name, whatsapp_number")
+        .eq("stripe_customer_id", customerId)
+        .maybeSingle()
+
+      if (profile?.whatsapp_number && invoice.hosted_invoice_url) {
+        const params = buildPaymentFailedWhatsappParams({
+          ptName: profile.name,
+          amountDueCents: invoice.amount_due,
+          currency: invoice.currency,
+          hostedInvoiceUrl: invoice.hosted_invoice_url,
+        })
+        const result = await sendTemplateMessage({
+          whatsappNumber: profile.whatsapp_number,
+          templateName: PAYMENT_FAILED_TEMPLATE,
+          parameters: params,
+          trainerId: profile.id,
+        })
+        if (!result.success) {
+          Sentry.captureMessage("stripe.payment_failed.whatsapp_send_failed", {
+            level: "warning",
+            extra: { customerId, reason: result.reason, error: result.error },
+          })
+        }
       }
       break
     }

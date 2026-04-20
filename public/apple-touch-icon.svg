@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="FitDesk">
+  <defs>
+    <linearGradient id="fd-bolt-apple" x1="90" y1="36" x2="90" y2="144" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#0891B2"/>
+    </linearGradient>
+    <pattern id="fd-dots-apple" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.6" fill="#22D3EE"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="180" height="180" rx="36" fill="#0C121E"/>
+  <rect x="0" y="0" width="180" height="180" rx="36" fill="url(#fd-dots-apple)" opacity="0.18"/>
+  <path d="M112 40 L52 106 H90 L68 144 L136 82 H96 L112 40 Z" fill="url(#fd-bolt-apple)"/>
+</svg>

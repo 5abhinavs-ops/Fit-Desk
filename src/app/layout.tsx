@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   title: "FitDesk — Personal Training Made Simple",
   description:
     "Mobile-first SaaS for freelance personal trainers. Manage clients, packages, bookings, and payments.",
+  icons: {
+    icon: [
+      { url: "/logo-icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [{ url: "/apple-touch-icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({

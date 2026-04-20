@@ -75,6 +75,11 @@
   --fd-surface-hi: #1A3349;
   --fd-muted:      #7A9BB5;
   --fd-border:     rgba(0,198,212,0.18);
+  /* Brand logo colors — mirror public/logo.svg so the inline React logo stays in sync. */
+  --fd-logo-bg:         #0C121E;
+  --fd-logo-accent:     #22D3EE;
+  --fd-logo-accent-to:  #0891B2;
+  --fd-logo-dot:        rgba(34, 211, 238, 0.18);
   --background:          #0D1B2A;
   --foreground:          #FFFFFF;
   --card:                #12263A;
