@@ -2,11 +2,25 @@ import { NextResponse, type NextRequest } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
+/**
+ * Whitelist of allowed post-auth redirect paths. Prevents open-redirect by
+ * rejecting user-controlled `next` values that point off-app or use protocol
+ * prefixes like `//evil.com` or `javascript:`.
+ */
+function sanitiseNext(raw: string | null): string {
+  if (!raw) return "/"
+  // Must be a same-origin absolute path with no protocol or host jump.
+  if (!raw.startsWith("/")) return "/"
+  if (raw.startsWith("//")) return "/"
+  if (raw.includes(":")) return "/"
+  return raw
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
   const type = searchParams.get("type")
-  const next = searchParams.get("next") ?? "/"
+  const next = sanitiseNext(searchParams.get("next"))
 
   if (code) {
     const cookieStore = await cookies()
@@ -30,15 +44,15 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // If this is a password reset flow, redirect to reset-password page
       if (type === "recovery") {
         return NextResponse.redirect(`${origin}/reset-password`)
       }
-      // For email confirmation and other flows
       return NextResponse.redirect(`${origin}${next}`)
     }
   }
 
-  // If something went wrong, send to login with error
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
+  const errorLoginPath = next.startsWith("/client") ? "/client/login" : "/login"
+  return NextResponse.redirect(
+    `${origin}${errorLoginPath}?error=auth_callback_failed`,
+  )
 }

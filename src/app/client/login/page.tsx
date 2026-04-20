@@ -1,87 +1,38 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { FitDeskLogo } from "@/components/shared/fitdesk-logo"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import { Icon } from "@/components/ui/icon"
-import { toast } from "sonner"
 
 export default function ClientLoginPage() {
-  const router = useRouter()
-  const [step, setStep] = useState<1 | 2>(1)
-  const [whatsappNumber, setWhatsappNumber] = useState("")
-  const [otp, setOtp] = useState("")
+  const [phone, setPhone] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [resendTimer, setResendTimer] = useState(0)
+  const [submitted, setSubmitted] = useState(false)
 
-  useEffect(() => {
-    if (resendTimer <= 0) return
-    const interval = setInterval(() => {
-      setResendTimer((t) => t - 1)
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [resendTimer])
-
-  const sendOtp = useCallback(async () => {
+  async function handleSubmit() {
     setLoading(true)
     setError("")
 
     try {
-      const res = await fetch("/api/client-auth/send-otp", {
+      const res = await fetch("/api/auth/send-magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ whatsapp_number: whatsappNumber }),
+        body: JSON.stringify({ phone }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Something went wrong")
+        setError(data.error || "Something went wrong. Try again.")
         return
       }
 
-      setStep(2)
-      setResendTimer(60)
-    } catch {
-      setError("Network error. Try again.")
-    } finally {
-      setLoading(false)
-    }
-  }, [whatsappNumber])
-
-  async function handleVerify() {
-    setLoading(true)
-    setError("")
-
-    try {
-      const res = await fetch("/api/client-auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ whatsapp_number: whatsappNumber, otp }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || "Invalid code")
-        return
-      }
-
-      // Set session
-      const supabase = createClient()
-      await supabase.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-      })
-
-      toast.success(`Welcome, ${data.client.first_name}!`)
-      router.push("/client")
+      setSubmitted(true)
     } catch {
       setError("Network error. Try again.")
     } finally {
@@ -96,114 +47,69 @@ export default function ClientLoginPage() {
           <FitDeskLogo size="lg" />
         </div>
 
-        {step === 1 && (
+        {!submitted ? (
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl font-semibold">Welcome back</h1>
-              <p className="text-muted-foreground mt-1 text-body-lg">
-                Enter your WhatsApp number to sign in
+              <h1 className="text-2xl font-semibold">Login to FitDesk</h1>
+              <p className="text-muted-foreground mt-2 text-body-lg">
+                Enter your phone number. We&apos;ll send you an SMS with a secure
+                login link.
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp number</Label>
+              <Label htmlFor="phone">Phone number</Label>
               <Input
-                id="whatsapp"
+                id="phone"
                 type="tel"
                 placeholder="+65 9123 4567"
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 disabled={loading}
+                autoComplete="tel"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-[#FF4C7A]">{error}</p>
-            )}
-
-            <Button
-              className="btn-gradient w-full"
-              onClick={sendOtp}
-              disabled={loading || whatsappNumber.length < 8}
-            >
-              {loading ? (
-                <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />
-              ) : null}
-              Send code
-            </Button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h1 className="text-2xl font-semibold">Check your WhatsApp</h1>
-              <p className="text-muted-foreground mt-1 text-body-lg">
-                We sent a 6-digit code to {whatsappNumber}
+              <p className="text-sm text-[#FF4C7A]" role="alert">
+                {error}
               </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="otp">Verification code</Label>
-              <Input
-                id="otp"
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                placeholder="000000"
-                value={otp}
-                onChange={(e) =>
-                  setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                }
-                autoFocus
-                disabled={loading}
-                className="text-center text-2xl tracking-[0.3em]"
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-[#FF4C7A]">{error}</p>
             )}
 
             <Button
               className="btn-gradient w-full"
-              onClick={handleVerify}
-              disabled={loading || otp.length !== 6}
+              onClick={handleSubmit}
+              disabled={loading || phone.trim().length < 8}
             >
               {loading ? (
                 <Icon name={Loader2} size="sm" className="mr-2 animate-spin" />
               ) : null}
-              Verify
+              Send login link
             </Button>
 
-            <div className="flex items-center justify-between text-sm">
-              <button
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => {
-                  setStep(1)
-                  setOtp("")
-                  setError("")
-                }}
-              >
-                Use a different number
-              </button>
-
-              {resendTimer > 0 ? (
-                <span className="text-muted-foreground">
-                  {resendTimer}s
-                </span>
-              ) : (
-                <button
-                  className="text-primary hover:underline"
-                  onClick={() => {
-                    sendOtp()
-                  }}
-                  disabled={loading}
-                >
-                  Resend code
-                </button>
-              )}
-            </div>
+            <p className="text-muted-foreground text-center text-xs">
+              No code to type — just tap the link.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4 text-center">
+            <h1 className="text-2xl font-semibold">Check your phone</h1>
+            <p className="text-muted-foreground text-body-lg">
+              Check your phone for an SMS. Tap the link to log in instantly.
+              (Link expires in 10 minutes)
+            </p>
+            <p className="text-muted-foreground text-xs">
+              No code to type — just tap the link.
+            </p>
+            <button
+              className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+              onClick={() => {
+                setSubmitted(false)
+                setPhone("")
+              }}
+            >
+              Use a different number
+            </button>
           </div>
         )}
       </div>
