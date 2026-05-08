@@ -338,3 +338,29 @@
     }
   }
 }
+
+/* ─── Landing page animations ─────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .fd-hero-enter {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fd-hero-enter 600ms ease-out forwards;
+  }
+  @keyframes fd-hero-enter {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fd-cta-pulse-once {
+    animation: fd-cta-pulse 360ms ease-out 1 1000ms both;
+  }
+  @keyframes fd-cta-pulse {
+    0%   { transform: scale(1); }
+    55%  { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-hero-enter { opacity: 1; transform: none; animation: none; }
+  .fd-cta-pulse-once { animation: none; }
+}

@@ -7,14 +7,16 @@ export function PhoneMockup({
   subtitle,
   children,
   className,
+  compact = false,
 }: {
   title?: string
   subtitle?: string
   children: React.ReactNode
   className?: string
+  compact?: boolean
 }) {
   return (
-    <div className={cn("mx-auto w-full max-w-[360px]", className)}>
+    <div className={cn("mx-auto w-full max-w-[360px]", compact && "scale-[0.82] origin-top", className)}>
       <div className="relative overflow-hidden rounded-[2.25rem] border border-border/60 bg-gradient-to-b from-background to-card shadow-[0_20px_80px_-40px_hsl(var(--foreground)/0.35)]">
         <div className="mx-auto h-7 w-36 rounded-b-2xl bg-background/70" />
         <div className="px-4 pb-4 pt-3">

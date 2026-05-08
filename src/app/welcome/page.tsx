@@ -14,6 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { cn } from "@/lib/utils"
 import { PainPoints } from "./_components/pain-points"
 import {
   MiniRow,
@@ -24,6 +25,7 @@ import {
 import { StickyNav } from "./_components/sticky-nav"
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://fitdesk.pro"),
   title: "FitDesk — One simple dashboard for trainers",
   description:
     "Know who paid, who owes, and how many sessions are left. FitDesk gives personal trainers one simple mobile dashboard to track client packages, completed sessions, pending payments, and monthly income — without spreadsheets or WhatsApp chaos.",
@@ -34,34 +36,6 @@ export default function WelcomePage() {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-card text-foreground">
       <StickyNav />
 
-      {/* Animation styles (scoped to this page) */}
-      <style>{`
-        @media (prefers-reduced-motion: no-preference) {
-          .fd-hero-enter {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fd-hero-enter 600ms ease-out forwards;
-          }
-          @keyframes fd-hero-enter {
-            to { opacity: 1; transform: translateY(0); }
-          }
-
-          .fd-cta-pulse-once {
-            animation: fd-cta-pulse 360ms ease-out 1 1000ms both;
-          }
-          @keyframes fd-cta-pulse {
-            0% { transform: scale(1); }
-            55% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .fd-hero-enter { opacity: 1; transform: none; animation: none; }
-          .fd-cta-pulse-once { animation: none; }
-        }
-      `}</style>
-
       <main className="pt-14">
         {/* ------------------------------------------------------------------ */}
         {/* SECTION 1 — Above the Fold                                          */}
@@ -69,7 +43,7 @@ export default function WelcomePage() {
         <section className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-primary/10 via-primary/0 to-transparent" />
 
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 md:items-center md:py-18">
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 md:items-center md:py-20">
             <div className="fd-hero-enter">
               <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                 Know who paid, who owes, and how many sessions are left.
@@ -355,7 +329,7 @@ export default function WelcomePage() {
                 {
                   label: "Active Clients Overview",
                   mock: (
-                    <PhoneMockup className="max-w-none">
+                    <PhoneMockup className="max-w-none" compact>
                       <div className="grid grid-cols-2 gap-2">
                         <MockCard label="Active" value="12" />
                         <MockCard label="Paused" value="2" tone="warning" />
@@ -366,7 +340,7 @@ export default function WelcomePage() {
                 {
                   label: "Session Balance Per Client",
                   mock: (
-                    <PhoneMockup className="max-w-none">
+                    <PhoneMockup className="max-w-none" compact>
                       <MiniRow left="Ayesha" right={<span className="text-sm font-bold tabular">3 left</span>} />
                       <MiniRow left="Ben" right={<span className="text-sm font-bold tabular">1 left</span>} />
                       <MiniRow left="Nur" right={<span className="text-sm font-bold tabular">6 left</span>} />
@@ -376,7 +350,7 @@ export default function WelcomePage() {
                 {
                   label: "Pending Payment List",
                   mock: (
-                    <PhoneMockup className="max-w-none">
+                    <PhoneMockup className="max-w-none" compact>
                       <MiniRow left="Cheryl" right={<StatusPill tone="danger" text="Owing" />} />
                       <MiniRow left="Kai" right={<StatusPill tone="warning" text="Partial" />} />
                       <MiniRow left="Jia Wei" right={<StatusPill tone="success" text="Paid" />} />
@@ -386,7 +360,7 @@ export default function WelcomePage() {
                 {
                   label: "Monthly Income Summary",
                   mock: (
-                    <PhoneMockup className="max-w-none">
+                    <PhoneMockup className="max-w-none" compact>
                       <MockCard label="Collected" value="$2,400" tone="success" />
                       <MockCard label="Pending" value="$840" tone="warning" />
                     </PhoneMockup>
@@ -395,7 +369,7 @@ export default function WelcomePage() {
                 {
                   label: "Package Renewal Alerts",
                   mock: (
-                    <PhoneMockup className="max-w-none">
+                    <PhoneMockup className="max-w-none" compact>
                       <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
                         <div className="flex items-center justify-between">
                           <div className="text-sm font-semibold">Renewals</div>
@@ -410,12 +384,18 @@ export default function WelcomePage() {
                     </PhoneMockup>
                   ),
                 },
-              ].map((card) => (
-                <div key={card.label} className="space-y-2">
-                  <div className="rounded-2xl border border-border/60 bg-background/40 p-3">
-                    <div className="[&_.rounded-\\[2\\.25rem\\]]:rounded-3xl [&_.rounded-b-2xl]:rounded-b-xl [&_.h-7]:h-5 [&_.w-36]:w-28 [&_.px-4]:px-3 [&_.pb-4]:pb-3 [&_.pt-3]:pt-2 [&_.space-y-3]:space-y-2">
-                      {card.mock}
-                    </div>
+              ].map((card, idx, arr) => (
+                <div
+                  key={card.label}
+                  className={cn(
+                    "space-y-2",
+                    idx === arr.length - 1 && arr.length % 2 !== 0
+                      ? "col-span-2 md:col-span-1 md:col-start-2"
+                      : ""
+                  )}
+                >
+                  <div className="rounded-2xl border border-border/60 bg-background/40 p-3 overflow-hidden">
+                    {card.mock}
                   </div>
                   <div className="text-center text-xs font-semibold text-muted-foreground">
                     {card.label}
@@ -609,20 +589,20 @@ export default function WelcomePage() {
         {/* ------------------------------------------------------------------ */}
         <footer className="border-t border-border/50 bg-background/40">
           <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div>© 2025 FitDesk</div>
+            <div>© {new Date().getFullYear()} FitDesk</div>
             <div className="flex items-center justify-center gap-4">
-              <a
-                href="#"
+              <Link
+                href="/privacy"
                 className="rounded-md outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 Privacy Policy
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="/terms"
                 className="rounded-md outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 Terms of Service
-              </a>
+              </Link>
             </div>
           </div>
         </footer>
