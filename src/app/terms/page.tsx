@@ -1,7 +1,5 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { TopNav } from "@/components/landing/top-nav"
-import { Footer } from "@/components/landing/footer"
 
 export const metadata: Metadata = {
   title: "Terms of Service — FitDesk",
@@ -14,7 +12,19 @@ const LAST_UPDATED = "21 April 2026"
 export default function TermsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <TopNav />
+      <header className="border-b border-border/60 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/40">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Link href="/welcome" className="text-sm font-semibold tracking-tight">
+            FitDesk
+          </Link>
+          <Link
+            href="/login"
+            className="btn-gradient inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] px-2.5 text-micro font-semibold whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px"
+          >
+            Start Free
+          </Link>
+        </div>
+      </header>
       <main className="flex-1">
         <article className="mx-auto max-w-3xl px-6 py-12 prose-legal">
           <header className="mb-8 border-b border-border pb-6">
@@ -197,7 +207,19 @@ export default function TermsPage() {
           </section>
         </article>
       </main>
-      <Footer />
+      <footer className="border-t border-border/60 py-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 text-sm text-muted-foreground sm:px-6">
+          <div>© 2025 FitDesk</div>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>
+            <Link href="/welcome" className="hover:text-foreground">
+              Welcome
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

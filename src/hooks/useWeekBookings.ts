@@ -20,15 +20,20 @@ export function getWeekStart(weekOffset: number): string {
   return format(targetMonday, "yyyy-MM-dd")
 }
 
+interface UseWeekBookingsOptions {
+  enabled?: boolean
+}
+
 /**
  * Fetches all bookings for a Mon–Sun week (SGT timezone).
  * Used for the week heatmap — no client join needed.
  */
-export function useWeekBookings(weekStart: string) {
+export function useWeekBookings(weekStart: string, options?: UseWeekBookingsOptions) {
   const supabase = createClient()
 
   return useQuery({
     queryKey: ["weekBookings", weekStart],
+    enabled: options?.enabled,
     queryFn: async (): Promise<Booking[]> => {
       const sundayDate = format(addDays(parseISO(weekStart), 6), "yyyy-MM-dd")
       const { data, error } = await supabase

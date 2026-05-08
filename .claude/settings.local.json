@@ -21,7 +21,18 @@
       "Bash(npx -y @modelcontextprotocol/server-filesystem --help)",
       "Bash(where npx:*)",
       "Bash(npx tsc:*)",
-      "Read(//c/Users/HP_Demo/AppData/Local/Temp/claude/C--Users-HP-Demo-AI-Projects-FitDesk/e2d97e72-0c16-4c46-8b37-2f63adbd26a0/tasks/**)"
+      "Read(//c/Users/HP_Demo/AppData/Local/Temp/claude/C--Users-HP-Demo-AI-Projects-FitDesk/e2d97e72-0c16-4c46-8b37-2f63adbd26a0/tasks/**)",
+      "Bash(xargs ls *)",
+      "Bash(xargs grep *)",
+      "Bash(grep -rn \"\\\\.select\\\\\\(.*\\\\+\\\\|\\\\.eq\\\\\\(.*\\\\+\\\\|query.*\\\\${\\\\|sql.*\\\\${\" \"C:/Users/HP_Demo/Desktop/AI Projects/FitDesk/src/app/api/\" --include=\"*.ts\")",
+      "Bash(npm test *)",
+      "Bash(mkdir -p ~/.claude/session-data)",
+      "Read(//c/Users/HP_Demo/.claude/session-data/**)",
+      "Bash(npx vitest *)",
+      "Bash(xxd)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }

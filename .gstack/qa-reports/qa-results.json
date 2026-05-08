@@ -1,0 +1,198 @@
+{
+  "issues": [
+    {
+      "id": "ISSUE-001",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /login",
+      "details": "FitDeskSign in to your accountEmailPasswordForgot password?Sign inDon't have an account? Sign up(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/",
+      "route": "/login"
+    },
+    {
+      "id": "ISSUE-002",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /signup",
+      "details": "FitDeskCreate your trainer accountFull nameWhatsApp numberEmailPasswordConfirm passwordCreate accountAlready have an account? Sign in(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1",
+      "route": "/signup"
+    },
+    {
+      "id": "ISSUE-003",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /reset-password",
+      "details": "Set new passwordChoose a new password for your account.New passwordConfirm passwordUpdate password(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\",
+      "route": "/reset-password"
+    },
+    {
+      "id": "ISSUE-004",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /onboarding",
+      "details": "FitDeskSign in to your accountEmailPasswordForgot password?Sign inDon't have an account? Sign up(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/",
+      "route": "/onboarding"
+    },
+    {
+      "id": "ISSUE-005",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /book/demo",
+      "details": "Trainer not foundThis booking link doesn't seem to be active.(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/_next/static/chunks/0a~ybhvxd4oie.j",
+      "route": "/book/demo"
+    },
+    {
+      "id": "ISSUE-006",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /upgrade",
+      "details": "Upgrade to FitDesk ProMonthlyAnnual$19/monthUnlimited clientsWhatsApp session reminders (24h + 1h)Automated payment chasers (day 1, 3, 7)Cash, PayNow, bank transfer trackingPackage session countdownPu",
+      "route": "/upgrade"
+    },
+    {
+      "id": "ISSUE-007",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /upgrade/success",
+      "details": "You're on Pro!Unlimited clientsWhatsApp remindersAutomated payment chasersPublic booking linkGo to dashboard(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:",
+      "route": "/upgrade/success"
+    },
+    {
+      "id": "ISSUE-008",
+      "severity": "medium",
+      "category": "ux",
+      "title": "No forgot password link on login page",
+      "details": "Users who forget password have no recovery path from login",
+      "route": "/login"
+    },
+    {
+      "id": "ISSUE-009",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /login",
+      "details": "FitDeskSign in to your accountEmailPasswordForgot password?Sign inDon't have an account? Sign up(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/",
+      "route": "/login"
+    },
+    {
+      "id": "ISSUE-010",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /login",
+      "details": "FitDeskSign in to your accountEmailPasswordForgot password?Sign inDon't have an account? Sign up(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/",
+      "route": "/login"
+    },
+    {
+      "id": "ISSUE-011",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /login",
+      "details": "FitDeskSign in to your accountEmailPasswordForgot password?Sign inDon't have an account? Sign up(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/",
+      "route": "/login"
+    },
+    {
+      "id": "ISSUE-012",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /signup",
+      "details": "FitDeskCreate your trainer accountFull nameWhatsApp numberEmailPasswordConfirm passwordCreate accountAlready have an account? Sign in(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1",
+      "route": "/signup"
+    },
+    {
+      "id": "ISSUE-013",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /signup",
+      "details": "FitDeskCreate your trainer accountFull nameWhatsApp numberEmailPasswordConfirm passwordCreate accountAlready have an account? Sign in(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1",
+      "route": "/signup"
+    },
+    {
+      "id": "ISSUE-014",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /signup",
+      "details": "FitDeskCreate your trainer accountFull nameWhatsApp numberEmailPasswordConfirm passwordCreate accountAlready have an account? Sign in(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1",
+      "route": "/signup"
+    },
+    {
+      "id": "ISSUE-015",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /upgrade",
+      "details": "Upgrade to FitDesk ProMonthlyAnnual$19/monthUnlimited clientsWhatsApp session reminders (24h + 1h)Automated payment chasers (day 1, 3, 7)Cash, PayNow, bank transfer trackingPackage session countdownPu",
+      "route": "/upgrade"
+    },
+    {
+      "id": "ISSUE-016",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /upgrade",
+      "details": "Upgrade to FitDesk ProMonthlyAnnual$19/monthUnlimited clientsWhatsApp session reminders (24h + 1h)Automated payment chasers (day 1, 3, 7)Cash, PayNow, bank transfer trackingPackage session countdownPu",
+      "route": "/upgrade"
+    },
+    {
+      "id": "ISSUE-017",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /upgrade",
+      "details": "Upgrade to FitDesk ProMonthlyAnnual$19/monthUnlimited clientsWhatsApp session reminders (24h + 1h)Automated payment chasers (day 1, 3, 7)Cash, PayNow, bank transfer trackingPackage session countdownPu",
+      "route": "/upgrade"
+    },
+    {
+      "id": "ISSUE-018",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /book/demo",
+      "details": "Trainer not foundThis booking link doesn't seem to be active.(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/_next/static/chunks/0a~ybhvxd4oie.j",
+      "route": "/book/demo"
+    },
+    {
+      "id": "ISSUE-019",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /book/demo",
+      "details": "Trainer not foundThis booking link doesn't seem to be active.(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/_next/static/chunks/0a~ybhvxd4oie.j",
+      "route": "/book/demo"
+    },
+    {
+      "id": "ISSUE-020",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /book/demo",
+      "details": "Trainer not foundThis booking link doesn't seem to be active.(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/_next/static/chunks/0a~ybhvxd4oie.j",
+      "route": "/book/demo"
+    },
+    {
+      "id": "ISSUE-021",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /onboarding",
+      "details": "FitDeskSign in to your accountEmailPasswordForgot password?Sign inDon't have an account? Sign up(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/",
+      "route": "/onboarding"
+    },
+    {
+      "id": "ISSUE-022",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /onboarding",
+      "details": "FitDeskSign in to your accountEmailPasswordForgot password?Sign inDon't have an account? Sign up(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/",
+      "route": "/onboarding"
+    },
+    {
+      "id": "ISSUE-023",
+      "severity": "blocker",
+      "category": "functional",
+      "title": "Application error visible on /onboarding",
+      "details": "FitDeskSign in to your accountEmailPasswordForgot password?Sign inDon't have an account? Sign up(self.__next_f=self.__next_f||[]).push([0])self.__next_f.push([1,\"1:\\\"$Sreact.fragment\\\"\\n2:I[18928,[\\\"/",
+      "route": "/onboarding"
+    },
+    {
+      "id": "ISSUE-024",
+      "severity": "medium",
+      "category": "accessibility",
+      "title": "Touch targets below 44px minimum",
+      "details": "3 interactive elements under 44px height on /login: \"Forgot password?\" 93x17, \"Sign in\" 358x32, \"Sign up\" 46x16",
+      "route": "/login"
+    }
+  ],
+  "consoleErrors": [],
+  "timestamp": "2026-04-08T16:38:10.187Z"
+}

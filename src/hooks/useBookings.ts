@@ -4,11 +4,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { Booking, BookingStatus } from "@/types/database";
 
-export function useBookings(date?: string) {
+interface UseBookingsOptions {
+  enabled?: boolean;
+}
+
+export function useBookings(date?: string, options?: UseBookingsOptions) {
   const supabase = createClient();
 
   return useQuery({
     queryKey: ["bookings", date],
+    enabled: options?.enabled,
     queryFn: async (): Promise<Booking[]> => {
       let query = supabase
         .from("bookings")
