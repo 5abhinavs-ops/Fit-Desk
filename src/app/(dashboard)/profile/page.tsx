@@ -176,7 +176,7 @@ export default function ProfilePage() {
         <button onClick={() => router.push("/analytics")}
           className="flex items-center gap-3 rounded-xl border p-4 hover:bg-accent transition-colors">
           <Icon name={BarChart2} size="md" className="text-[#8B5CF6]" />
-          <span className="text-sm font-semibold">Analytics</span>
+          <span className="text-sm font-semibold">Business analytics</span>
         </button>
       </div>
 

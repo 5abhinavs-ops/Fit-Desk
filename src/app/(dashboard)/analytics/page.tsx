@@ -154,7 +154,7 @@ export default function AnalyticsPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Icon name={Users} size="sm" className="text-[#00C6D4]" />
-              <span className="text-muted-foreground text-body-sm">Sessions completed</span>
+              <span className="text-muted-foreground text-body-sm">Sessions this month</span>
             </div>
             <p className="mt-2 text-3xl font-semibold tabular">{data?.sessionsCompleted ?? 0}</p>
           </CardContent>
@@ -164,7 +164,7 @@ export default function AnalyticsPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Icon name={UserX} size="sm" className={(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : "text-muted-foreground"} />
-              <span className="text-muted-foreground text-body-sm">No-show rate</span>
+              <span className="text-muted-foreground text-body-sm">No-show rate this month</span>
             </div>
             <p className={`mt-2 text-3xl font-semibold tabular ${(data?.noShowRate ?? 0) > 10 ? "text-[#FF4C7A]" : ""}`}>
               {data?.noShowRate ?? 0}%
@@ -178,8 +178,9 @@ export default function AnalyticsPage() {
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <Icon name={AlertCircle} size="sm" className="text-[#FFB347]" />
-            <span className="text-muted-foreground text-body-sm">Outstanding payments</span>
+            <span className="text-muted-foreground text-body-sm">Total outstanding</span>
           </div>
+          <p className="text-xs text-muted-foreground mt-0.5">All unpaid across all time</p>
           <p className="mt-2 text-2xl font-semibold text-[#FFB347] tabular">
             {formatCurrency(data?.outstandingTotal ?? 0)}
           </p>

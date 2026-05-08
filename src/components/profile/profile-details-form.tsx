@@ -174,7 +174,7 @@ export function ProfileDetailsForm({
         />
       </div>
       <div id="profile-field-pricing" className="scroll-mt-24 space-y-2">
-        <Label htmlFor="pricingFrom">Pricing from (SGD)</Label>
+        <Label htmlFor="pricingFrom">Price per session (SGD)</Label>
         <Input
           id="pricingFrom"
           type="number"
