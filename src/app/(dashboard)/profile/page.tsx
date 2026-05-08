@@ -57,6 +57,20 @@ export default function ProfilePage() {
     loadProfile()
   }, [])
 
+  // Scroll to #availability after data loads — hash scroll fires on page load
+  // before async content renders, leaving the page at the wrong scroll position.
+  // Waiting for loading=false ensures full page height is established first.
+  useEffect(() => {
+    if (loading) return
+    if (typeof window === "undefined") return
+    if (window.location.hash !== "#availability") return
+    const timer = setTimeout(() => {
+      const el = document.getElementById("availability")
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [loading])
+
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
