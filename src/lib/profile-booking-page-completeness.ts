@@ -40,7 +40,7 @@ export function getBookingPageCompleteness(profile: Profile): {
   const items: BookingPageCompletenessItem[] = [
     {
       key: "photo",
-      label: "Profile photo",
+      label: "Profile picture",
       done: hasPhoto,
       scrollTargetId: "profile-field-photo",
       focusElementId: "profile-photo-input",
@@ -72,7 +72,7 @@ export function getBookingPageCompleteness(profile: Profile): {
     },
     {
       key: "pricing_from",
-      label: "Pricing from",
+      label: "Price per session",
       done: hasPricing,
       scrollTargetId: "profile-field-pricing",
       focusElementId: "pricingFrom",

@@ -111,9 +111,9 @@ export function ProfilePhotoUpload({
           ) : (
             <Icon name={Camera} size="lg" className="size-10 text-muted-foreground" />
           )}
-          <span className="text-sm font-semibold">Tap to add photo</span>
+          <span className="text-sm font-semibold">Upload your profile picture</span>
           <span className="text-center text-xs text-muted-foreground">
-            JPG, PNG, WebP or GIF — max 5MB. Shown on your booking page.
+            Appears on your public booking page so clients can recognise you before their session. JPG, PNG, WebP or GIF — max 5MB.
           </span>
         </label>
       ) : null}

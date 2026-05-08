@@ -181,6 +181,10 @@ export default function ProfilePage() {
       </div>
 
       {/* Section 1 — Trainer profile */}
+      <h2 className="text-lg font-semibold">Profile picture</h2>
+      <p className="text-xs text-muted-foreground -mt-4">
+        Shown on your public booking page so clients can recognise you.
+      </p>
       <ProfilePhotoUpload
         profileId={profile.id}
         name={profile.name}
